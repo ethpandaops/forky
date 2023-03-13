@@ -1,0 +1,3 @@
+listenAddr: ":5555"
+logging: "debug" # panic,fatal,warm,info,debug,trace
+metricsAddr: ":9090"
