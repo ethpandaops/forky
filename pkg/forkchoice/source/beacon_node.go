@@ -147,6 +147,10 @@ func (b *BeaconNode) Ready(ctx context.Context) bool {
 		return false
 	}
 
+	if b.wallclock == nil {
+		return false
+	}
+
 	return true
 }
 
@@ -170,7 +174,7 @@ func (b *BeaconNode) bootstrap(ctx context.Context) error {
 		return errors.New("failed to fetch SECONDS_PER_SLOT")
 	}
 
-	b.secondsPerSlot = time.Duration(secondsPerSlot.(time.Duration)) * time.Second
+	b.secondsPerSlot = time.Duration(secondsPerSlot.(time.Duration))
 
 	slotsPerEpoch, ok := spec["SLOTS_PER_EPOCH"]
 	if !ok {
@@ -232,6 +236,7 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 
 		frame := &types.Frame{
 			Metadata: types.FrameMetadata{
+				Node:           b.Name(),
 				ID:             uuid.New(),
 				FetchedAt:      fetchedAt,
 				WallClockSlot:  phase0.Slot(slot.Number()),

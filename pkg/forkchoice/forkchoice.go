@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ethpandaops/forkchoice/pkg/forkchoice/api"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/source"
 	"github.com/ethpandaops/forkchoice/pkg/version"
@@ -19,7 +20,8 @@ type Server struct {
 	log *logrus.Logger
 	Cfg Config
 
-	svc *service.ForkChoice
+	svc  *service.ForkChoice
+	http *api.HTTP
 }
 
 func NewServer(log *logrus.Logger, conf *Config) *Server {
@@ -40,10 +42,13 @@ func NewServer(log *logrus.Logger, conf *Config) *Server {
 
 	svc := service.NewForkChoice(log, sources)
 
+	http := api.NewHTTP(log, svc)
+
 	s := &Server{
-		Cfg: *conf,
-		log: log,
-		svc: svc,
+		Cfg:  *conf,
+		log:  log,
+		svc:  svc,
+		http: http,
 	}
 
 	return s
@@ -73,6 +78,10 @@ func (s *Server) Start(ctx context.Context) error {
 		Addr:              s.Cfg.ListenAddr,
 		ReadHeaderTimeout: 3 * time.Minute,
 		WriteTimeout:      15 * time.Minute,
+	}
+
+	if err := s.http.BindToRouter(ctx, router); err != nil {
+		return err
 	}
 
 	server.Handler = router

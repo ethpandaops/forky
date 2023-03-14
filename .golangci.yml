@@ -56,7 +56,6 @@ linters:
     - revive
     - staticcheck
     - stylecheck
-    - tagliatelle
     - thelper
     - tparallel
     - typecheck

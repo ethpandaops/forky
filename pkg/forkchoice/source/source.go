@@ -30,7 +30,7 @@ var _ = Source(&BeaconNode{})
 
 func NewSource(log logrus.FieldLogger, name string, sourceType string, config RawConfig) (Source, error) {
 	switch sourceType {
-	case "beacon_node":
+	case BeaconNodeType:
 		conf := BeaconNodeConfig{}
 
 		if err := config.Unmarshal(&conf); err != nil {
