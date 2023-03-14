@@ -1,3 +1,11 @@
 listenAddr: ":5555"
 logging: "debug" # panic,fatal,warm,info,debug,trace
 metricsAddr: ":9090"
+
+sources:
+  - name: "example"
+    type: "beacon_node"
+    config:
+      beaconAddress: "http://localhost:5052"
+      pollingInterval: "12s"
+      cacheTtlSeconds: 300

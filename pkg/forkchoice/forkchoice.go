@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
+	"github.com/ethpandaops/forkchoice/pkg/forkchoice/source"
 	"github.com/ethpandaops/forkchoice/pkg/version"
 	static "github.com/ethpandaops/forkchoice/web"
 	"github.com/julienschmidt/httprouter"
@@ -16,6 +18,8 @@ import (
 type Server struct {
 	log *logrus.Logger
 	Cfg Config
+
+	svc *service.ForkChoice
 }
 
 func NewServer(log *logrus.Logger, conf *Config) *Server {
@@ -23,16 +27,34 @@ func NewServer(log *logrus.Logger, conf *Config) *Server {
 		log.Fatalf("invalid config: %s", err)
 	}
 
+	// Create our sources.
+	sources := make(map[string]source.Source)
+	for _, s := range conf.Sources {
+		source, err := source.NewSource(log, s.Name, s.Type, s.Config)
+		if err != nil {
+			log.Fatalf("failed to create source %s: %s", s.Name, err)
+		}
+
+		sources[s.Name] = source
+	}
+
+	svc := service.NewForkChoice(log, sources)
+
 	s := &Server{
 		Cfg: *conf,
 		log: log,
+		svc: svc,
 	}
 
 	return s
 }
 
 func (s *Server) Start(ctx context.Context) error {
-	s.log.Infof("Starting Checkpointz server (%s)", version.Short())
+	s.log.Infof("Starting forkchoice server (%s)", version.Short())
+
+	if err := s.svc.Start(ctx); err != nil {
+		return err
+	}
 
 	router := httprouter.New()
 
