@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
-	"github.com/google/uuid"
+	"github.com/ethpandaops/forkchoice/pkg/yaml"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,12 +23,12 @@ type Source interface {
 	// ListFrames returns a list of frames for the specified filter.
 	ListFrames(ctx context.Context, filter *types.FrameFilter) ([]*types.FrameMetadata, error)
 	// GetFrame returns the frame with the specified ID.
-	GetFrame(ctx context.Context, id uuid.UUID) (*types.Frame, error)
+	GetFrame(ctx context.Context, id string) (*types.Frame, error)
 }
 
 var _ = Source(&BeaconNode{})
 
-func NewSource(log logrus.FieldLogger, name string, sourceType string, config RawConfig) (Source, error) {
+func NewSource(log logrus.FieldLogger, name string, sourceType string, config yaml.RawMessage) (Source, error) {
 	switch sourceType {
 	case BeaconNodeType:
 		conf := BeaconNodeConfig{}

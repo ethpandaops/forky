@@ -7,12 +7,10 @@ import (
 	"net/http"
 
 	fhttp "github.com/ethpandaops/forkchoice/pkg/forkchoice/api/http"
-	"github.com/google/uuid"
 
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
 	"github.com/julienschmidt/httprouter"
-	perrors "github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -119,12 +117,7 @@ func (h *HTTP) handleV1FramesWithSourceAndID(ctx context.Context, r *http.Reques
 		return fhttp.NewBadRequestResponse(nil), errors.New("frame ID is required")
 	}
 
-	id, err := uuid.Parse(frameID)
-	if err != nil {
-		return fhttp.NewBadRequestResponse(nil), perrors.Wrap(err, "invalid frame ID")
-	}
-
-	frame, err := h.svc.GetFrameFromSource(ctx, sourceName, id)
+	frame, err := h.svc.GetFrameFromSource(ctx, sourceName, frameID)
 	if err != nil {
 		return fhttp.NewInternalServerErrorResponse(nil), err
 	}

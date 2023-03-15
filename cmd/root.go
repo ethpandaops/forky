@@ -14,7 +14,7 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "forkchoice",
-	Short: "Checkpoint sync provider for Ethereum beacon nodes",
+	Short: "Fetches and serves Ethereum fork choice data",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := initCommon()
 		p := forkchoice.NewServer(log, cfg)

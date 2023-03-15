@@ -6,7 +6,6 @@ import (
 
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/source"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -76,7 +75,7 @@ func (f *ForkChoice) ListFramesFromSource(ctx context.Context, name string, filt
 	return s.ListFrames(ctx, filter)
 }
 
-func (f *ForkChoice) GetFrameFromSource(ctx context.Context, name string, id uuid.UUID) (*types.Frame, error) {
+func (f *ForkChoice) GetFrameFromSource(ctx context.Context, name string, id string) (*types.Frame, error) {
 	s, err := f.GetSourceByName(name)
 	if err != nil {
 		return nil, err

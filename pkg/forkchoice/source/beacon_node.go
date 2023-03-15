@@ -10,6 +10,7 @@ import (
 	"github.com/attestantio/go-eth2-client/http"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/ethwallclock"
+	"github.com/ethpandaops/forkchoice/pkg/forkchoice/store"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
 	"github.com/go-co-op/gocron"
 	"github.com/google/uuid"
@@ -34,6 +35,8 @@ type BeaconNode struct {
 
 	name string
 
+	store store.Store
+
 	// Ethereum network parameters.
 	genesis        *v1.Genesis
 	secondsPerSlot time.Duration
@@ -42,9 +45,10 @@ type BeaconNode struct {
 }
 
 type BeaconNodeConfig struct {
-	BeaconAddress   string `yaml:"beaconAddress"`
-	PollingInterval string `yaml:"pollingInterval"`
-	CacheTTLSeconds int    `yaml:"cacheTtlSeconds"`
+	BeaconAddress   string       `yaml:"beaconAddress"`
+	PollingInterval string       `yaml:"pollingInterval"`
+	CacheTTLSeconds int          `yaml:"cacheTtlSeconds"`
+	Store           store.Config `yaml:"store"`
 }
 
 func (b *BeaconNodeConfig) Validate() error {
@@ -74,12 +78,18 @@ func NewBeaconNode(log logrus.FieldLogger, config *BeaconNodeConfig, name string
 
 	scheduler := gocron.NewScheduler(time.Local)
 
+	st, err := store.NewStore(config.Store.Type, config.Store.Config)
+	if err != nil {
+		return nil, err
+	}
+
 	return &BeaconNode{
 		log:    log.WithField("source_name", name).WithField("component", "source/beacon_node"),
 		config: config,
 		cache:  cache,
 		cron:   scheduler,
 		name:   name,
+		store:  st,
 	}, nil
 }
 
@@ -196,24 +206,34 @@ func (b *BeaconNode) bootstrap(ctx context.Context) error {
 func (b *BeaconNode) ListFrames(ctx context.Context, filter *types.FrameFilter) ([]*types.FrameMetadata, error) {
 	// Absolultely disgusting loop over everything in the cache.
 	// TODO(sam.calder-mason): Improve this.
-	all := make([]*types.FrameMetadata, 0)
-	for metadata, _ := range b.cache.Items() {
-		all = append(all, &metadata)
+	// all := make([]*types.FrameMetadata, 0)
+	// for metadata, _ := range b.cache.Items() {
+	// 	all = append(all, &metadata)
+	// }
+
+	frames, err := b.store.List(ctx, filter)
+	if err != nil {
+		return nil, err
 	}
 
-	return all, nil
+	return frames, nil
 }
 
-func (b *BeaconNode) GetFrame(ctx context.Context, id uuid.UUID) (*types.Frame, error) {
+func (b *BeaconNode) GetFrame(ctx context.Context, id string) (*types.Frame, error) {
 	// Absolultely disgusting loop over everything in the cache.
 	// TODO(sam.calder-mason): Improve this.
-	for metadata, frame := range b.cache.Items() {
-		if metadata.ID == id {
-			return frame.Value(), nil
-		}
+	// for metadata, frame := range b.cache.Items() {
+	// 	if metadata.ID == id {
+	// 		return frame.Value(), nil
+	// 	}
+	// }
+
+	frame, err := b.store.Load(ctx, types.FrameMetadata{ID: id})
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, ErrFrameNotFound
+	return frame, nil
 }
 
 func (b *BeaconNode) fetchFrame(ctx context.Context) error {
@@ -237,7 +257,7 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 		frame := &types.Frame{
 			Metadata: types.FrameMetadata{
 				Node:           b.Name(),
-				ID:             uuid.New(),
+				ID:             uuid.New().String(),
 				FetchedAt:      fetchedAt,
 				WallClockSlot:  phase0.Slot(slot.Number()),
 				WallClockEpoch: phase0.Epoch(epoch.Number()),
@@ -246,6 +266,10 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 		}
 
 		b.cache.Set(frame.Metadata, frame, time.Duration(b.config.CacheTTLSeconds)*time.Second)
+
+		if err := b.store.Save(ctx, frame); err != nil {
+			return perrors.Wrap(err, "failed to save frame")
+		}
 
 		b.log.WithFields(logrus.Fields{
 			"wallclock_slot":  slot.Number(),
