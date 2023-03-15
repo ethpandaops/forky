@@ -4,7 +4,9 @@ import { expect, test } from 'vitest';
 import Checkbox from '@stories/components/Checkbox/Checkbox.stories';
 
 test('Checkbox changes the text after click', () => {
-  if (Checkbox.component) render(<Checkbox.component id="test-id" {...Checkbox.args} />);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore - storybook partials component types
+  if (Checkbox.component) render(<Checkbox.component {...Checkbox.args} />);
 
   const checkbox = screen.getByLabelText('this is a checkbox') as HTMLInputElement;
   expect(checkbox).toBeInTheDocument();
