@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/api"
+	"github.com/ethpandaops/forkchoice/pkg/forkchoice/db"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/source"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/store"
@@ -47,8 +48,16 @@ func NewServer(log *logrus.Logger, conf *Config) *Server {
 		log.Fatalf("failed to create store: %s", err)
 	}
 
-	svc := service.NewForkChoice(log, sources, store)
+	// Create our indexer.
+	indexer, err := db.NewIndexer(log, conf.Indexer)
+	if err != nil {
+		log.Fatalf("failed to create indexer: %s", err)
+	}
 
+	// Create our service which will glue everything together.
+	svc := service.NewForkChoice(log, sources, store, indexer)
+
+	// Create our HTTP API.
 	http := api.NewHTTP(log, svc)
 
 	s := &Server{

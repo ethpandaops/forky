@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/attestantio/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/forkchoice/pkg/forkchoice/db"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/source"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/store"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
@@ -17,13 +17,15 @@ type ForkChoice struct {
 	log     logrus.FieldLogger
 	sources map[string]source.Source
 	store   store.Store
+	indexer *db.Indexer
 }
 
-func NewForkChoice(log logrus.FieldLogger, sources map[string]source.Source, st store.Store) *ForkChoice {
+func NewForkChoice(log logrus.FieldLogger, sources map[string]source.Source, st store.Store, indexer *db.Indexer) *ForkChoice {
 	return &ForkChoice{
-		log:     log,
+		log:     log.WithField("component", "service"),
 		sources: sources,
 		store:   st,
+		indexer: indexer,
 	}
 }
 
@@ -52,15 +54,45 @@ func (f *ForkChoice) Stop(ctx context.Context) error {
 }
 
 func (f *ForkChoice) handleNewFrame(ctx context.Context, s source.Source, frame *types.Frame) {
-	// Store the frame.
-	if err := f.store.SaveFrame(ctx, frame); err != nil {
-		f.log.WithError(err).WithFields(logrus.Fields{
-			"source":    s.Name(),
-			"slot":      fmt.Sprintf("%v", frame.Metadata.WallClockSlot),
-			"fetchedAt": fmt.Sprintf("%v", frame.Metadata.FetchedAt.Unix()),
-			"node":      frame.Metadata.Node,
-		}).Error("Failed to store frame")
+	if frame == nil {
+		f.log.WithField("source", s.Name()).Error("Received nil frame")
+
+		return
 	}
+
+	// Check if the frame is valid.
+	if err := frame.Validate(); err != nil {
+		f.log.WithError(err).WithFields(logrus.Fields{
+			"source": s.Name(),
+			"node":   frame.Metadata.Node,
+		}).Error("Received invalid frame from source")
+
+		return
+	}
+
+	logCtx := f.log.WithFields(logrus.Fields{
+		"source":    s.Name(),
+		"id":        frame.Metadata.ID,
+		"slot":      fmt.Sprintf("%v", frame.Metadata.WallClockSlot),
+		"fetchedAt": fmt.Sprintf("%v", frame.Metadata.FetchedAt.Unix()),
+		"node":      frame.Metadata.Node,
+	})
+
+	// Store the frame in the store.
+	if err := f.store.SaveFrame(ctx, frame); err != nil {
+		logCtx.WithError(err).Error("Failed to store frame")
+
+		return
+	}
+
+	// Add the frame to the indexer.
+	if err := f.indexer.AddFrame(ctx, frame); err != nil {
+		logCtx.WithError(err).Error("Failed to index frame")
+
+		return
+	}
+
+	logCtx.Info("Stored and indexed frame")
 }
 
 func (f *ForkChoice) Sources(ctx context.Context) map[string]source.Source {
@@ -88,18 +120,22 @@ func (f *ForkChoice) ListSources(ctx context.Context) ([]*SourceMetadata, error)
 	return sources, nil
 }
 
-func (f *ForkChoice) GetNodes(ctx context.Context) ([]string, error) {
-	return f.store.ListNodes(ctx)
+func (f *ForkChoice) ListNodes(ctx context.Context, filter *NodeFilter) ([]string, error) {
+	if err := filter.Validate(); err != nil {
+		return nil, err
+	}
+
+	return f.indexer.ListNodes(ctx, filter.AsDBFilter())
 }
 
 func (f *ForkChoice) ListSlots(ctx context.Context, node string) ([]phase0.Slot, error) {
-	return f.store.ListSlots(ctx, node)
+	return nil, errors.New("not implemented")
 }
 
 func (f *ForkChoice) ListFrames(ctx context.Context, node string, slot phase0.Slot) ([]*types.FrameMetadata, error) {
-	return f.store.ListFrames(ctx, node, slot)
+	return nil, errors.New("not implemented")
 }
 
-func (f *ForkChoice) GetFrame(ctx context.Context, name string, slot phase0.Slot, fetchedAt time.Time) (*types.Frame, error) {
-	return f.store.GetFrame(ctx, name, slot, fetchedAt)
+func (f *ForkChoice) GetFrame(ctx context.Context, id string) (*types.Frame, error) {
+	return f.store.GetFrame(ctx, id)
 }

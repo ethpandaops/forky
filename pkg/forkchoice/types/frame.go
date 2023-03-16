@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"time"
 
@@ -14,6 +13,8 @@ import (
 )
 
 type FrameMetadata struct {
+	// ID is the ID of the frame.
+	ID string `json:"id"`
 	// Node is the node that provided the frame.
 	// In the case of a beacon node, this is the beacon node's ID as specified in the config for this service.
 	// In the case of Xatu, this is the Xatu Sentry ID.
@@ -22,13 +23,17 @@ type FrameMetadata struct {
 	FetchedAt time.Time `json:"fetched_at"`
 	// WallClockSlot is the wall clock slot at the time the frame was fetched.
 	WallClockSlot phase0.Slot `json:"wall_clock_slot"`
-}
-
-func (f *FrameMetadata) ID() string {
-	return fmt.Sprintf("%v", f.FetchedAt.Unix())
+	// WallClockSlot is the wall clock slot at the time the frame was fetched.
+	WallClockEpoch phase0.Epoch `json:"wall_clock_epoch"`
+	// Labels are labels to apply to the frame.
+	Labels []string `json:"labels"`
 }
 
 func (f *FrameMetadata) Validate() error {
+	if f.ID == "" {
+		return errors.New("invalid id")
+	}
+
 	if f.Node == "" {
 		return errors.New("invalid node")
 	}
@@ -41,6 +46,10 @@ func (f *FrameMetadata) Validate() error {
 		return errors.New("invalid wall clock slot")
 	}
 
+	if f.WallClockEpoch == 0 {
+		return errors.New("invalid wall clock epoch")
+	}
+
 	return nil
 }
 
@@ -50,6 +59,18 @@ type Frame struct {
 	Data *v1.ForkChoice `json:"data"`
 	// Metadata is the metadata of the frame.
 	Metadata FrameMetadata `json:"metadata"`
+}
+
+func (f *Frame) Validate() error {
+	if f.Data == nil {
+		return errors.New("invalid data")
+	}
+
+	if err := f.Metadata.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // FrameFilter is a filter for frames.

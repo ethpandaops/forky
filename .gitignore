@@ -5,3 +5,4 @@ __debug_bin
 dist/
 checkpointz
 store.db
+index.db

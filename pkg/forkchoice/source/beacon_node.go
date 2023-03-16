@@ -13,7 +13,7 @@ import (
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/store"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
 	"github.com/go-co-op/gocron"
-	"github.com/jellydator/ttlcache/v3"
+	"github.com/google/uuid"
 	perrors "github.com/pkg/errors"
 	"github.com/rs/zerolog"
 	"github.com/sirupsen/logrus"
@@ -25,8 +25,6 @@ type BeaconNode struct {
 	log logrus.FieldLogger
 
 	config *BeaconNodeConfig
-
-	cache *ttlcache.Cache[types.FrameMetadata, *types.Frame]
 
 	cron *gocron.Scheduler
 
@@ -71,16 +69,11 @@ func NewBeaconNode(log logrus.FieldLogger, config *BeaconNodeConfig, name string
 		return nil, perrors.Wrap(err, "invalid config")
 	}
 
-	cache := ttlcache.New(
-		ttlcache.WithTTL[types.FrameMetadata, *types.Frame](time.Duration(config.CacheTTLSeconds) * time.Second),
-	)
-
 	scheduler := gocron.NewScheduler(time.Local)
 
 	return &BeaconNode{
 		log:              log.WithField("source_name", name).WithField("component", "source/beacon_node"),
 		config:           config,
-		cache:            cache,
 		cron:             scheduler,
 		name:             name,
 		onFrameCallbacks: []func(ctx context.Context, frame *types.Frame){},
@@ -227,14 +220,15 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 
 		frame := &types.Frame{
 			Metadata: types.FrameMetadata{
-				Node:          b.Name(),
-				FetchedAt:     fetchedAt,
-				WallClockSlot: phase0.Slot(slot.Number()),
+				Node:           b.Name(),
+				FetchedAt:      fetchedAt,
+				WallClockSlot:  phase0.Slot(slot.Number()),
+				WallClockEpoch: phase0.Epoch(epoch.Number()),
+				ID:             uuid.New().String(),
+				Labels:         []string{},
 			},
 			Data: dump,
 		}
-
-		b.cache.Set(frame.Metadata, frame, time.Duration(b.config.CacheTTLSeconds)*time.Second)
 
 		b.publishFrame(ctx, frame)
 

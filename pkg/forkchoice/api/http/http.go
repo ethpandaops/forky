@@ -6,7 +6,7 @@ import (
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
 )
 
-// V1/Sources
+// V1
 type V1SourcesRequest struct {
 }
 
@@ -14,12 +14,11 @@ type V1SourcesResponse struct {
 	SourcesMetadata []*service.SourceMetadata `json:"sources_metadata"`
 }
 
-// V1/Frames
-
-type V1FramesListNodesRequest struct {
+type V1ListNodesRequest struct {
+	Filter *service.NodeFilter `json:"filter"`
 }
 
-type V1FramesListNodesResponse struct {
+type V1ListNodesResponse struct {
 	Nodes []string `json:"nodes"`
 }
 type V1FramesListSlotsRequest struct {
@@ -29,9 +28,9 @@ type V1FramesListSlotsResponse struct {
 	Slots []phase0.Slot `json:"slots"`
 }
 
-type V1FrameGetRequest struct {
+type V1GetFrameRequest struct {
 }
 
-type V1FrameGetResponse struct {
+type V1GetFrameResponse struct {
 	Frame *types.Frame `json:"frame"`
 }

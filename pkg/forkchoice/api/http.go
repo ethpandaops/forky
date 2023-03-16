@@ -31,9 +31,13 @@ func NewHTTP(log logrus.FieldLogger, svc *service.ForkChoice) *HTTP {
 func (h *HTTP) BindToRouter(ctx context.Context, router *httprouter.Router) error {
 	router.GET("/api/v1/sources", h.wrappedHandler(h.handleV1Sources))
 
-	router.GET("/api/v1/frames/:node/slots", h.wrappedHandler(h.handleV1FramesListSlots))
-	router.GET("/api/v1/frames/:node/slots/:slot/frames", h.wrappedHandler(h.handleV1FramesList))
-	router.GET("/api/v1/frames/:node/slots/:slot/frames/:fetchedAt", h.wrappedHandler(h.handleV1FramesGetFrame))
+	router.GET("/api/v1/frames/:id", h.wrappedHandler(h.handleV1GetFrame))
+
+	router.POST("/api/v1/nodes", h.wrappedHandler(h.handleV1ListNodes))
+
+	// router.GET("/api/v1/frames/:node/slots", h.wrappedHandler(h.handleV1FramesListSlots))
+	// router.GET("/api/v1/frames/:node/slots/:slot/frames", h.wrappedHandler(h.handleV1FramesList))
+	// router.GET("/api/v1/frames/:node/slots/:slot/frames/:fetchedAt", h.wrappedHandler(h.handleV1FramesGetFrame))
 
 	return nil
 }
