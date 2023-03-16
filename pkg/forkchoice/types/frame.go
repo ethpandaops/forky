@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"time"
 
@@ -17,23 +18,19 @@ type FrameMetadata struct {
 	// In the case of a beacon node, this is the beacon node's ID as specified in the config for this service.
 	// In the case of Xatu, this is the Xatu Sentry ID.
 	Node string `json:"node"`
-	// ID is the ID of the frame.
-	ID string `json:"id"`
 	// FetchedAt is the time the frame was fetched.
 	FetchedAt time.Time `json:"fetched_at"`
 	// WallClockSlot is the wall clock slot at the time the frame was fetched.
 	WallClockSlot phase0.Slot `json:"wall_clock_slot"`
-	// WallClockEpoch is the wall clock epoch at the time the frame was fetched.
-	WallClockEpoch phase0.Epoch `json:"wall_clock_epoch"`
+}
+
+func (f *FrameMetadata) ID() string {
+	return fmt.Sprintf("%v", f.FetchedAt.Unix())
 }
 
 func (f *FrameMetadata) Validate() error {
 	if f.Node == "" {
 		return errors.New("invalid node")
-	}
-
-	if f.ID == "" {
-		return errors.New("invalid ID")
 	}
 
 	if f.FetchedAt.IsZero() {
@@ -42,10 +39,6 @@ func (f *FrameMetadata) Validate() error {
 
 	if f.WallClockSlot == 0 {
 		return errors.New("invalid wall clock slot")
-	}
-
-	if f.WallClockEpoch == 0 {
-		return errors.New("invalid wall clock epoch")
 	}
 
 	return nil
@@ -61,6 +54,8 @@ type Frame struct {
 
 // FrameFilter is a filter for frames.
 type FrameFilter struct {
+	// Node is the node to filter on.
+	Node *string `json:"node"`
 	// WallClockSlot is the wall clock slot to filter on.
 	WallClockSlot *phase0.Slot `json:"wall_clock_slot"`
 	// WallClockEpoch is the wall clock epoch to filter on.

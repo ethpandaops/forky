@@ -7,9 +7,8 @@ import (
 )
 
 type Config struct {
-	Enabled bool            `yaml:"enabled" default:"true"`
-	Type    Type            `yaml:"type"`
-	Config  yaml.RawMessage `yaml:"config"`
+	Type   Type            `yaml:"type"`
+	Config yaml.RawMessage `yaml:"config"`
 }
 
 func (c *Config) Validate() error {

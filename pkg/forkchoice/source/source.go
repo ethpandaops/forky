@@ -19,16 +19,13 @@ type Source interface {
 	// Stop stops the source.
 	Stop(ctx context.Context) error
 
-	// TODO(sam.calder-mason): Add more methods for interacting with a source.
-	// ListFrames returns a list of frames for the specified filter.
-	ListFrames(ctx context.Context, filter *types.FrameFilter) ([]*types.FrameMetadata, error)
-	// GetFrame returns the frame with the specified ID.
-	GetFrame(ctx context.Context, id string) (*types.Frame, error)
+	// OnFrame is called when a new frame has been received.
+	OnFrame(func(ctx context.Context, frame *types.Frame))
 }
 
 var _ = Source(&BeaconNode{})
 
-func NewSource(log logrus.FieldLogger, name string, sourceType string, config yaml.RawMessage) (Source, error) {
+func NewSource(log logrus.FieldLogger, name, sourceType string, config yaml.RawMessage) (Source, error) {
 	switch sourceType {
 	case BeaconNodeType:
 		conf := BeaconNodeConfig{}

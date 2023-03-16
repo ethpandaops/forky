@@ -13,7 +13,6 @@ import (
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/store"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
 	"github.com/go-co-op/gocron"
-	"github.com/google/uuid"
 	"github.com/jellydator/ttlcache/v3"
 	perrors "github.com/pkg/errors"
 	"github.com/rs/zerolog"
@@ -35,7 +34,7 @@ type BeaconNode struct {
 
 	name string
 
-	store store.Store
+	onFrameCallbacks []func(ctx context.Context, frame *types.Frame)
 
 	// Ethereum network parameters.
 	genesis        *v1.Genesis
@@ -78,18 +77,13 @@ func NewBeaconNode(log logrus.FieldLogger, config *BeaconNodeConfig, name string
 
 	scheduler := gocron.NewScheduler(time.Local)
 
-	st, err := store.NewStore(config.Store.Type, config.Store.Config)
-	if err != nil {
-		return nil, err
-	}
-
 	return &BeaconNode{
-		log:    log.WithField("source_name", name).WithField("component", "source/beacon_node"),
-		config: config,
-		cache:  cache,
-		cron:   scheduler,
-		name:   name,
-		store:  st,
+		log:              log.WithField("source_name", name).WithField("component", "source/beacon_node"),
+		config:           config,
+		cache:            cache,
+		cron:             scheduler,
+		name:             name,
+		onFrameCallbacks: []func(ctx context.Context, frame *types.Frame){},
 	}, nil
 }
 
@@ -164,6 +158,16 @@ func (b *BeaconNode) Ready(ctx context.Context) bool {
 	return true
 }
 
+func (b *BeaconNode) OnFrame(callback func(ctx context.Context, frame *types.Frame)) {
+	b.onFrameCallbacks = append(b.onFrameCallbacks, callback)
+}
+
+func (b *BeaconNode) publishFrame(ctx context.Context, frame *types.Frame) {
+	for _, callback := range b.onFrameCallbacks {
+		go callback(ctx, frame)
+	}
+}
+
 func (b *BeaconNode) bootstrap(ctx context.Context) error {
 	// Fetch the genesis time and network parameters.
 	genesis, err := b.client.(eth2client.GenesisProvider).Genesis(ctx)
@@ -203,39 +207,6 @@ func (b *BeaconNode) bootstrap(ctx context.Context) error {
 	return nil
 }
 
-func (b *BeaconNode) ListFrames(ctx context.Context, filter *types.FrameFilter) ([]*types.FrameMetadata, error) {
-	// Absolultely disgusting loop over everything in the cache.
-	// TODO(sam.calder-mason): Improve this.
-	// all := make([]*types.FrameMetadata, 0)
-	// for metadata, _ := range b.cache.Items() {
-	// 	all = append(all, &metadata)
-	// }
-
-	frames, err := b.store.List(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	return frames, nil
-}
-
-func (b *BeaconNode) GetFrame(ctx context.Context, id string) (*types.Frame, error) {
-	// Absolultely disgusting loop over everything in the cache.
-	// TODO(sam.calder-mason): Improve this.
-	// for metadata, frame := range b.cache.Items() {
-	// 	if metadata.ID == id {
-	// 		return frame.Value(), nil
-	// 	}
-	// }
-
-	frame, err := b.store.Load(ctx, types.FrameMetadata{ID: id})
-	if err != nil {
-		return nil, err
-	}
-
-	return frame, nil
-}
-
 func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 	if !b.Ready(ctx) {
 		return errors.New("not ready to fetch frames")
@@ -256,25 +227,21 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 
 		frame := &types.Frame{
 			Metadata: types.FrameMetadata{
-				Node:           b.Name(),
-				ID:             uuid.New().String(),
-				FetchedAt:      fetchedAt,
-				WallClockSlot:  phase0.Slot(slot.Number()),
-				WallClockEpoch: phase0.Epoch(epoch.Number()),
+				Node:          b.Name(),
+				FetchedAt:     fetchedAt,
+				WallClockSlot: phase0.Slot(slot.Number()),
 			},
 			Data: dump,
 		}
 
 		b.cache.Set(frame.Metadata, frame, time.Duration(b.config.CacheTTLSeconds)*time.Second)
 
-		if err := b.store.Save(ctx, frame); err != nil {
-			return perrors.Wrap(err, "failed to save frame")
-		}
+		b.publishFrame(ctx, frame)
 
 		b.log.WithFields(logrus.Fields{
 			"wallclock_slot":  slot.Number(),
 			"wallclock_epoch": epoch.Number(),
-			"frame_id":        frame.Metadata.ID,
+			"fetchedAt":       frame.Metadata.FetchedAt,
 		}).Info("Fetched frame")
 	}
 

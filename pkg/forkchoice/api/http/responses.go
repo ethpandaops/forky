@@ -1,10 +1,12 @@
 package http
 
 import (
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
 )
 
+// V1/Sources
 type V1SourcesRequest struct {
 }
 
@@ -12,17 +14,24 @@ type V1SourcesResponse struct {
 	SourcesMetadata []*service.SourceMetadata `json:"sources_metadata"`
 }
 
-type V1FramesBySourceRequest struct {
-	Filter *types.FrameFilter `json:"filter"`
+// V1/Frames
+
+type V1FramesListNodesRequest struct {
 }
 
-type V1FramesBySourceResponse struct {
-	FramesMetadata []*types.FrameMetadata `json:"frames_metadata"`
+type V1FramesListNodesResponse struct {
+	Nodes []string `json:"nodes"`
+}
+type V1FramesListSlotsRequest struct {
 }
 
-type V1FrameBySourceAndIDRequest struct {
+type V1FramesListSlotsResponse struct {
+	Slots []phase0.Slot `json:"slots"`
 }
 
-type V1FrameBySourceAndIDResponse struct {
+type V1FrameGetRequest struct {
+}
+
+type V1FrameGetResponse struct {
 	Frame *types.Frame `json:"frame"`
 }

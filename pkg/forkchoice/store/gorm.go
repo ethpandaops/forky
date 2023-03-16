@@ -19,8 +19,7 @@ type GORMFrame struct {
 	WallClockEpoch uint64
 	WallClockSlot  uint64
 	Node           string
-	ID             string `gorm:"primaryKey"`
-	FetchedAt      time.Time
+	FetchedAt      time.Time `gorm:"primaryKey"`
 
 	Frame string
 }
@@ -54,11 +53,9 @@ func (g *GORMStore) Save(ctx context.Context, frame *types.Frame) error {
 	}
 
 	gormFrame := &GORMFrame{
-		WallClockEpoch: uint64(frame.Metadata.WallClockEpoch),
-		WallClockSlot:  uint64(frame.Metadata.WallClockSlot),
-		Node:           frame.Metadata.Node,
-		ID:             frame.Metadata.ID,
-		Frame:          string(gzippedData),
+		WallClockSlot: uint64(frame.Metadata.WallClockSlot),
+		Node:          frame.Metadata.Node,
+		Frame:         string(gzippedData),
 	}
 
 	result := g.db.WithContext(ctx).Create(gormFrame)
@@ -69,7 +66,7 @@ func (g *GORMStore) Save(ctx context.Context, frame *types.Frame) error {
 func (g *GORMStore) Load(ctx context.Context, metadata types.FrameMetadata) (*types.Frame, error) {
 	var gormFrame GORMFrame
 	result := g.db.WithContext(ctx).
-		Where("id = ?", metadata.ID).
+		Where("fetchedAt = ?", metadata.FetchedAt).
 		First(&gormFrame)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -112,11 +109,9 @@ func (g *GORMStore) List(ctx context.Context, filter *types.FrameFilter) ([]*typ
 
 	for i, gormFrame := range gormFrames {
 		metadataList[i] = &types.FrameMetadata{
-			WallClockEpoch: phase0.Epoch(gormFrame.WallClockEpoch),
-			WallClockSlot:  phase0.Slot(gormFrame.WallClockSlot),
-			Node:           gormFrame.Node,
-			ID:             gormFrame.ID,
-			FetchedAt:      gormFrame.FetchedAt,
+			WallClockSlot: phase0.Slot(gormFrame.WallClockSlot),
+			Node:          gormFrame.Node,
+			FetchedAt:     gormFrame.FetchedAt,
 		}
 	}
 

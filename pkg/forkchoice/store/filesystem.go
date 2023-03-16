@@ -138,8 +138,6 @@ func (f *FileSystem) getPathFromMetadata(metadata types.FrameMetadata) (string, 
 	return filepath.Join(f.config.BaseDir,
 		"frames",
 		metadata.Node,
-		"epochs",
-		fmt.Sprintf("%v", metadata.WallClockEpoch),
 		"slots",
 		fmt.Sprintf("%v", metadata.WallClockSlot),
 		fileName,
@@ -151,5 +149,5 @@ func (f *FileSystem) getFilenameFromMetadata(metadata types.FrameMetadata) (stri
 		return "", err
 	}
 
-	return fmt.Sprintf("%s-%s.json.gzip", metadata.ID, metadata.FetchedAt.String()), nil
+	return fmt.Sprintf("%s-%s.json.gzip", metadata.FetchedAt, metadata.FetchedAt.String()), nil
 }

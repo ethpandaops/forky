@@ -9,6 +9,7 @@ import (
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/api"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/source"
+	"github.com/ethpandaops/forkchoice/pkg/forkchoice/store"
 	"github.com/ethpandaops/forkchoice/pkg/version"
 	static "github.com/ethpandaops/forkchoice/web"
 	"github.com/julienschmidt/httprouter"
@@ -40,7 +41,13 @@ func NewServer(log *logrus.Logger, conf *Config) *Server {
 		sources[s.Name] = source
 	}
 
-	svc := service.NewForkChoice(log, sources)
+	// Create our store.
+	store, err := store.NewStore(log, conf.Store.Type, conf.Store.Config)
+	if err != nil {
+		log.Fatalf("failed to create store: %s", err)
+	}
+
+	svc := service.NewForkChoice(log, sources, store)
 
 	http := api.NewHTTP(log, svc)
 
