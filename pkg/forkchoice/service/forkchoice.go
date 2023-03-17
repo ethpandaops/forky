@@ -12,7 +12,7 @@ type SourceMetadata struct {
 	Type string `json:"type"`
 }
 
-type NodeFilter struct {
+type FrameFilter struct {
 	Node   *string    `json:"node"`
 	Before *time.Time `json:"before"`
 	After  *time.Time `json:"after"`
@@ -21,7 +21,7 @@ type NodeFilter struct {
 	Labels *[]string  `json:"labels"`
 }
 
-func (f *NodeFilter) Validate() error {
+func (f *FrameFilter) Validate() error {
 	if f.Node == nil &&
 		f.Before == nil &&
 		f.After == nil &&
@@ -34,8 +34,8 @@ func (f *NodeFilter) Validate() error {
 	return nil
 }
 
-func (f *NodeFilter) AsDBFilter() *db.NodeFilter {
-	return &db.NodeFilter{
+func (f *FrameFilter) AsDBFilter() *db.FrameFilter {
+	return &db.FrameFilter{
 		Node:   f.Node,
 		Before: f.Before,
 		After:  f.After,

@@ -15,7 +15,7 @@ type V1SourcesResponse struct {
 }
 
 type V1ListNodesRequest struct {
-	Filter *service.NodeFilter `json:"filter"`
+	Filter *service.FrameFilter `json:"filter"`
 }
 
 type V1ListNodesResponse struct {
