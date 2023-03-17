@@ -14,32 +14,37 @@ type V1SourcesResponse struct {
 	SourcesMetadata []*service.SourceMetadata `json:"sources_metadata"`
 }
 
-type V1ListNodesRequest struct {
+// Metadata
+type V1MetadataListRequest struct {
 	Filter     *service.FrameFilter      `json:"filter"`
 	Pagination *service.PaginationCursor `json:"pagination"`
 }
 
-type V1ListNodesResponse struct {
+type V1MetadataListResponse struct {
+	Frames     []*types.FrameMetadata      `json:"frames"`
+	Pagination *service.PaginationResponse `json:"pagination"`
+}
+
+type V1MetadataListNodesRequest struct {
+	Filter     *service.FrameFilter      `json:"filter"`
+	Pagination *service.PaginationCursor `json:"pagination"`
+}
+
+type V1MetadataListNodesResponse struct {
 	Nodes      []string                    `json:"nodes"`
 	Pagination *service.PaginationResponse `json:"pagination"`
 }
 
-type V1FramesListSlotsRequest struct {
-}
-
-type V1FramesListSlotsResponse struct {
-	Slots []phase0.Slot `json:"slots"`
-}
-
-type V1ListFramesRequest struct {
+type V1MetadataListSlotsRequest struct {
 	Filter     *service.FrameFilter      `json:"filter"`
 	Pagination *service.PaginationCursor `json:"pagination"`
 }
 
-type V1ListFramesResponse struct {
-	Frames     []*types.FrameMetadata      `json:"frames"`
+type V1MetadataListSlotsResponse struct {
+	Nodes      []phase0.Slot               `json:"slots"`
 	Pagination *service.PaginationResponse `json:"pagination"`
 }
+
 type V1GetFrameRequest struct {
 }
 

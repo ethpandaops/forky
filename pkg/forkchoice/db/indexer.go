@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
 	perrors "github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -49,14 +50,14 @@ func NewIndexer(log logrus.FieldLogger, config IndexerConfig, dbConn ...*sql.DB)
 
 	db = db.Session(&gorm.Session{FullSaveAssociations: true})
 
-	err = db.AutoMigrate(&Frame{})
+	err = db.AutoMigrate(&FrameMetadata{})
 	if err != nil {
-		return nil, perrors.Wrap(err, "failed to auto migrate frame")
+		return nil, perrors.Wrap(err, "failed to auto migrate frame_metadata")
 	}
 
-	err = db.AutoMigrate(&FrameLabel{})
+	err = db.AutoMigrate(&FrameMetadataLabels{})
 	if err != nil {
-		return nil, perrors.Wrap(err, "failed to auto migrate frame_label")
+		return nil, perrors.Wrap(err, "failed to auto migrate frame_metadata_label")
 	}
 
 	return &Indexer{
@@ -65,24 +66,24 @@ func NewIndexer(log logrus.FieldLogger, config IndexerConfig, dbConn ...*sql.DB)
 	}, nil
 }
 
-func (i *Indexer) AddFrame(ctx context.Context, frame *types.Frame) error {
-	var f Frame
+func (i *Indexer) AddFrameMetadata(ctx context.Context, metadata *types.FrameMetadata) error {
+	var f FrameMetadata
 
-	result := i.db.WithContext(ctx).Create(f.FromFrameMetadata(&frame.Metadata))
-
-	return result.Error
-}
-
-func (i *Indexer) RemoveFrame(ctx context.Context, id string) error {
-	result := i.db.WithContext(ctx).Where("id = ?", id).Delete(&Frame{})
+	result := i.db.WithContext(ctx).Create(f.FromFrameMetadata(metadata))
 
 	return result.Error
 }
 
-func (i *Indexer) CountFrames(ctx context.Context, filter *FrameFilter) (int64, error) {
+func (i *Indexer) RemoveFrameMetadata(ctx context.Context, id string) error {
+	result := i.db.WithContext(ctx).Where("id = ?", id).Delete(&FrameMetadata{})
+
+	return result.Error
+}
+
+func (i *Indexer) CountFrameMetadata(ctx context.Context, filter *FrameFilter) (int64, error) {
 	var count int64
 
-	query := i.db.WithContext(ctx).Model(&Frame{})
+	query := i.db.WithContext(ctx).Model(&FrameMetadata{})
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
@@ -107,10 +108,10 @@ func (i *Indexer) CountFrames(ctx context.Context, filter *FrameFilter) (int64, 
 	return count, nil
 }
 
-func (i *Indexer) ListFrames(ctx context.Context, filter *FrameFilter, page *PaginationCursor) ([]*Frame, error) {
-	var frames []*Frame
+func (i *Indexer) ListFrameMetadata(ctx context.Context, filter *FrameFilter, page *PaginationCursor) ([]*FrameMetadata, error) {
+	var frames []*FrameMetadata
 
-	query := i.db.WithContext(ctx).Model(&Frame{})
+	query := i.db.WithContext(ctx).Model(&FrameMetadata{})
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
@@ -142,7 +143,7 @@ func (i *Indexer) ListFrames(ctx context.Context, filter *FrameFilter, page *Pag
 func (i *Indexer) CountNodesWithFrames(ctx context.Context, filter *FrameFilter) (int64, error) {
 	var count int64
 
-	query := i.db.WithContext(ctx).Model(&Frame{})
+	query := i.db.WithContext(ctx).Model(&FrameMetadata{})
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
@@ -170,7 +171,7 @@ func (i *Indexer) CountNodesWithFrames(ctx context.Context, filter *FrameFilter)
 func (i *Indexer) ListNodesWithFrames(ctx context.Context, filter *FrameFilter, page *PaginationCursor) ([]string, error) {
 	var nodes []string
 
-	query := i.db.WithContext(ctx).Model(&Frame{})
+	query := i.db.WithContext(ctx).Model(&FrameMetadata{})
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
@@ -199,10 +200,70 @@ func (i *Indexer) ListNodesWithFrames(ctx context.Context, filter *FrameFilter, 
 	return nodes, nil
 }
 
-func (i *Indexer) getFrameIDsWithLabels(ctx context.Context, labels []string) ([]string, error) {
-	frameLabels := []*FrameLabel{}
+func (i *Indexer) CountSlotsWithFrames(ctx context.Context, filter *FrameFilter) (int64, error) {
+	var count int64
 
-	if err := i.db.Model(&FrameLabel{}).Where("name IN (?)", labels).Find(&frameLabels).Error; err != nil {
+	query := i.db.WithContext(ctx).Model(&FrameMetadata{})
+
+	// Fetch frames that have ALL labels provided.
+	if filter.Labels != nil {
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels)
+		if err != nil {
+			return 0, err
+		}
+
+		query = query.Where("id IN (?)", frameIDs)
+	}
+
+	query, err := filter.ApplyToQuery(query)
+	if err != nil {
+		return 0, err
+	}
+
+	result := query.Distinct("wall_clock_slot").Count(&count)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+
+	return count, nil
+}
+
+func (i *Indexer) ListSlotsWithFrames(ctx context.Context, filter *FrameFilter, page *PaginationCursor) ([]phase0.Slot, error) {
+	var slots []phase0.Slot
+
+	query := i.db.WithContext(ctx).Model(&FrameMetadata{})
+
+	// Fetch frames that have ALL labels provided.
+	if filter.Labels != nil {
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels)
+		if err != nil {
+			return nil, err
+		}
+
+		query = query.Where("id IN (?)", frameIDs)
+	}
+
+	query, err := filter.ApplyToQuery(query)
+	if err != nil {
+		return nil, err
+	}
+
+	if page != nil {
+		query = page.ApplyToQuery(query)
+	}
+
+	result := query.Preload("Labels").Distinct("wall_clock_slot").Find(&slots)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return slots, nil
+}
+
+func (i *Indexer) getFrameIDsWithLabels(ctx context.Context, labels []string) ([]string, error) {
+	frameLabels := []*FrameMetadataLabel{}
+
+	if err := i.db.Model(&FrameMetadataLabel{}).Where("name IN (?)", labels).Find(&frameLabels).Error; err != nil {
 		return nil, err
 	}
 

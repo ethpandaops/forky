@@ -54,13 +54,13 @@ func newMockIndexer() (*Indexer, sqlmock.Sqlmock, error) {
 
 func TestFrame_AsFrameMetadata(t *testing.T) {
 	t.Run("conversion", func(t *testing.T) {
-		frame := Frame{
+		frame := FrameMetadata{
 			ID:             "id",
 			Node:           "node",
 			WallClockSlot:  42,
 			WallClockEpoch: 21,
 			FetchedAt:      time.Now(),
-			Labels:         []FrameLabel{{Name: "a"}, {Name: "b"}, {Name: "c"}},
+			Labels:         []FrameMetadataLabel{{Name: "a"}, {Name: "b"}, {Name: "c"}},
 		}
 
 		metadata := frame.AsFrameMetadata()
@@ -70,7 +70,7 @@ func TestFrame_AsFrameMetadata(t *testing.T) {
 		assert.Equal(t, phase0.Slot(frame.WallClockSlot), metadata.WallClockSlot)
 		assert.Equal(t, phase0.Epoch(frame.WallClockEpoch), metadata.WallClockEpoch)
 		assert.Equal(t, frame.FetchedAt, metadata.FetchedAt)
-		l := FrameLabels(frame.Labels)
+		l := FrameMetadataLabels(frame.Labels)
 		assert.Equal(t, l.AsStrings(), metadata.Labels)
 	})
 }
@@ -84,18 +84,16 @@ func TestIndexer_AddFrame(t *testing.T) {
 
 		id := uuid.New()
 
-		frame := &types.Frame{
-			Metadata: types.FrameMetadata{
-				ID:             id.String(),
-				Node:           "node",
-				WallClockSlot:  phase0.Slot(42),
-				WallClockEpoch: phase0.Epoch(21),
-				FetchedAt:      time.Now(),
-				Labels:         []string{"a", "b", "c"},
-			},
+		frame := &types.FrameMetadata{
+			ID:             id.String(),
+			Node:           "node",
+			WallClockSlot:  phase0.Slot(42),
+			WallClockEpoch: phase0.Epoch(21),
+			FetchedAt:      time.Now(),
+			Labels:         []string{"a", "b", "c"},
 		}
 
-		err = indexer.AddFrame(context.Background(), frame)
+		err = indexer.AddFrameMetadata(context.Background(), frame)
 		assert.NoError(t, err)
 	})
 }
@@ -110,23 +108,21 @@ func TestIndexer_ListFrames(t *testing.T) {
 
 		id := uuid.New().String()
 
-		frame := &types.Frame{
-			Metadata: types.FrameMetadata{
-				ID:             id,
-				Node:           "node",
-				WallClockSlot:  phase0.Slot(42),
-				WallClockEpoch: phase0.Epoch(21),
-				FetchedAt:      time.Now(),
-				Labels:         []string{"a", "b", "c"},
-			},
+		frame := &types.FrameMetadata{
+			ID:             id,
+			Node:           "node",
+			WallClockSlot:  phase0.Slot(42),
+			WallClockEpoch: phase0.Epoch(21),
+			FetchedAt:      time.Now(),
+			Labels:         []string{"a", "b", "c"},
 		}
 
-		err = indexer.AddFrame(context.Background(), frame)
+		err = indexer.AddFrameMetadata(context.Background(), frame)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		frames, err := indexer.ListFrames(context.Background(), &FrameFilter{
+		frames, err := indexer.ListFrameMetadata(context.Background(), &FrameFilter{
 			ID: &id,
 		}, &PaginationCursor{})
 		if err != nil {
@@ -134,7 +130,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 		}
 
 		assert.Len(t, frames, 1)
-		assert.Equal(t, frame.Metadata.ID, frames[0].ID)
+		assert.Equal(t, frame.ID, frames[0].ID)
 	})
 
 	t.Run("By Node", func(t *testing.T) {
@@ -145,23 +141,21 @@ func TestIndexer_ListFrames(t *testing.T) {
 
 		node := "node1"
 
-		frame := &types.Frame{
-			Metadata: types.FrameMetadata{
-				ID:             uuid.New().String(),
-				Node:           node,
-				WallClockSlot:  phase0.Slot(42),
-				WallClockEpoch: phase0.Epoch(21),
-				FetchedAt:      time.Now(),
-				Labels:         []string{"a", "b", "c"},
-			},
+		frame := &types.FrameMetadata{
+			ID:             uuid.New().String(),
+			Node:           node,
+			WallClockSlot:  phase0.Slot(42),
+			WallClockEpoch: phase0.Epoch(21),
+			FetchedAt:      time.Now(),
+			Labels:         []string{"a", "b", "c"},
 		}
 
-		err = indexer.AddFrame(context.Background(), frame)
+		err = indexer.AddFrameMetadata(context.Background(), frame)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		frames, err := indexer.ListFrames(context.Background(), &FrameFilter{
+		frames, err := indexer.ListFrameMetadata(context.Background(), &FrameFilter{
 			Node: &node,
 		}, &PaginationCursor{})
 		if err != nil {
@@ -169,7 +163,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 		}
 
 		assert.Len(t, frames, 1)
-		assert.Equal(t, frame.Metadata.Node, frames[0].Node)
+		assert.Equal(t, frame.Node, frames[0].Node)
 	})
 
 	t.Run("By WallClockSlot", func(t *testing.T) {
@@ -180,23 +174,21 @@ func TestIndexer_ListFrames(t *testing.T) {
 
 		slot := uint64(phase0.Slot(42))
 
-		frame := &types.Frame{
-			Metadata: types.FrameMetadata{
-				ID:             uuid.New().String(),
-				Node:           "node",
-				WallClockSlot:  phase0.Slot(slot),
-				WallClockEpoch: phase0.Epoch(21),
-				FetchedAt:      time.Now(),
-				Labels:         []string{"a", "b", "c"},
-			},
+		frame := &types.FrameMetadata{
+			ID:             uuid.New().String(),
+			Node:           "node",
+			WallClockSlot:  phase0.Slot(slot),
+			WallClockEpoch: phase0.Epoch(21),
+			FetchedAt:      time.Now(),
+			Labels:         []string{"a", "b", "c"},
 		}
 
-		err = indexer.AddFrame(context.Background(), frame)
+		err = indexer.AddFrameMetadata(context.Background(), frame)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		frames, err := indexer.ListFrames(context.Background(), &FrameFilter{
+		frames, err := indexer.ListFrameMetadata(context.Background(), &FrameFilter{
 			Slot: &slot,
 		}, &PaginationCursor{})
 		if err != nil {
@@ -204,7 +196,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 		}
 
 		assert.Len(t, frames, 1)
-		assert.Equal(t, uint64(frame.Metadata.WallClockSlot), frames[0].WallClockSlot)
+		assert.Equal(t, uint64(frame.WallClockSlot), frames[0].WallClockSlot)
 	})
 
 	t.Run("By WallClockEpoch", func(t *testing.T) {
@@ -216,23 +208,21 @@ func TestIndexer_ListFrames(t *testing.T) {
 		epoch := phase0.Epoch(21)
 		epochUint64 := uint64(epoch)
 
-		frame := &types.Frame{
-			Metadata: types.FrameMetadata{
-				ID:             uuid.New().String(),
-				Node:           "node",
-				WallClockSlot:  phase0.Slot(42),
-				WallClockEpoch: epoch,
-				FetchedAt:      time.Now(),
-				Labels:         []string{"a", "b", "c"},
-			},
+		frame := &types.FrameMetadata{
+			ID:             uuid.New().String(),
+			Node:           "node",
+			WallClockSlot:  phase0.Slot(42),
+			WallClockEpoch: epoch,
+			FetchedAt:      time.Now(),
+			Labels:         []string{"a", "b", "c"},
 		}
 
-		err = indexer.AddFrame(context.Background(), frame)
+		err = indexer.AddFrameMetadata(context.Background(), frame)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		frames, err := indexer.ListFrames(context.Background(), &FrameFilter{
+		frames, err := indexer.ListFrameMetadata(context.Background(), &FrameFilter{
 			Epoch: &epochUint64,
 		}, &PaginationCursor{})
 		if err != nil {
@@ -240,7 +230,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 		}
 
 		assert.Len(t, frames, 1)
-		assert.Equal(t, uint64(frame.Metadata.WallClockEpoch), frames[0].WallClockEpoch)
+		assert.Equal(t, uint64(frame.WallClockEpoch), frames[0].WallClockEpoch)
 	})
 
 	t.Run("Before and After", func(t *testing.T) {
@@ -251,39 +241,35 @@ func TestIndexer_ListFrames(t *testing.T) {
 
 		now := time.Now()
 
-		frame1 := &types.Frame{
-			Metadata: types.FrameMetadata{
-				ID:             uuid.New().String(),
-				Node:           "node1",
-				WallClockSlot:  phase0.Slot(42),
-				WallClockEpoch: phase0.Epoch(21),
-				FetchedAt:      time.Now().Add(-time.Hour),
-				Labels:         []string{"a", "b", "c"},
-			},
+		frame1 := &types.FrameMetadata{
+			ID:             uuid.New().String(),
+			Node:           "node1",
+			WallClockSlot:  phase0.Slot(42),
+			WallClockEpoch: phase0.Epoch(21),
+			FetchedAt:      time.Now().Add(-time.Hour),
+			Labels:         []string{"a", "b", "c"},
 		}
 
-		err = indexer.AddFrame(context.Background(), frame1)
+		err = indexer.AddFrameMetadata(context.Background(), frame1)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		frame2 := &types.Frame{
-			Metadata: types.FrameMetadata{
-				ID:             uuid.New().String(),
-				Node:           "node2",
-				WallClockSlot:  phase0.Slot(42),
-				WallClockEpoch: phase0.Epoch(21),
-				FetchedAt:      time.Now().Add(time.Hour),
-				Labels:         []string{"a", "b", "c"},
-			},
+		frame2 := &types.FrameMetadata{
+			ID:             uuid.New().String(),
+			Node:           "node2",
+			WallClockSlot:  phase0.Slot(42),
+			WallClockEpoch: phase0.Epoch(21),
+			FetchedAt:      time.Now().Add(time.Hour),
+			Labels:         []string{"a", "b", "c"},
 		}
 
-		err = indexer.AddFrame(context.Background(), frame2)
+		err = indexer.AddFrameMetadata(context.Background(), frame2)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		expectedBefore, err := indexer.ListFrames(context.Background(), &FrameFilter{
+		expectedBefore, err := indexer.ListFrameMetadata(context.Background(), &FrameFilter{
 			Before: &now,
 		}, &PaginationCursor{})
 		if err != nil {
@@ -291,9 +277,9 @@ func TestIndexer_ListFrames(t *testing.T) {
 		}
 
 		assert.Len(t, expectedBefore, 1)
-		assert.Equal(t, frame1.Metadata.ID, expectedBefore[0].ID)
+		assert.Equal(t, frame1.ID, expectedBefore[0].ID)
 
-		expectedAfter, err := indexer.ListFrames(context.Background(), &FrameFilter{
+		expectedAfter, err := indexer.ListFrameMetadata(context.Background(), &FrameFilter{
 			After: &now,
 		}, &PaginationCursor{})
 		if err != nil {
@@ -301,7 +287,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 		}
 
 		assert.Len(t, expectedAfter, 1)
-		assert.Equal(t, frame2.Metadata.ID, expectedAfter[0].ID)
+		assert.Equal(t, frame2.ID, expectedAfter[0].ID)
 	})
 
 	t.Run("By Labels", func(t *testing.T) {
@@ -310,39 +296,35 @@ func TestIndexer_ListFrames(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		frame1 := &types.Frame{
-			Metadata: types.FrameMetadata{
-				ID:             uuid.New().String(),
-				Node:           "node1",
-				WallClockSlot:  phase0.Slot(43),
-				WallClockEpoch: phase0.Epoch(231),
-				FetchedAt:      time.Now(),
-				Labels:         []string{"z", "a", "b", "c"},
-			},
+		frame1 := &types.FrameMetadata{
+			ID:             uuid.New().String(),
+			Node:           "node1",
+			WallClockSlot:  phase0.Slot(43),
+			WallClockEpoch: phase0.Epoch(231),
+			FetchedAt:      time.Now(),
+			Labels:         []string{"z", "a", "b", "c"},
 		}
 
-		err = indexer.AddFrame(context.Background(), frame1)
+		err = indexer.AddFrameMetadata(context.Background(), frame1)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		frame2 := &types.Frame{
-			Metadata: types.FrameMetadata{
-				ID:             uuid.New().String(),
-				Node:           "node2",
-				WallClockSlot:  phase0.Slot(44),
-				WallClockEpoch: phase0.Epoch(24),
-				FetchedAt:      time.Now(),
-				Labels:         []string{"z", "d", "e", "f"},
-			},
+		frame2 := &types.FrameMetadata{
+			ID:             uuid.New().String(),
+			Node:           "node2",
+			WallClockSlot:  phase0.Slot(44),
+			WallClockEpoch: phase0.Epoch(24),
+			FetchedAt:      time.Now(),
+			Labels:         []string{"z", "d", "e", "f"},
 		}
 
-		err = indexer.AddFrame(context.Background(), frame2)
+		err = indexer.AddFrameMetadata(context.Background(), frame2)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		frames, err := indexer.ListFrames(context.Background(), &FrameFilter{
+		frames, err := indexer.ListFrameMetadata(context.Background(), &FrameFilter{
 			Labels: &[]string{"a", "b"},
 		}, &PaginationCursor{})
 		if err != nil {
@@ -350,9 +332,9 @@ func TestIndexer_ListFrames(t *testing.T) {
 		}
 
 		assert.Len(t, frames, 1)
-		assert.Equal(t, frame1.Metadata.ID, frames[0].ID)
+		assert.Equal(t, frame1.ID, frames[0].ID)
 
-		frames, err = indexer.ListFrames(context.Background(), &FrameFilter{
+		frames, err = indexer.ListFrameMetadata(context.Background(), &FrameFilter{
 			Labels: &[]string{},
 		}, &PaginationCursor{})
 		if err != nil {
@@ -361,7 +343,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 
 		assert.Len(t, frames, 0)
 
-		frames, err = indexer.ListFrames(context.Background(), &FrameFilter{
+		frames, err = indexer.ListFrameMetadata(context.Background(), &FrameFilter{
 			Labels: &[]string{"z", "d", "e", "f"},
 		}, &PaginationCursor{})
 		if err != nil {
@@ -370,7 +352,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 
 		assert.Len(t, frames, 1)
 
-		frames, err = indexer.ListFrames(context.Background(), &FrameFilter{
+		frames, err = indexer.ListFrameMetadata(context.Background(), &FrameFilter{
 			Labels: &[]string{"z"},
 		}, &PaginationCursor{})
 		if err != nil {
@@ -397,18 +379,16 @@ func TestIndexer_ListFrames(t *testing.T) {
 
 			labels := []string{fmt.Sprintf("label%d", testRandIntn(10)), fmt.Sprintf("label%d", testRandIntn(10))}
 
-			frame := &types.Frame{
-				Metadata: types.FrameMetadata{
-					ID:             id,
-					Node:           node,
-					WallClockSlot:  slot,
-					WallClockEpoch: epoch,
-					FetchedAt:      time.Now(),
-					Labels:         labels,
-				},
+			frame := &types.FrameMetadata{
+				ID:             id,
+				Node:           node,
+				WallClockSlot:  slot,
+				WallClockEpoch: epoch,
+				FetchedAt:      time.Now(),
+				Labels:         labels,
 			}
 
-			err = indexer.AddFrame(context.Background(), frame)
+			err = indexer.AddFrameMetadata(context.Background(), frame)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -449,7 +429,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 				})
 			}
 
-			frames, err := indexer.ListFrames(context.Background(), &filter, &PaginationCursor{})
+			frames, err := indexer.ListFrameMetadata(context.Background(), &filter, &PaginationCursor{})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -512,18 +492,16 @@ func TestIndexer_ListFrames(t *testing.T) {
 
 		// Add a few random frames
 		for i := 0; i < 10; i++ {
-			frame := &types.Frame{
-				Metadata: types.FrameMetadata{
-					ID:             uuid.New().String(),
-					Node:           fmt.Sprintf("node%d", i),
-					WallClockSlot:  phase0.Slot(testRandIntn(1000)),
-					WallClockEpoch: phase0.Epoch(testRandIntn(100)),
-					FetchedAt:      time.Now(),
-					Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
-				},
+			frame := &types.FrameMetadata{
+				ID:             uuid.New().String(),
+				Node:           fmt.Sprintf("node%d", i),
+				WallClockSlot:  phase0.Slot(testRandIntn(1000)),
+				WallClockEpoch: phase0.Epoch(testRandIntn(100)),
+				FetchedAt:      time.Now(),
+				Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
 			}
 
-			err = indexer.AddFrame(context.Background(), frame)
+			err = indexer.AddFrameMetadata(context.Background(), frame)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -532,7 +510,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 		// Test pagination
 		limit := 5
 		for offset := 0; offset < 10; offset += limit {
-			frames, err := indexer.ListFrames(context.Background(), &FrameFilter{}, &PaginationCursor{
+			frames, err := indexer.ListFrameMetadata(context.Background(), &FrameFilter{}, &PaginationCursor{
 				Limit:  limit,
 				Offset: offset,
 			})
@@ -561,18 +539,16 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 		for i := 0; i < 5; i++ {
 			node := fmt.Sprintf("node%d", i)
 
-			frame := &types.Frame{
-				Metadata: types.FrameMetadata{
-					ID:             uuid.New().String(),
-					Node:           node,
-					WallClockSlot:  phase0.Slot(testRandIntn(1000)),
-					WallClockEpoch: phase0.Epoch(testRandIntn(100)),
-					FetchedAt:      time.Now(),
-					Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
-				},
+			frame := &types.FrameMetadata{
+				ID:             uuid.New().String(),
+				Node:           node,
+				WallClockSlot:  phase0.Slot(testRandIntn(1000)),
+				WallClockEpoch: phase0.Epoch(testRandIntn(100)),
+				FetchedAt:      time.Now(),
+				Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
 			}
 
-			err = indexer.AddFrame(context.Background(), frame)
+			err = indexer.AddFrameMetadata(context.Background(), frame)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -602,18 +578,16 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 		for i := 0; i < 5; i++ {
 			node := fmt.Sprintf("node%d", i)
 
-			frame := &types.Frame{
-				Metadata: types.FrameMetadata{
-					ID:             uuid.New().String(),
-					Node:           node,
-					WallClockSlot:  phase0.Slot(testRandIntn(1000)),
-					WallClockEpoch: phase0.Epoch(testRandIntn(100)),
-					FetchedAt:      time.Now(),
-					Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
-				},
+			frame := &types.FrameMetadata{
+				ID:             uuid.New().String(),
+				Node:           node,
+				WallClockSlot:  phase0.Slot(testRandIntn(1000)),
+				WallClockEpoch: phase0.Epoch(testRandIntn(100)),
+				FetchedAt:      time.Now(),
+				Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
 			}
 
-			err = indexer.AddFrame(context.Background(), frame)
+			err = indexer.AddFrameMetadata(context.Background(), frame)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -629,7 +603,7 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 
 		// Check that only nodes with frames with the "label5" label are returned
 		for _, node := range nodes {
-			frames, err := indexer.ListFrames(context.Background(), &FrameFilter{
+			frames, err := indexer.ListFrameMetadata(context.Background(), &FrameFilter{
 				//nolint:gosec // don't care in this test
 				Node: &node,
 			}, &PaginationCursor{})

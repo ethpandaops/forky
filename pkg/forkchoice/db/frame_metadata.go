@@ -8,19 +8,19 @@ import (
 	"gorm.io/gorm"
 )
 
-type Frame struct {
+type FrameMetadata struct {
 	gorm.Model
 	ID             string `gorm:"primaryKey"`
 	Node           string `gorm:"index"`
 	WallClockSlot  uint64
 	WallClockEpoch uint64
-	FetchedAt      time.Time    `gorm:"index"`
-	Labels         []FrameLabel `gorm:"foreignkey:FrameID;"`
+	FetchedAt      time.Time            `gorm:"index"`
+	Labels         []FrameMetadataLabel `gorm:"foreignkey:FrameID;"`
 }
 
-type Frames []*Frame
+type FrameMetadatas []*FrameMetadata
 
-func (f *Frames) AsFrameMetadata() []*types.FrameMetadata {
+func (f *FrameMetadatas) AsFrameMetadata() []*types.FrameMetadata {
 	frames := make([]*types.FrameMetadata, len(*f))
 
 	for i, frame := range *f {
@@ -30,8 +30,8 @@ func (f *Frames) AsFrameMetadata() []*types.FrameMetadata {
 	return frames
 }
 
-func (f *Frame) AsFrameMetadata() *types.FrameMetadata {
-	l := FrameLabels(f.Labels)
+func (f *FrameMetadata) AsFrameMetadata() *types.FrameMetadata {
+	l := FrameMetadataLabels(f.Labels)
 
 	return &types.FrameMetadata{
 		ID:             f.ID,
@@ -43,17 +43,17 @@ func (f *Frame) AsFrameMetadata() *types.FrameMetadata {
 	}
 }
 
-func (f *Frame) FromFrameMetadata(metadata *types.FrameMetadata) *Frame {
+func (f *FrameMetadata) FromFrameMetadata(metadata *types.FrameMetadata) *FrameMetadata {
 	f.ID = metadata.ID
 	f.Node = metadata.Node
 	f.WallClockSlot = uint64(metadata.WallClockSlot)
 	f.WallClockEpoch = uint64(metadata.WallClockEpoch)
 	f.FetchedAt = metadata.FetchedAt
 
-	f.Labels = FrameLabels{}
+	f.Labels = FrameMetadataLabels{}
 
 	for _, label := range metadata.Labels {
-		f.Labels = append(f.Labels, FrameLabel{
+		f.Labels = append(f.Labels, FrameMetadataLabel{
 			Name:    label,
 			FrameID: metadata.ID,
 		})

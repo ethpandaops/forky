@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	fhttp "github.com/ethpandaops/forkchoice/pkg/forkchoice/api/http"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -109,42 +108,6 @@ func (h *HTTP) handleV1GetFrame(ctx context.Context, r *http.Request, p httprout
 	})
 
 	response.SetCacheControl("public, s-max-age=30")
-
-	return response, nil
-}
-
-func (h *HTTP) handleV1ListFrames(ctx context.Context, r *http.Request, p httprouter.Params, contentType fhttp.ContentType) (*fhttp.Response, error) {
-	if err := fhttp.ValidateContentType(contentType, []fhttp.ContentType{fhttp.ContentTypeJSON}); err != nil {
-		return fhttp.NewUnsupportedMediaTypeResponse(nil), err
-	}
-
-	// Grab our request body
-	var req fhttp.V1ListFramesRequest
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return fhttp.NewBadRequestResponse(nil), err
-	}
-
-	page := req.Pagination
-	if page == nil {
-		page = service.DefaultPagination()
-	}
-
-	frames, pg, err := h.svc.ListFrames(ctx, req.Filter, *page)
-	if err != nil {
-		return fhttp.NewInternalServerErrorResponse(nil), err
-	}
-
-	rsp := fhttp.V1ListFramesResponse{
-		Frames:     frames,
-		Pagination: pg,
-	}
-
-	response := fhttp.NewSuccessResponse(fhttp.ContentTypeResolvers{
-		fhttp.ContentTypeJSON: func() ([]byte, error) {
-			return json.Marshal(rsp)
-		},
-	})
 
 	return response, nil
 }

@@ -86,7 +86,7 @@ func (f *ForkChoice) handleNewFrame(ctx context.Context, s source.Source, frame 
 	}
 
 	// Add the frame to the indexer.
-	if err := f.indexer.AddFrame(ctx, frame); err != nil {
+	if err := f.indexer.AddFrameMetadata(ctx, &frame.Metadata); err != nil {
 		logCtx.WithError(err).Error("Failed to index frame")
 
 		return
@@ -136,24 +136,36 @@ func (f *ForkChoice) ListNodes(ctx context.Context, filter *FrameFilter, page Pa
 	}, nil
 }
 
-func (f *ForkChoice) ListSlots(ctx context.Context, node string) ([]phase0.Slot, error) {
-	return nil, errors.New("not implemented")
+func (f *ForkChoice) ListSlots(ctx context.Context, filter *FrameFilter, page PaginationCursor) ([]phase0.Slot, *PaginationResponse, error) {
+	count, err := f.indexer.CountSlotsWithFrames(ctx, filter.AsDBFilter())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	slots, err := f.indexer.ListSlotsWithFrames(ctx, filter.AsDBFilter(), page.AsDBPageCursor())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return slots, &PaginationResponse{
+		Total: count,
+	}, nil
 }
 
-func (f *ForkChoice) ListFrames(ctx context.Context, filter *FrameFilter, page PaginationCursor) ([]*types.FrameMetadata, *PaginationResponse, error) {
-	frames, err := f.indexer.ListFrames(ctx, filter.AsDBFilter(), page.AsDBPageCursor())
+func (f *ForkChoice) ListMetadata(ctx context.Context, filter *FrameFilter, page PaginationCursor) ([]*types.FrameMetadata, *PaginationResponse, error) {
+	metadata, err := f.indexer.ListFrameMetadata(ctx, filter.AsDBFilter(), page.AsDBPageCursor())
 	if err != nil {
 		return nil, nil, err
 	}
 
-	count, err := f.indexer.CountFrames(ctx, filter.AsDBFilter())
+	count, err := f.indexer.CountFrameMetadata(ctx, filter.AsDBFilter())
 	if err != nil {
 		return nil, nil, err
 	}
 
-	fr := db.Frames(frames)
+	md := db.FrameMetadatas(metadata)
 
-	return fr.AsFrameMetadata(), &PaginationResponse{
+	return md.AsFrameMetadata(), &PaginationResponse{
 		Total: count,
 	}, nil
 }

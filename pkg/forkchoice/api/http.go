@@ -32,13 +32,10 @@ func (h *HTTP) BindToRouter(ctx context.Context, router *httprouter.Router) erro
 	router.GET("/api/v1/sources", h.wrappedHandler(h.handleV1Sources))
 
 	router.GET("/api/v1/frames/:id", h.wrappedHandler(h.handleV1GetFrame))
-	router.POST("/api/v1/frames", h.wrappedHandler(h.handleV1ListFrames))
 
-	router.POST("/api/v1/nodes", h.wrappedHandler(h.handleV1ListNodes))
-
-	// router.GET("/api/v1/frames/:node/slots", h.wrappedHandler(h.handleV1FramesListSlots))
-	// router.GET("/api/v1/frames/:node/slots/:slot/frames", h.wrappedHandler(h.handleV1FramesList))
-	// router.GET("/api/v1/frames/:node/slots/:slot/frames/:fetchedAt", h.wrappedHandler(h.handleV1FramesGetFrame))
+	router.POST("/api/v1/metadata", h.wrappedHandler(h.handleV1MetadataList))
+	router.POST("/api/v1/metadata/nodes", h.wrappedHandler(h.handleV1MetadataListNodes))
+	router.POST("/api/v1/metadata/slots", h.wrappedHandler(h.handleV1MetadataListSlots))
 
 	return nil
 }

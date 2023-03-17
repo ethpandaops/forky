@@ -4,15 +4,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type FrameLabel struct {
+type FrameMetadataLabel struct {
 	gorm.Model
 	Name    string `gorm:"primaryKey,index"`
 	FrameID string `gorm:"index"`
 }
 
-type FrameLabels []FrameLabel
+type FrameMetadataLabels []FrameMetadataLabel
 
-func (f *FrameLabels) AsStrings() []string {
+func (f *FrameMetadataLabels) AsStrings() []string {
 	labels := make([]string, len(*f))
 
 	for i, label := range *f {
