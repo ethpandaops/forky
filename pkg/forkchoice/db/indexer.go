@@ -382,14 +382,14 @@ func (i *Indexer) DeleteFrameMetadata(ctx context.Context, id string) error {
 		return errors.New("frame_metadata not found")
 	}
 
-	// result = query.Unscoped().Where("frame_id = ?", id).Delete(&FrameMetadataLabels{})
-	// if result.Error != nil {
-	// 	return result.Error
-	// }
+	result = query.Unscoped().Where("frame_id = ?", id).Delete(&FrameMetadataLabels{})
+	if result.Error != nil {
+		return result.Error
+	}
 
-	// if result.RowsAffected == 0 {
-	// 	return errors.New("frame_metadata_label not found")
-	// }
+	if result.RowsAffected == 0 {
+		return errors.New("frame_metadata_label not found")
+	}
 
 	return nil
 }

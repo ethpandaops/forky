@@ -19,6 +19,10 @@ type FileSystemConfig struct {
 
 // NewFileSystem creates a new FileSystem instance with the specified base directory.
 func NewFileSystem(config FileSystemConfig) (*FileSystem, error) {
+	if config.BaseDir == "" {
+		return nil, fmt.Errorf("base directory is required")
+	}
+
 	err := os.MkdirAll(config.BaseDir, 0o755)
 	if err != nil {
 		return nil, err

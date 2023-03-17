@@ -2,20 +2,20 @@ listenAddr: ":5555"
 logging: "debug" # panic,fatal,warm,info,debug,trace
 metricsAddr: ":9090"
 
-store:
-  type: s3
-  config:
-    address: "http://localhost:9000"
-    bucket_name: "bucket"
+forky:
+  retentionPeriod: "30m"
 
-indexer:
-  dsn: index.db
-  driver_name: sqlite
+  store:
+    type: memory
 
-sources:
-  - name: "example"
-    type: "beacon_node"
-    config:
-      beaconAddress: "http://localhost:5052"
-      pollingInterval: "15s"
-      cacheTtlSeconds: 300
+  indexer:
+    dsn: ":memory:"
+    driver_name: sqlite
+
+  sources:
+    - name: "example"
+      type: "beacon_node"
+      config:
+        beaconAddress: "http://localhost:5052"
+        pollingInterval: "12s"
+        cacheTtlSeconds: 300
