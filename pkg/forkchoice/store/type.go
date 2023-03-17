@@ -6,12 +6,12 @@ const (
 	UnknownStore        Type = "unknown"
 	FileSystemStoreType Type = "fs"
 	S3StoreType         Type = "s3"
-	GORMStoreType       Type = "gorm"
+	MemoryStoreType     Type = "memory"
 )
 
 func IsValidStoreType(st Type) bool {
 	switch st {
-	case FileSystemStoreType, S3StoreType, GORMStoreType:
+	case FileSystemStoreType, S3StoreType, MemoryStoreType:
 		return true
 	default:
 		return false

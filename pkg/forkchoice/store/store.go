@@ -2,7 +2,7 @@ package store
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
 	"github.com/ethpandaops/forkchoice/pkg/yaml"
@@ -37,7 +37,9 @@ func NewStore(log logrus.FieldLogger, storeType Type, config yaml.RawMessage) (S
 		}
 
 		return NewS3Store(log, s3Config)
+	case MemoryStoreType:
+		return NewMemoryStore(log), nil
 	default:
-		return nil, errors.New("unknown store type")
+		return nil, fmt.Errorf("unknown store type: %s", storeType)
 	}
 }
