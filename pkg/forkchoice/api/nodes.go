@@ -22,13 +22,14 @@ func (h *HTTP) handleV1ListNodes(ctx context.Context, r *http.Request, p httprou
 		return fhttp.NewBadRequestResponse(nil), err
 	}
 
-	nodes, err := h.svc.ListNodes(ctx, req.Filter)
+	nodes, page, err := h.svc.ListNodes(ctx, req.Filter, req.Pagination)
 	if err != nil {
 		return fhttp.NewInternalServerErrorResponse(nil), err
 	}
 
 	rsp := fhttp.V1ListNodesResponse{
-		Nodes: nodes,
+		Nodes:      nodes,
+		Pagination: page,
 	}
 
 	response := fhttp.NewSuccessResponse(fhttp.ContentTypeResolvers{

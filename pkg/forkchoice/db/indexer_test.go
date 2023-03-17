@@ -101,7 +101,7 @@ func TestIndexer_AddFrame(t *testing.T) {
 }
 
 //nolint:gocyclo // its a test m8
-func TestIndexer_ListFrame(t *testing.T) {
+func TestIndexer_ListFrames(t *testing.T) {
 	t.Run("By ID", func(t *testing.T) {
 		indexer, _, err := newMockIndexer()
 		if err != nil {
@@ -128,7 +128,7 @@ func TestIndexer_ListFrame(t *testing.T) {
 
 		frames, err := indexer.ListFrames(context.Background(), &FrameFilter{
 			ID: &id,
-		})
+		}, &PaginationCursor{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -163,7 +163,7 @@ func TestIndexer_ListFrame(t *testing.T) {
 
 		frames, err := indexer.ListFrames(context.Background(), &FrameFilter{
 			Node: &node,
-		})
+		}, &PaginationCursor{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -198,7 +198,7 @@ func TestIndexer_ListFrame(t *testing.T) {
 
 		frames, err := indexer.ListFrames(context.Background(), &FrameFilter{
 			Slot: &slot,
-		})
+		}, &PaginationCursor{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -234,7 +234,7 @@ func TestIndexer_ListFrame(t *testing.T) {
 
 		frames, err := indexer.ListFrames(context.Background(), &FrameFilter{
 			Epoch: &epochUint64,
-		})
+		}, &PaginationCursor{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -285,7 +285,7 @@ func TestIndexer_ListFrame(t *testing.T) {
 
 		expectedBefore, err := indexer.ListFrames(context.Background(), &FrameFilter{
 			Before: &now,
-		})
+		}, &PaginationCursor{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -295,7 +295,7 @@ func TestIndexer_ListFrame(t *testing.T) {
 
 		expectedAfter, err := indexer.ListFrames(context.Background(), &FrameFilter{
 			After: &now,
-		})
+		}, &PaginationCursor{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -344,7 +344,7 @@ func TestIndexer_ListFrame(t *testing.T) {
 
 		frames, err := indexer.ListFrames(context.Background(), &FrameFilter{
 			Labels: &[]string{"a", "b"},
-		})
+		}, &PaginationCursor{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -354,7 +354,7 @@ func TestIndexer_ListFrame(t *testing.T) {
 
 		frames, err = indexer.ListFrames(context.Background(), &FrameFilter{
 			Labels: &[]string{},
-		})
+		}, &PaginationCursor{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -363,7 +363,7 @@ func TestIndexer_ListFrame(t *testing.T) {
 
 		frames, err = indexer.ListFrames(context.Background(), &FrameFilter{
 			Labels: &[]string{"z", "d", "e", "f"},
-		})
+		}, &PaginationCursor{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -372,7 +372,7 @@ func TestIndexer_ListFrame(t *testing.T) {
 
 		frames, err = indexer.ListFrames(context.Background(), &FrameFilter{
 			Labels: &[]string{"z"},
-		})
+		}, &PaginationCursor{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -449,7 +449,7 @@ func TestIndexer_ListFrame(t *testing.T) {
 				})
 			}
 
-			frames, err := indexer.ListFrames(context.Background(), &filter)
+			frames, err := indexer.ListFrames(context.Background(), &filter, &PaginationCursor{})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -503,10 +503,54 @@ func TestIndexer_ListFrame(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("With Pagination", func(t *testing.T) {
+		indexer, _, err := newMockIndexer()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Add a few random frames
+		for i := 0; i < 10; i++ {
+			frame := &types.Frame{
+				Metadata: types.FrameMetadata{
+					ID:             uuid.New().String(),
+					Node:           fmt.Sprintf("node%d", i),
+					WallClockSlot:  phase0.Slot(testRandIntn(1000)),
+					WallClockEpoch: phase0.Epoch(testRandIntn(100)),
+					FetchedAt:      time.Now(),
+					Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
+				},
+			}
+
+			err = indexer.AddFrame(context.Background(), frame)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Test pagination
+		limit := 5
+		for offset := 0; offset < 10; offset += limit {
+			frames, err := indexer.ListFrames(context.Background(), &FrameFilter{}, &PaginationCursor{
+				Limit:  limit,
+				Offset: offset,
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Check that only the expected number of frames are returned
+			if offset+limit > 10 {
+				assert.Len(t, frames, 10-offset)
+			} else {
+				assert.Len(t, frames, limit)
+			}
+		}
+	})
 }
 
 func TestIndexer_ListNodesWithFrames(t *testing.T) {
-
 	t.Run("success", func(t *testing.T) {
 		indexer, _, err := newMockIndexer()
 		if err != nil {
@@ -535,7 +579,7 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 		}
 
 		// List nodes with frames
-		nodes, err := indexer.ListNodesWithFrames(context.Background(), &FrameFilter{})
+		nodes, err := indexer.ListNodesWithFrames(context.Background(), &FrameFilter{}, &PaginationCursor{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -578,7 +622,7 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 		filter := &FrameFilter{
 			Labels: &[]string{"label5"},
 		}
-		nodes, err := indexer.ListNodesWithFrames(context.Background(), filter)
+		nodes, err := indexer.ListNodesWithFrames(context.Background(), filter, &PaginationCursor{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -586,8 +630,9 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 		// Check that only nodes with frames with the "label5" label are returned
 		for _, node := range nodes {
 			frames, err := indexer.ListFrames(context.Background(), &FrameFilter{
+				//nolint:gosec // don't care in this test
 				Node: &node,
-			})
+			}, &PaginationCursor{})
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -79,7 +79,35 @@ func (i *Indexer) RemoveFrame(ctx context.Context, id string) error {
 	return result.Error
 }
 
-func (i *Indexer) ListFrames(ctx context.Context, filter *FrameFilter) ([]*Frame, error) {
+func (i *Indexer) CountFrames(ctx context.Context, filter *FrameFilter) (int64, error) {
+	var count int64
+
+	query := i.db.WithContext(ctx).Model(&Frame{})
+
+	// Fetch frames that have ALL labels provided.
+	if filter.Labels != nil {
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels)
+		if err != nil {
+			return 0, err
+		}
+
+		query = query.Where("id IN (?)", frameIDs)
+	}
+
+	query, err := filter.ApplyToQuery(query)
+	if err != nil {
+		return 0, err
+	}
+
+	result := query.Preload("Labels").Find(count)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+
+	return count, nil
+}
+
+func (i *Indexer) ListFrames(ctx context.Context, filter *FrameFilter, page *PaginationCursor) ([]*Frame, error) {
 	var frames []*Frame
 
 	query := i.db.WithContext(ctx).Model(&Frame{})
@@ -92,6 +120,10 @@ func (i *Indexer) ListFrames(ctx context.Context, filter *FrameFilter) ([]*Frame
 		}
 
 		query = query.Where("id IN (?)", frameIDs)
+	}
+
+	if page != nil {
+		query = page.ApplyToQuery(query)
 	}
 
 	query, err := filter.ApplyToQuery(query)
@@ -107,7 +139,35 @@ func (i *Indexer) ListFrames(ctx context.Context, filter *FrameFilter) ([]*Frame
 	return frames, nil
 }
 
-func (i *Indexer) ListNodesWithFrames(ctx context.Context, filter *FrameFilter) ([]string, error) {
+func (i *Indexer) CountNodesWithFrames(ctx context.Context, filter *FrameFilter) (int64, error) {
+	var count int64
+
+	query := i.db.WithContext(ctx).Model(&Frame{})
+
+	// Fetch frames that have ALL labels provided.
+	if filter.Labels != nil {
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels)
+		if err != nil {
+			return 0, err
+		}
+
+		query = query.Where("id IN (?)", frameIDs)
+	}
+
+	query, err := filter.ApplyToQuery(query)
+	if err != nil {
+		return 0, err
+	}
+
+	result := query.Preload("Labels").Distinct("node").Count(&count)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+
+	return count, nil
+}
+
+func (i *Indexer) ListNodesWithFrames(ctx context.Context, filter *FrameFilter, page *PaginationCursor) ([]string, error) {
 	var nodes []string
 
 	query := i.db.WithContext(ctx).Model(&Frame{})
@@ -127,7 +187,11 @@ func (i *Indexer) ListNodesWithFrames(ctx context.Context, filter *FrameFilter) 
 		return nil, err
 	}
 
-	result := query.Preload("Labels").Distinct("node").Find(&nodes).Limit(1000)
+	if page != nil {
+		query = page.ApplyToQuery(query)
+	}
+
+	result := query.Preload("Labels").Distinct("node").Find(&nodes)
 	if result.Error != nil {
 		return nil, result.Error
 	}

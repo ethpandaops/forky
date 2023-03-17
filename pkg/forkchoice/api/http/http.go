@@ -15,11 +15,13 @@ type V1SourcesResponse struct {
 }
 
 type V1ListNodesRequest struct {
-	Filter *service.FrameFilter `json:"filter"`
+	Filter     *service.FrameFilter      `json:"filter"`
+	Pagination *service.PaginationCursor `json:"pagination"`
 }
 
 type V1ListNodesResponse struct {
-	Nodes []string `json:"nodes"`
+	Nodes      []string                    `json:"nodes"`
+	Pagination *service.PaginationResponse `json:"pagination"`
 }
 type V1FramesListSlotsRequest struct {
 }

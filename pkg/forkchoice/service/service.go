@@ -120,12 +120,24 @@ func (f *ForkChoice) ListSources(ctx context.Context) ([]*SourceMetadata, error)
 	return sources, nil
 }
 
-func (f *ForkChoice) ListNodes(ctx context.Context, filter *FrameFilter) ([]string, error) {
+func (f *ForkChoice) ListNodes(ctx context.Context, filter *FrameFilter, page *PaginationCursor) ([]string, *PaginationResponse, error) {
 	if err := filter.Validate(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return f.indexer.ListNodesWithFrames(ctx, filter.AsDBFilter())
+	count, err := f.indexer.CountNodesWithFrames(ctx, filter.AsDBFilter())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	nodes, err := f.indexer.ListNodesWithFrames(ctx, filter.AsDBFilter(), page.AsDBPageCursor())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return nodes, &PaginationResponse{
+		Total: count,
+	}, nil
 }
 
 func (f *ForkChoice) ListSlots(ctx context.Context, node string) ([]phase0.Slot, error) {
