@@ -99,7 +99,7 @@ func (i *Indexer) CountFrames(ctx context.Context, filter *FrameFilter) (int64, 
 		return 0, err
 	}
 
-	result := query.Preload("Labels").Find(count)
+	result := query.Count(&count)
 	if result.Error != nil {
 		return 0, result.Error
 	}
@@ -159,7 +159,7 @@ func (i *Indexer) CountNodesWithFrames(ctx context.Context, filter *FrameFilter)
 		return 0, err
 	}
 
-	result := query.Preload("Labels").Distinct("node").Count(&count)
+	result := query.Distinct("node").Count(&count)
 	if result.Error != nil {
 		return 0, result.Error
 	}

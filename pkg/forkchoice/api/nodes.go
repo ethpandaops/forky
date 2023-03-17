@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	fhttp "github.com/ethpandaops/forkchoice/pkg/forkchoice/api/http"
+	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -22,14 +23,19 @@ func (h *HTTP) handleV1ListNodes(ctx context.Context, r *http.Request, p httprou
 		return fhttp.NewBadRequestResponse(nil), err
 	}
 
-	nodes, page, err := h.svc.ListNodes(ctx, req.Filter, req.Pagination)
+	page := req.Pagination
+	if page == nil {
+		page = service.DefaultPagination()
+	}
+
+	nodes, pg, err := h.svc.ListNodes(ctx, req.Filter, *page)
 	if err != nil {
 		return fhttp.NewInternalServerErrorResponse(nil), err
 	}
 
 	rsp := fhttp.V1ListNodesResponse{
 		Nodes:      nodes,
-		Pagination: page,
+		Pagination: pg,
 	}
 
 	response := fhttp.NewSuccessResponse(fhttp.ContentTypeResolvers{

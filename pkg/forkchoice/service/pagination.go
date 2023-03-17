@@ -9,6 +9,13 @@ type PaginationCursor struct {
 	Limit int `json:"limit"`
 }
 
+func DefaultPagination() *PaginationCursor {
+	return &PaginationCursor{
+		Offset: 0,
+		Limit:  1000,
+	}
+}
+
 func (p *PaginationCursor) AsDBPageCursor() *db.PaginationCursor {
 	return &db.PaginationCursor{
 		Offset: p.Offset,

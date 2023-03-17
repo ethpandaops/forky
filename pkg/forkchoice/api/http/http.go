@@ -23,6 +23,7 @@ type V1ListNodesResponse struct {
 	Nodes      []string                    `json:"nodes"`
 	Pagination *service.PaginationResponse `json:"pagination"`
 }
+
 type V1FramesListSlotsRequest struct {
 }
 
@@ -30,6 +31,15 @@ type V1FramesListSlotsResponse struct {
 	Slots []phase0.Slot `json:"slots"`
 }
 
+type V1ListFramesRequest struct {
+	Filter     *service.FrameFilter      `json:"filter"`
+	Pagination *service.PaginationCursor `json:"pagination"`
+}
+
+type V1ListFramesResponse struct {
+	Frames     []*types.FrameMetadata      `json:"frames"`
+	Pagination *service.PaginationResponse `json:"pagination"`
+}
 type V1GetFrameRequest struct {
 }
 

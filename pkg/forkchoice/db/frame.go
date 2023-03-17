@@ -18,6 +18,18 @@ type Frame struct {
 	Labels         []FrameLabel `gorm:"foreignkey:FrameID;"`
 }
 
+type Frames []*Frame
+
+func (f *Frames) AsFrameMetadata() []*types.FrameMetadata {
+	frames := make([]*types.FrameMetadata, len(*f))
+
+	for i, frame := range *f {
+		frames[i] = frame.AsFrameMetadata()
+	}
+
+	return frames
+}
+
 func (f *Frame) AsFrameMetadata() *types.FrameMetadata {
 	l := FrameLabels(f.Labels)
 
