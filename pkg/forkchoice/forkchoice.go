@@ -7,11 +7,7 @@ import (
 	"time"
 
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/api"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/db"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/source"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/store"
-	"github.com/ethpandaops/forkchoice/pkg/version"
 	static "github.com/ethpandaops/forkchoice/web"
 	"github.com/julienschmidt/httprouter"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -31,31 +27,11 @@ func NewServer(log *logrus.Logger, conf *Config) *Server {
 		log.Fatalf("invalid config: %s", err)
 	}
 
-	// Create our sources.
-	sources := make(map[string]source.Source)
-	for _, s := range conf.Sources {
-		source, err := source.NewSource(log, s.Name, s.Type, s.Config)
-		if err != nil {
-			log.Fatalf("failed to create source %s: %s", s.Name, err)
-		}
-
-		sources[s.Name] = source
-	}
-
-	// Create our store.
-	store, err := store.NewStore(log, conf.Store.Type, conf.Store.Config)
-	if err != nil {
-		log.Fatalf("failed to create store: %s", err)
-	}
-
-	// Create our indexer.
-	indexer, err := db.NewIndexer(log, conf.Indexer)
-	if err != nil {
-		log.Fatalf("failed to create indexer: %s", err)
-	}
-
 	// Create our service which will glue everything together.
-	svc := service.NewForkChoice(log, sources, store, indexer)
+	svc, err := service.NewForkChoice(log, conf.Forky)
+	if err != nil {
+		log.Fatalf("failed to create service: %s", err)
+	}
 
 	// Create our HTTP API.
 	http := api.NewHTTP(log, svc)
@@ -71,8 +47,6 @@ func NewServer(log *logrus.Logger, conf *Config) *Server {
 }
 
 func (s *Server) Start(ctx context.Context) error {
-	s.log.Infof("Starting forkchoice server (%s)", version.Short())
-
 	if err := s.svc.Start(ctx); err != nil {
 		return err
 	}

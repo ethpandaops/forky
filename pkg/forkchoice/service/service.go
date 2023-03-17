@@ -4,32 +4,68 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/db"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/source"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/store"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
+	"github.com/ethpandaops/forkchoice/pkg/version"
 	"github.com/sirupsen/logrus"
 )
 
 type ForkChoice struct {
+	config  *Config
 	log     logrus.FieldLogger
 	sources map[string]source.Source
 	store   store.Store
 	indexer *db.Indexer
 }
 
-func NewForkChoice(log logrus.FieldLogger, sources map[string]source.Source, st store.Store, indexer *db.Indexer) *ForkChoice {
+func NewForkChoice(log logrus.FieldLogger, config *Config) (*ForkChoice, error) {
+	// Create our sources.
+	sources := make(map[string]source.Source)
+
+	for _, s := range config.Sources {
+		sou, err := source.NewSource(log, s.Name, s.Type, s.Config)
+		if err != nil {
+			log.Fatalf("failed to create source %s: %s", s.Name, err)
+		}
+
+		sources[s.Name] = sou
+	}
+
+	// Create our store.
+	st, err := store.NewStore(log, config.Store.Type, config.Store.Config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create store: %s", err)
+	}
+
+	// Create our indexer.
+	indexer, err := db.NewIndexer(log, config.Indexer)
+	if err != nil {
+		log.Fatalf("failed to create indexer: %s", err)
+	}
+
 	return &ForkChoice{
+		config:  config,
 		log:     log.WithField("component", "service"),
 		sources: sources,
 		store:   st,
 		indexer: indexer,
-	}
+	}, nil
 }
 
 func (f *ForkChoice) Start(ctx context.Context) error {
+	f.log.
+		WithField("retention_period", f.config.RetentionPeriod.Duration.String()).
+		WithField("version", version.Short()).
+		WithField("sources", len(f.sources)).
+		WithField("store", f.config.Store.Type).
+		WithField("indexer", f.config.Indexer.DriverName).
+		Info("Starting forky service")
+
 	for _, source := range f.sources {
 		source.OnFrame(func(ctx context.Context, frame *types.Frame) {
 			f.handleNewFrame(ctx, source, frame)
@@ -39,6 +75,8 @@ func (f *ForkChoice) Start(ctx context.Context) error {
 			return err
 		}
 	}
+
+	go f.pollForUnwantedFrames(ctx)
 
 	return nil
 }
@@ -51,6 +89,20 @@ func (f *ForkChoice) Stop(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (f *ForkChoice) pollForUnwantedFrames(ctx context.Context) {
+	for {
+		if err := f.DeleteOldFrames(ctx); err != nil {
+			f.log.WithError(err).Error("Failed to delete old frames")
+		}
+
+		select {
+		case <-time.After(1 * time.Minute):
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
 func (f *ForkChoice) handleNewFrame(ctx context.Context, s source.Source, frame *types.Frame) {

@@ -11,7 +11,7 @@ var (
 )
 
 func Full() string {
-	return fmt.Sprintf("Checkpointz/%s", Short())
+	return fmt.Sprintf("Forky/%s", Short())
 }
 
 func Short() string {

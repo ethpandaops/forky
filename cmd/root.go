@@ -71,7 +71,7 @@ func loadConfigFromFile(file string) (*forkchoice.Config, error) {
 func initCommon() *forkchoice.Config {
 	log.SetFormatter(&logrus.TextFormatter{})
 
-	log.WithField("cfgFile", cfgFile).Info("loading config")
+	log.WithField("file", cfgFile).Info("Loading config")
 
 	config, err := loadConfigFromFile(cfgFile)
 	if err != nil {
@@ -80,7 +80,7 @@ func initCommon() *forkchoice.Config {
 
 	logLevel, err := logrus.ParseLevel(config.LoggingLevel)
 	if err != nil {
-		log.WithField("logLevel", config.LoggingLevel).Fatal("invalid logging level")
+		log.WithField("log_level", config.LoggingLevel).Fatal("invalid logging level")
 	}
 
 	log.SetLevel(logLevel)
