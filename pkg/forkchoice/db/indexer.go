@@ -260,6 +260,116 @@ func (i *Indexer) ListSlotsWithFrames(ctx context.Context, filter *FrameFilter, 
 	return slots, nil
 }
 
+func (i *Indexer) CountEpochsWithFrames(ctx context.Context, filter *FrameFilter) (int64, error) {
+	var count int64
+
+	query := i.db.WithContext(ctx).Model(&FrameMetadata{})
+
+	// Fetch frames that have ALL labels provided.
+	if filter.Labels != nil {
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels)
+		if err != nil {
+			return 0, err
+		}
+
+		query = query.Where("id IN (?)", frameIDs)
+	}
+
+	query, err := filter.ApplyToQuery(query)
+	if err != nil {
+		return 0, err
+	}
+
+	result := query.Distinct("wall_clock_epoch").Count(&count)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+
+	return count, nil
+}
+
+func (i *Indexer) ListEpochsWithFrames(ctx context.Context, filter *FrameFilter, page *PaginationCursor) ([]phase0.Epoch, error) {
+	var epochs []phase0.Epoch
+
+	query := i.db.WithContext(ctx).Model(&FrameMetadata{})
+
+	// Fetch frames that have ALL labels provided.
+	if filter.Labels != nil {
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels)
+		if err != nil {
+			return nil, err
+		}
+
+		query = query.Where("id IN (?)", frameIDs)
+	}
+
+	query, err := filter.ApplyToQuery(query)
+	if err != nil {
+		return nil, err
+	}
+
+	if page != nil {
+		query = page.ApplyToQuery(query)
+	}
+
+	result := query.Preload("Labels").Distinct("wall_clock_epoch").Find(&epochs)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return epochs, nil
+}
+
+func (i *Indexer) CountLabelsWithFrames(ctx context.Context, filter *FrameFilter) (int64, error) {
+	var count int64
+
+	metadata, err := i.ListFrameMetadata(ctx, filter, &PaginationCursor{})
+	if err != nil {
+		return 0, err
+	}
+
+	ids := []string{}
+
+	for _, frame := range metadata {
+		ids = append(ids, frame.ID)
+	}
+
+	query := i.db.WithContext(ctx).Model(&FrameMetadataLabel{}).
+		Where("frame_id IN (?)", ids).Group("name")
+
+	result := query.Distinct("name").Count(&count)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+
+	return count, nil
+}
+
+func (i *Indexer) ListLabelsWithFrames(ctx context.Context, filter *FrameFilter, page *PaginationCursor) (FrameMetadataLabels, error) {
+	labels := FrameMetadataLabels{}
+
+	metadata, err := i.ListFrameMetadata(ctx, filter, page)
+	if err != nil {
+		return nil, err
+	}
+
+	ids := []string{}
+
+	for _, frame := range metadata {
+		ids = append(ids, frame.ID)
+	}
+
+	query := i.db.WithContext(ctx).Model(&FrameMetadataLabel{}).
+		Where("frame_id IN (?)", ids)
+
+	result := query.Distinct("name").Find(&labels)
+	if result.Error != nil {
+		return nil, err
+	}
+
+	return labels, nil
+}
+
 func (i *Indexer) getFrameIDsWithLabels(ctx context.Context, labels []string) ([]string, error) {
 	frameLabels := []*FrameMetadataLabel{}
 

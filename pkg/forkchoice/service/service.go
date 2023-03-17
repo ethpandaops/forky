@@ -152,6 +152,38 @@ func (f *ForkChoice) ListSlots(ctx context.Context, filter *FrameFilter, page Pa
 	}, nil
 }
 
+func (f *ForkChoice) ListEpochs(ctx context.Context, filter *FrameFilter, page PaginationCursor) ([]phase0.Epoch, *PaginationResponse, error) {
+	count, err := f.indexer.CountEpochsWithFrames(ctx, filter.AsDBFilter())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	epochs, err := f.indexer.ListEpochsWithFrames(ctx, filter.AsDBFilter(), page.AsDBPageCursor())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return epochs, &PaginationResponse{
+		Total: count,
+	}, nil
+}
+
+func (f *ForkChoice) ListLabels(ctx context.Context, filter *FrameFilter, page PaginationCursor) ([]string, *PaginationResponse, error) {
+	count, err := f.indexer.CountLabelsWithFrames(ctx, filter.AsDBFilter())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	labels, err := f.indexer.ListLabelsWithFrames(ctx, filter.AsDBFilter(), page.AsDBPageCursor())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return labels.AsStrings(), &PaginationResponse{
+		Total: count,
+	}, nil
+}
+
 func (f *ForkChoice) ListMetadata(ctx context.Context, filter *FrameFilter, page PaginationCursor) ([]*types.FrameMetadata, *PaginationResponse, error) {
 	metadata, err := f.indexer.ListFrameMetadata(ctx, filter.AsDBFilter(), page.AsDBPageCursor())
 	if err != nil {

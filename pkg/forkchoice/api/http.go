@@ -36,6 +36,8 @@ func (h *HTTP) BindToRouter(ctx context.Context, router *httprouter.Router) erro
 	router.POST("/api/v1/metadata", h.wrappedHandler(h.handleV1MetadataList))
 	router.POST("/api/v1/metadata/nodes", h.wrappedHandler(h.handleV1MetadataListNodes))
 	router.POST("/api/v1/metadata/slots", h.wrappedHandler(h.handleV1MetadataListSlots))
+	router.POST("/api/v1/metadata/epochs", h.wrappedHandler(h.handleV1MetadataListEpochs))
+	router.POST("/api/v1/metadata/labels", h.wrappedHandler(h.handleV1MetadataListLabels))
 
 	return nil
 }

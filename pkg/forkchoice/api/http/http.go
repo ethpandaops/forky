@@ -7,6 +7,7 @@ import (
 )
 
 // V1
+// // Sources
 type V1SourcesRequest struct {
 }
 
@@ -14,7 +15,7 @@ type V1SourcesResponse struct {
 	SourcesMetadata []*service.SourceMetadata `json:"sources_metadata"`
 }
 
-// Metadata
+// // Metadata
 type V1MetadataListRequest struct {
 	Filter     *service.FrameFilter      `json:"filter"`
 	Pagination *service.PaginationCursor `json:"pagination"`
@@ -41,10 +42,31 @@ type V1MetadataListSlotsRequest struct {
 }
 
 type V1MetadataListSlotsResponse struct {
-	Nodes      []phase0.Slot               `json:"slots"`
+	Slots      []phase0.Slot               `json:"slots"`
 	Pagination *service.PaginationResponse `json:"pagination"`
 }
 
+type V1MetadataListEpochsRequest struct {
+	Filter     *service.FrameFilter      `json:"filter"`
+	Pagination *service.PaginationCursor `json:"pagination"`
+}
+
+type V1MetadataListEpochsResponse struct {
+	Epochs     []phase0.Epoch              `json:"epochs"`
+	Pagination *service.PaginationResponse `json:"pagination"`
+}
+
+type V1MetadataListLabelsRequest struct {
+	Filter     *service.FrameFilter      `json:"filter"`
+	Pagination *service.PaginationCursor `json:"pagination"`
+}
+
+type V1MetadataListLabelsResponse struct {
+	Labels     []string                    `json:"labels"`
+	Pagination *service.PaginationResponse `json:"pagination"`
+}
+
+// // Frames
 type V1GetFrameRequest struct {
 }
 

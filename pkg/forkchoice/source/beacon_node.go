@@ -225,7 +225,9 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 				WallClockSlot:  phase0.Slot(slot.Number()),
 				WallClockEpoch: phase0.Epoch(epoch.Number()),
 				ID:             uuid.New().String(),
-				Labels:         []string{},
+				Labels: []string{
+					"def",
+				},
 			},
 			Data: dump,
 		}
