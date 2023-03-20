@@ -16,42 +16,40 @@ import (
 type S3Store struct {
 	s3Client *s3.Client
 
-	config S3StoreConfig
+	config *S3StoreConfig
 
 	log logrus.FieldLogger
 }
 
 type S3StoreConfig struct {
-	address    string `yaml:"address"`
-	region     string `yaml:"region"`
-	bucketName string `yaml:"bucket_name"`
-	keyPrefix  string `yaml:"key_prefix"`
+	Endpoint     string `yaml:"endpoint"`
+	Region       string `yaml:"region"`
+	BucketName   string `yaml:"bucket_name"`
+	KeyPrefix    string `yaml:"key_prefix"`
+	AccessKey    string `yaml:"access_key"`
+	AccessSecret string `yaml:"access_secret"`
+	UsePathStyle bool   `yaml:"use_path_style"`
 }
 
 // NewS3Store creates a new S3Store instance with the specified AWS configuration, bucket name, and key prefix.
-func NewS3Store(log logrus.FieldLogger, config S3StoreConfig) (*S3Store, error) {
-	config.address = "http://localhost:9000"
-	config.region = "us-east-1"
-	config.bucketName = "forkchoice"
-	config.keyPrefix = "/"
-
+func NewS3Store(log logrus.FieldLogger, config *S3StoreConfig) (*S3Store, error) {
 	resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...any) (aws.Endpoint, error) {
 		return aws.Endpoint{
 			PartitionID:       "aws",
-			SigningRegion:     config.region,
-			URL:               config.address,
+			SigningRegion:     config.Region,
+			URL:               config.Endpoint,
 			HostnameImmutable: true,
 		}, nil
 	})
 
 	cfg := aws.Config{
-		Region:                      config.region,
+		Region:                      config.Region,
 		EndpointResolverWithOptions: resolver,
-		Credentials:                 credentials.NewStaticCredentialsProvider("minioadmin", "minioadmin", ""),
+		Credentials:                 credentials.NewStaticCredentialsProvider(config.AccessKey, config.AccessSecret, ""),
 	}
 
 	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.UsePathStyle = true
+		o.UsePathStyle = config.UsePathStyle
 	})
 
 	return &S3Store{
@@ -70,7 +68,7 @@ func (s *S3Store) SaveFrame(ctx context.Context, frame *types.Frame) error {
 	reader := bytes.NewReader(gzipped)
 
 	_, err = s.s3Client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: aws.String(s.config.bucketName),
+		Bucket: aws.String(s.config.BucketName),
 		Key:    aws.String(s.getFullName(frame.Metadata.ID)),
 		Body:   reader,
 	})
@@ -82,7 +80,7 @@ func (s *S3Store) GetFrame(ctx context.Context, id string) (*types.Frame, error)
 	file := s.getFullName(id)
 
 	data, err := s.s3Client.GetObject(ctx, &s3.GetObjectInput{
-		Bucket: aws.String(s.config.bucketName),
+		Bucket: aws.String(s.config.BucketName),
 		Key:    aws.String(file),
 	})
 	if err != nil {
@@ -110,7 +108,7 @@ func (s *S3Store) GetFrame(ctx context.Context, id string) (*types.Frame, error)
 
 func (s *S3Store) DeleteFrame(ctx context.Context, id string) error {
 	_, err := s.s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
-		Bucket: aws.String(s.config.bucketName),
+		Bucket: aws.String(s.config.BucketName),
 		Key:    aws.String(s.getFullName(id)),
 	})
 
@@ -122,7 +120,7 @@ func (s *S3Store) getFullName(id string) string {
 }
 
 func (s *S3Store) getFramesPath() string {
-	return filepath.Join(s.config.keyPrefix, "frames")
+	return filepath.Join(s.config.KeyPrefix, "frames")
 }
 
 func (s *S3Store) getFilename(id string) string {

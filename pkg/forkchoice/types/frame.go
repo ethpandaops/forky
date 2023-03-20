@@ -5,7 +5,7 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"time"
 
 	v1 "github.com/attestantio/go-eth2-client/api/v1"
@@ -73,16 +73,6 @@ func (f *Frame) Validate() error {
 	return nil
 }
 
-// FrameFilter is a filter for frames.
-type FrameFilter struct {
-	// Node is the node to filter on.
-	Node *string `json:"node"`
-	// WallClockSlot is the wall clock slot to filter on.
-	WallClockSlot *phase0.Slot `json:"wall_clock_slot"`
-	// WallClockEpoch is the wall clock epoch to filter on.
-	WallClockEpoch *phase0.Epoch `json:"wall_clock_epoch"`
-}
-
 func (f *Frame) AsGzipJSON() ([]byte, error) {
 	// Convert to JSON
 	asJSON, err := json.Marshal(f)
@@ -115,7 +105,7 @@ func (f *Frame) FromGzipJSON(data []byte) error {
 	defer r.Close()
 
 	// Read the uncompressed data
-	uncompressed, err := ioutil.ReadAll(r)
+	uncompressed, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}

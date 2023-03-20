@@ -30,7 +30,7 @@ func NewStore(log logrus.FieldLogger, storeType Type, config yaml.RawMessage) (S
 
 		return NewFileSystem(fsConfig)
 	case S3StoreType:
-		var s3Config S3StoreConfig
+		var s3Config *S3StoreConfig
 
 		if err := config.Unmarshal(&s3Config); err != nil {
 			return nil, err
