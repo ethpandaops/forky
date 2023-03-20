@@ -42,23 +42,19 @@ type BeaconNode struct {
 }
 
 type BeaconNodeConfig struct {
-	BeaconAddress   string       `yaml:"beaconAddress"`
-	PollingInterval string       `yaml:"pollingInterval"`
-	CacheTTLSeconds int          `yaml:"cacheTtlSeconds"`
+	Address         string       `yaml:"address"`
+	PollingInterval string       `yaml:"polling_interval"`
 	Store           store.Config `yaml:"store"`
+	Labels          []string     `yaml:"labels"`
 }
 
 func (b *BeaconNodeConfig) Validate() error {
-	if b.BeaconAddress == "" {
-		return errors.New("invalid beacon address")
+	if b.Address == "" {
+		return errors.New("invalid address")
 	}
 
 	if b.PollingInterval == "" {
 		return errors.New("invalid polling interval")
-	}
-
-	if b.CacheTTLSeconds == 0 {
-		return errors.New("invalid cache TTL")
 	}
 
 	return nil
@@ -72,7 +68,9 @@ func NewBeaconNode(log logrus.FieldLogger, config *BeaconNodeConfig, name string
 	scheduler := gocron.NewScheduler(time.Local)
 
 	return &BeaconNode{
-		log:              log.WithField("source_name", name).WithField("component", "source/beacon_node"),
+		log: log.
+			WithField("source_name", name).
+			WithField("component", "source/beacon_node"),
 		config:           config,
 		cron:             scheduler,
 		name:             name,
@@ -92,7 +90,7 @@ func (b *BeaconNode) Start(ctx context.Context) error {
 	b.cron.StartAsync()
 
 	client, err := http.New(ctx,
-		http.WithAddress(b.config.BeaconAddress),
+		http.WithAddress(b.config.Address),
 		http.WithLogLevel(zerolog.WarnLevel),
 	)
 	if err != nil {
@@ -102,7 +100,7 @@ func (b *BeaconNode) Start(ctx context.Context) error {
 	b.client = client
 
 	_, err = b.cron.Every(b.config.PollingInterval).Do(func() {
-		if err := b.fetchFrame(ctx); err != nil {
+		if err = b.fetchFrame(ctx); err != nil {
 			b.log.WithError(err).Error("Failed to fetch frame")
 		}
 	})
@@ -181,6 +179,7 @@ func (b *BeaconNode) bootstrap(ctx context.Context) error {
 		return errors.New("failed to fetch SECONDS_PER_SLOT")
 	}
 
+	//nolint:unconvert //incorrect
 	b.secondsPerSlot = time.Duration(secondsPerSlot.(time.Duration))
 
 	slotsPerEpoch, ok := spec["SLOTS_PER_EPOCH"]
@@ -188,7 +187,12 @@ func (b *BeaconNode) bootstrap(ctx context.Context) error {
 		return errors.New("failed to fetch SLOTS_PER_EPOCH")
 	}
 
-	b.slotsPerEpoch = slotsPerEpoch.(uint64)
+	sslotsPerEpoch, ok := slotsPerEpoch.(uint64)
+	if !ok {
+		return errors.New("failed to cast SLOTS_PER_EPOCH to uint64")
+	}
+
+	b.slotsPerEpoch = sslotsPerEpoch
 
 	// Create the wallclock.
 	b.wallclock = ethwallclock.NewEthereumBeaconChain(
@@ -225,9 +229,7 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 				WallClockSlot:  phase0.Slot(slot.Number()),
 				WallClockEpoch: phase0.Epoch(epoch.Number()),
 				ID:             uuid.New().String(),
-				Labels: []string{
-					"def",
-				},
+				Labels:         b.config.Labels,
 			},
 			Data: dump,
 		}

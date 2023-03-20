@@ -14,5 +14,5 @@ type Config struct {
 
 	Indexer db.IndexerConfig `yaml:"indexer"`
 
-	RetentionPeriod human.Duration `yaml:"retentionPeriod" default:"100"`
+	RetentionPeriod human.Duration `yaml:"retention_period" default:"24h"`
 }
