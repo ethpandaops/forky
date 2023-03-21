@@ -130,10 +130,12 @@ func GenerateFakeFrame() *Frame {
 	return &Frame{
 		Data: GenerateFakeForkChoice(),
 		Metadata: FrameMetadata{
-			ID:             uuid.New().String(),
-			Node:           uuid.New().String(),
-			FetchedAt:      time.Now(),
-			WallClockSlot:  phase0.Slot(rand.Int63()),
+			ID:        uuid.New().String(),
+			Node:      uuid.New().String(),
+			FetchedAt: time.Now(),
+			//nolint:gosec // This is a test function.
+			WallClockSlot: phase0.Slot(rand.Int63()),
+			//nolint:gosec // This is a test function.
 			WallClockEpoch: phase0.Epoch(rand.Int63()),
 			Labels:         []string{"test"},
 		},
@@ -142,27 +144,39 @@ func GenerateFakeFrame() *Frame {
 
 func GenerateFakeForkChoice() *v1.ForkChoice {
 	justifiedCheckpoint := phase0.Checkpoint{
+		//nolint:gosec // This is a test function.
 		Epoch: phase0.Epoch(rand.Uint64()),
-		Root:  [32]byte{byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32())},
+		//nolint:gosec // This is a test function.
+		Root: [32]byte{byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32())},
 	}
 
 	finalizedCheckpoint := phase0.Checkpoint{
+		//nolint:gosec // This is a test function.
 		Epoch: phase0.Epoch(rand.Uint64()),
-		Root:  [32]byte{byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32())},
+		//nolint:gosec // This is a test function.
+		Root: [32]byte{byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32())},
 	}
 
+	//nolint:gosec // This is a test function.
 	numNodes := rand.Intn(10) + 1 // generate 1 to 10 fork choice nodes
 	nodes := make([]*v1.ForkChoiceNode, numNodes)
 
 	for i := 0; i < numNodes; i++ {
 		nodes[i] = &v1.ForkChoiceNode{
-			Slot:               phase0.Slot(rand.Uint64()),
-			BlockRoot:          phase0.Root([32]byte{byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32())}),
-			ParentRoot:         phase0.Root([32]byte{byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32())}),
-			JustifiedEpoch:     phase0.Epoch(rand.Uint64()),
-			FinalizedEpoch:     phase0.Epoch(rand.Uint64()),
-			Weight:             rand.Uint64(),
-			Validity:           v1.ForkChoiceNodeValidityValid,
+			//nolint:gosec // This is a test function.
+			Slot: phase0.Slot(rand.Uint64()),
+			//nolint:gosec // This is a test function.
+			BlockRoot: phase0.Root([32]byte{byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32())}),
+			//nolint:gosec // This is a test function.
+			ParentRoot: phase0.Root([32]byte{byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32())}),
+			//nolint:gosec // This is a test function.
+			JustifiedEpoch: phase0.Epoch(rand.Uint64()),
+			//nolint:gosec // This is a test function.
+			FinalizedEpoch: phase0.Epoch(rand.Uint64()),
+			//nolint:gosec // This is a test function.
+			Weight:   rand.Uint64(),
+			Validity: v1.ForkChoiceNodeValidityValid,
+			//nolint:gosec // This is a test function.
 			ExecutionBlockHash: phase0.Root([32]byte{byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32())}),
 		}
 	}

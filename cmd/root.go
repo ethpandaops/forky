@@ -4,11 +4,9 @@ import (
 	"context"
 	"os"
 
-	"github.com/creasty/defaults"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -40,32 +38,6 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "config.yaml", "config file (default is config.yaml)")
-}
-
-func loadConfigFromFile(file string) (*forkchoice.Config, error) {
-	if file == "" {
-		file = "config.yaml"
-	}
-
-	config := &forkchoice.Config{}
-
-	if err := defaults.Set(config); err != nil {
-		return nil, err
-	}
-
-	yamlFile, err := os.ReadFile(file)
-
-	if err != nil {
-		return nil, err
-	}
-
-	type plain forkchoice.Config
-
-	if err := yaml.Unmarshal(yamlFile, (*plain)(config)); err != nil {
-		return nil, err
-	}
-
-	return config, nil
 }
 
 func initCommon() *forkchoice.Config {

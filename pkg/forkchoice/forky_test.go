@@ -169,6 +169,7 @@ func TestForkChoiceServer(t *testing.T) {
 
 		time.Sleep(1 * time.Second)
 
+		//nolint:gosec // This is a test function.
 		framesToCreate := rand.Intn(500)
 		for i := 0; i < framesToCreate; i++ {
 			f := types.GenerateFakeFrame()
@@ -195,6 +196,7 @@ func TestForkChoiceServer(t *testing.T) {
 
 		time.Sleep(1 * time.Second)
 
+		//nolint:gosec // This is a test function.
 		framesToCreate := rand.Intn(500)
 		for i := 0; i < framesToCreate; i++ {
 			f := types.GenerateFakeFrame()
@@ -223,6 +225,7 @@ func TestForkChoiceServer(t *testing.T) {
 
 		time.Sleep(1 * time.Second)
 
+		//nolint:gosec // This is a test function.
 		framesToCreate := rand.Intn(500)
 		for i := 0; i < framesToCreate; i++ {
 			f := types.GenerateFakeFrame()
