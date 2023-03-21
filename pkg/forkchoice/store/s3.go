@@ -60,8 +60,6 @@ func NewS3Store(namespace string, log logrus.FieldLogger, config *S3StoreConfig,
 
 	metrics := NewBasicMetrics(namespace, string(S3StoreType), opts.MetricsEnabled)
 
-	metrics.SetImplementation(string(S3StoreType))
-
 	return &S3Store{
 		s3Client:     s3Client,
 		config:       config,

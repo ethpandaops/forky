@@ -22,8 +22,6 @@ type MemoryStore struct {
 func NewMemoryStore(namespace string, log logrus.FieldLogger, opts *Options) *MemoryStore {
 	metrics := NewBasicMetrics(namespace, string(MemoryStoreType), opts.MetricsEnabled)
 
-	metrics.SetImplementation(string(MemoryStoreType))
-
 	return &MemoryStore{
 		frames:       make(map[string]*types.Frame),
 		log:          log,

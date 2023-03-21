@@ -28,8 +28,9 @@ func NewForkChoice(namespace string, log logrus.FieldLogger, config *Config, opt
 	// Create our sources.
 	sources := make(map[string]source.Source)
 
+	sourceOpts := source.DefaultOptions().SetMetricsEnabled(opts.MetricsEnabled)
 	for _, s := range config.Sources {
-		sou, err := source.NewSource(log, s.Name, s.Type, s.Config)
+		sou, err := source.NewSource(namespace, log, s.Name, s.Type, s.Config, sourceOpts)
 		if err != nil {
 			log.Fatalf("failed to create source %s: %s", s.Name, err)
 		}

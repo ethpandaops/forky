@@ -25,7 +25,11 @@ type Source interface {
 
 var _ = Source(&BeaconNode{})
 
-func NewSource(log logrus.FieldLogger, name, sourceType string, config yaml.RawMessage) (Source, error) {
+func NewSource(namespace string, log logrus.FieldLogger, name, sourceType string, config yaml.RawMessage, opts *Options) (Source, error) {
+	namespace += "_source"
+
+	metrics := NewBasicMetrics(namespace, sourceType, name, opts.MetricsEnabled)
+
 	switch sourceType {
 	case BeaconNodeType:
 		conf := BeaconNodeConfig{}
@@ -34,7 +38,7 @@ func NewSource(log logrus.FieldLogger, name, sourceType string, config yaml.RawM
 			return nil, err
 		}
 
-		source, err := NewBeaconNode(log, &conf, name)
+		source, err := NewBeaconNode(namespace, log, &conf, name, metrics)
 		if err != nil {
 			return nil, err
 		}

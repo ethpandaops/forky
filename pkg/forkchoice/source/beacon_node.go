@@ -34,6 +34,8 @@ type BeaconNode struct {
 
 	onFrameCallbacks []func(ctx context.Context, frame *types.Frame)
 
+	metrics *BasicMetrics
+
 	// Ethereum network parameters.
 	genesis        *v1.Genesis
 	secondsPerSlot time.Duration
@@ -60,7 +62,7 @@ func (b *BeaconNodeConfig) Validate() error {
 	return nil
 }
 
-func NewBeaconNode(log logrus.FieldLogger, config *BeaconNodeConfig, name string) (*BeaconNode, error) {
+func NewBeaconNode(namespace string, log logrus.FieldLogger, config *BeaconNodeConfig, name string, metrics *BasicMetrics) (*BeaconNode, error) {
 	if err := config.Validate(); err != nil {
 		return nil, perrors.Wrap(err, "invalid config")
 	}
@@ -75,6 +77,7 @@ func NewBeaconNode(log logrus.FieldLogger, config *BeaconNodeConfig, name string
 		cron:             scheduler,
 		name:             name,
 		onFrameCallbacks: []func(ctx context.Context, frame *types.Frame){},
+		metrics:          metrics,
 	}, nil
 }
 
@@ -221,6 +224,8 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 		if err != nil {
 			return perrors.Wrap(err, "failed to get fork choice dump")
 		}
+
+		b.metrics.ObserveItemFetched(string(DataFrame))
 
 		frame := &types.Frame{
 			Metadata: types.FrameMetadata{

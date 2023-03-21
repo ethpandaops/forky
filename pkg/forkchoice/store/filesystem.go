@@ -33,12 +33,10 @@ func NewFileSystem(namespace string, config FileSystemConfig, opts *Options) (*F
 
 	metrics := NewBasicMetrics(namespace, string(FileSystemStoreType), opts.MetricsEnabled)
 
-	metrics.SetImplementation(string(FileSystemStoreType))
-
 	return &FileSystem{
 		config:       config,
 		opts:         opts,
-		basicMetrics: NewBasicMetrics(namespace, string(FileSystemStoreType), opts.MetricsEnabled),
+		basicMetrics: metrics,
 	}, nil
 }
 
