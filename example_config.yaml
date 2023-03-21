@@ -1,6 +1,8 @@
-listenAddr: ":5555"
-logging: "debug" # panic,fatal,warm,info,debug,trace
-metricsAddr: ":9090"
+listen_addr: ":5555"
+log_level: "debug"
+metrics:
+  addr: ":9090"
+  enabled: true
 
 forky:
   retentionPeriod: "30m"
