@@ -16,12 +16,14 @@ type HTTP struct {
 	log     logrus.FieldLogger
 	svc     *service.ForkChoice
 	metrics *fhttp.Metrics
+	opts    *Options
 }
 
-func NewHTTP(log logrus.FieldLogger, svc *service.ForkChoice) *HTTP {
-	metrics := fhttp.NewMetrics("http")
+func NewHTTP(log logrus.FieldLogger, svc *service.ForkChoice, opts *Options) *HTTP {
+	metrics := fhttp.NewMetrics(opts.MetricsEnabled, "http")
 
 	return &HTTP{
+		opts:    opts,
 		svc:     svc,
 		log:     log.WithField("component", "http"),
 		metrics: &metrics,

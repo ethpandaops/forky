@@ -34,13 +34,14 @@ func NewServer(log *logrus.Logger, conf *Config) *Server {
 	}
 
 	// Create our HTTP API.
-	http := api.NewHTTP(log, svc)
+	apiOpts := api.DefaultOptions().SetMetricsEnabled(conf.Metrics.Enabled)
+	h := api.NewHTTP(log, svc, apiOpts)
 
 	s := &Server{
 		Cfg:  *conf,
 		log:  log,
 		svc:  svc,
-		http: http,
+		http: h,
 	}
 
 	return s
@@ -60,8 +61,10 @@ func (s *Server) Start(ctx context.Context) error {
 
 	router.NotFound = http.FileServer(http.FS(frontend))
 
-	if err := s.ServeMetrics(ctx); err != nil {
-		return err
+	if s.Cfg.Metrics.Enabled {
+		if err := s.ServeMetrics(ctx); err != nil {
+			return err
+		}
 	}
 
 	server := &http.Server{
@@ -88,13 +91,13 @@ func (s *Server) Start(ctx context.Context) error {
 func (s *Server) ServeMetrics(ctx context.Context) error {
 	go func() {
 		server := &http.Server{
-			Addr:              s.Cfg.MetricsAddr,
+			Addr:              s.Cfg.Metrics.Addr,
 			ReadHeaderTimeout: 15 * time.Second,
 		}
 
 		server.Handler = promhttp.Handler()
 
-		s.log.Infof("Serving metrics at %s", s.Cfg.MetricsAddr)
+		s.log.Infof("Serving metrics at %s", s.Cfg.Metrics.Addr)
 
 		if err := server.ListenAndServe(); err != nil {
 			s.log.Fatal(err)

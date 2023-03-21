@@ -1,6 +1,8 @@
 package source
 
-import "github.com/ethpandaops/forkchoice/pkg/yaml"
+import (
+	"github.com/ethpandaops/forkchoice/pkg/yaml"
+)
 
 type Config struct {
 	Name   string          `yaml:"name"`

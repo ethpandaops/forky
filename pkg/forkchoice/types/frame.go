@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"math/rand"
 	"time"
 
 	v1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
+	"github.com/google/uuid"
 )
 
 type FrameMetadata struct {
@@ -122,4 +124,52 @@ func (f *Frame) FromGzipJSON(data []byte) error {
 	f.Metadata = returnFile.Metadata
 
 	return nil
+}
+
+func GenerateFakeFrame() *Frame {
+	return &Frame{
+		Data: GenerateFakeForkChoice(),
+		Metadata: FrameMetadata{
+			ID:             uuid.New().String(),
+			Node:           uuid.New().String(),
+			FetchedAt:      time.Now(),
+			WallClockSlot:  phase0.Slot(rand.Int63()),
+			WallClockEpoch: phase0.Epoch(rand.Int63()),
+			Labels:         []string{"test"},
+		},
+	}
+}
+
+func GenerateFakeForkChoice() *v1.ForkChoice {
+	justifiedCheckpoint := phase0.Checkpoint{
+		Epoch: phase0.Epoch(rand.Uint64()),
+		Root:  [32]byte{byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32())},
+	}
+
+	finalizedCheckpoint := phase0.Checkpoint{
+		Epoch: phase0.Epoch(rand.Uint64()),
+		Root:  [32]byte{byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32())},
+	}
+
+	numNodes := rand.Intn(10) + 1 // generate 1 to 10 fork choice nodes
+	nodes := make([]*v1.ForkChoiceNode, numNodes)
+
+	for i := 0; i < numNodes; i++ {
+		nodes[i] = &v1.ForkChoiceNode{
+			Slot:               phase0.Slot(rand.Uint64()),
+			BlockRoot:          phase0.Root([32]byte{byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32())}),
+			ParentRoot:         phase0.Root([32]byte{byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32())}),
+			JustifiedEpoch:     phase0.Epoch(rand.Uint64()),
+			FinalizedEpoch:     phase0.Epoch(rand.Uint64()),
+			Weight:             rand.Uint64(),
+			Validity:           v1.ForkChoiceNodeValidityValid,
+			ExecutionBlockHash: phase0.Root([32]byte{byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32()), byte(rand.Uint32())}),
+		}
+	}
+
+	return &v1.ForkChoice{
+		JustifiedCheckpoint: justifiedCheckpoint,
+		FinalizedCheckpoint: finalizedCheckpoint,
+		ForkChoiceNodes:     nodes,
+	}
 }

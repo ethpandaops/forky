@@ -26,11 +26,7 @@ func (f *ForkChoice) DeleteOldFrames(ctx context.Context) error {
 	}
 
 	for _, frame := range frames {
-		if err := f.store.DeleteFrame(ctx, frame.ID); err != nil {
-			return err
-		}
-
-		if err := f.indexer.DeleteFrameMetadata(ctx, frame.ID); err != nil {
+		if err := f.DeleteFrame(ctx, frame.ID); err != nil {
 			return err
 		}
 	}

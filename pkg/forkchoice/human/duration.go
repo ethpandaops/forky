@@ -24,6 +24,7 @@ func (d *Duration) UnmarshalJSON(data []byte) error {
 
 func (d *Duration) Unmarshal(s string) (err error) {
 	d.Duration, err = time.ParseDuration(s)
+
 	return
 }
 

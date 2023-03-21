@@ -73,14 +73,14 @@ func initCommon() *forkchoice.Config {
 
 	log.WithField("file", cfgFile).Info("Loading config")
 
-	config, err := loadConfigFromFile(cfgFile)
+	config, err := forkchoice.NewConfigFromYAMLFile(cfgFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	logLevel, err := logrus.ParseLevel(config.LoggingLevel)
+	logLevel, err := logrus.ParseLevel(config.LogLevel)
 	if err != nil {
-		log.WithField("log_level", config.LoggingLevel).Fatal("invalid logging level")
+		log.WithField("log_level", config.LogLevel).Fatal("invalid log level")
 	}
 
 	log.SetLevel(logLevel)

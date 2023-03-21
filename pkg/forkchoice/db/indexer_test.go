@@ -451,11 +451,11 @@ func TestIndexer_ListFrames(t *testing.T) {
 					t.Fatalf("expected FetchedAt after %s, got %s", *filter.After, frame.FetchedAt)
 				}
 
-				if filter.Slot != nil && *filter.Slot != frame.WallClockSlot {
+				if filter.Slot != nil && *filter.Slot != uint64(frame.WallClockSlot) {
 					t.Fatalf("expected WallClockSlot %d, got %d", *filter.Slot, frame.WallClockSlot)
 				}
 
-				if filter.Epoch != nil && *filter.Epoch != frame.WallClockEpoch {
+				if filter.Epoch != nil && *filter.Epoch != uint64(frame.WallClockEpoch) {
 					t.Fatalf("expected WallClockEpoch %d, got %d", *filter.Epoch, frame.WallClockEpoch)
 				}
 

@@ -12,7 +12,7 @@ type Metrics struct {
 	requestDuration *prometheus.HistogramVec
 }
 
-func NewMetrics(namespace string) Metrics {
+func NewMetrics(enabled bool, namespace string) Metrics {
 	m := Metrics{
 		requests: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Namespace: namespace,
@@ -32,9 +32,11 @@ func NewMetrics(namespace string) Metrics {
 		}, []string{"method", "path", "encoding"}),
 	}
 
-	prometheus.MustRegister(m.requests)
-	prometheus.MustRegister(m.responses)
-	prometheus.MustRegister(m.requestDuration)
+	if enabled {
+		prometheus.MustRegister(m.requests)
+		prometheus.MustRegister(m.responses)
+		prometheus.MustRegister(m.requestDuration)
+	}
 
 	return m
 }

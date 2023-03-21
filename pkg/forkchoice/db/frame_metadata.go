@@ -10,10 +10,13 @@ import (
 
 type FrameMetadata struct {
 	gorm.Model
-	ID             string `gorm:"primaryKey"`
-	Node           string `gorm:"index"`
-	WallClockSlot  uint64
-	WallClockEpoch uint64
+	ID   string `gorm:"primaryKey"`
+	Node string `gorm:"index"`
+	// We have to use int64 here as SQLite doesn't support uint64. This sucks
+	// but slot 9223372036854775808 is probably around the heat death
+	// of the universe so we should be OK.
+	WallClockSlot  int64
+	WallClockEpoch int64
 	FetchedAt      time.Time            `gorm:"index"`
 	Labels         []FrameMetadataLabel `gorm:"foreignkey:FrameID;"`
 }
@@ -46,8 +49,8 @@ func (f *FrameMetadata) AsFrameMetadata() *types.FrameMetadata {
 func (f *FrameMetadata) FromFrameMetadata(metadata *types.FrameMetadata) *FrameMetadata {
 	f.ID = metadata.ID
 	f.Node = metadata.Node
-	f.WallClockSlot = uint64(metadata.WallClockSlot)
-	f.WallClockEpoch = uint64(metadata.WallClockEpoch)
+	f.WallClockSlot = int64(metadata.WallClockSlot)
+	f.WallClockEpoch = int64(metadata.WallClockEpoch)
 	f.FetchedAt = metadata.FetchedAt
 
 	f.Labels = FrameMetadataLabels{}

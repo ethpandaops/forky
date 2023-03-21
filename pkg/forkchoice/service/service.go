@@ -68,7 +68,9 @@ func (f *ForkChoice) Start(ctx context.Context) error {
 
 	for _, source := range f.sources {
 		source.OnFrame(func(ctx context.Context, frame *types.Frame) {
-			f.handleNewFrame(ctx, source, frame)
+			if err := f.AddNewFrame(ctx, source.Name(), frame); err != nil {
+				f.log.WithError(err).Error("Failed to add new frame")
+			}
 		})
 
 		if err := source.Start(ctx); err != nil {
@@ -105,25 +107,18 @@ func (f *ForkChoice) pollForUnwantedFrames(ctx context.Context) {
 	}
 }
 
-func (f *ForkChoice) handleNewFrame(ctx context.Context, s source.Source, frame *types.Frame) {
+func (f *ForkChoice) AddNewFrame(ctx context.Context, sourceName string, frame *types.Frame) error {
 	if frame == nil {
-		f.log.WithField("source", s.Name()).Error("Received nil frame")
-
-		return
+		return errors.New("frame is nil")
 	}
 
 	// Check if the frame is valid.
 	if err := frame.Validate(); err != nil {
-		f.log.WithError(err).WithFields(logrus.Fields{
-			"source": s.Name(),
-			"node":   frame.Metadata.Node,
-		}).Error("Received invalid frame from source")
-
-		return
+		return err
 	}
 
 	logCtx := f.log.WithFields(logrus.Fields{
-		"source":    s.Name(),
+		"source":    sourceName,
 		"id":        frame.Metadata.ID,
 		"slot":      fmt.Sprintf("%v", frame.Metadata.WallClockSlot),
 		"fetchedAt": fmt.Sprintf("%v", frame.Metadata.FetchedAt.Unix()),
@@ -134,17 +129,19 @@ func (f *ForkChoice) handleNewFrame(ctx context.Context, s source.Source, frame 
 	if err := f.store.SaveFrame(ctx, frame); err != nil {
 		logCtx.WithError(err).Error("Failed to store frame")
 
-		return
+		return err
 	}
 
 	// Add the frame to the indexer.
 	if err := f.indexer.AddFrameMetadata(ctx, &frame.Metadata); err != nil {
 		logCtx.WithError(err).Error("Failed to index frame")
 
-		return
+		return err
 	}
 
 	logCtx.Info("Stored and indexed frame")
+
+	return nil
 }
 
 func (f *ForkChoice) Sources(ctx context.Context) map[string]source.Source {
@@ -256,4 +253,16 @@ func (f *ForkChoice) ListMetadata(ctx context.Context, filter *FrameFilter, page
 
 func (f *ForkChoice) GetFrame(ctx context.Context, id string) (*types.Frame, error) {
 	return f.store.GetFrame(ctx, id)
+}
+
+func (f *ForkChoice) DeleteFrame(ctx context.Context, id string) error {
+	if err := f.store.DeleteFrame(ctx, id); err != nil {
+		return err
+	}
+
+	if err := f.indexer.DeleteFrameMetadata(ctx, id); err != nil {
+		return err
+	}
+
+	return nil
 }
