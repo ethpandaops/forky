@@ -28,7 +28,7 @@ func NewServer(log *logrus.Logger, conf *Config) *Server {
 	}
 
 	// Create our service which will glue everything together.
-	svc, err := service.NewForkChoice(log, conf.Forky)
+	svc, err := service.NewForkChoice("forky", log, conf.Forky, service.DefaultOptions())
 	if err != nil {
 		log.Fatalf("failed to create service: %s", err)
 	}

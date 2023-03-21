@@ -17,3 +17,11 @@ func IsValidStoreType(st Type) bool {
 		return false
 	}
 }
+
+type DataType string
+
+const (
+	UnknownDataType DataType = "unknown"
+	FrameDataType   DataType = "frame"
+	BlockDataType   DataType = "block"
+)

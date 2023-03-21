@@ -19,7 +19,9 @@ type Store interface {
 	DeleteFrame(ctx context.Context, id string) error
 }
 
-func NewStore(log logrus.FieldLogger, storeType Type, config yaml.RawMessage) (Store, error) {
+func NewStore(namespace string, log logrus.FieldLogger, storeType Type, config yaml.RawMessage, opts *Options) (Store, error) {
+	namespace += "_store"
+
 	switch storeType {
 	case FileSystemStoreType:
 		var fsConfig FileSystemConfig
@@ -28,7 +30,7 @@ func NewStore(log logrus.FieldLogger, storeType Type, config yaml.RawMessage) (S
 			return nil, err
 		}
 
-		return NewFileSystem(fsConfig)
+		return NewFileSystem(namespace, fsConfig, opts)
 	case S3StoreType:
 		var s3Config *S3StoreConfig
 
@@ -36,9 +38,9 @@ func NewStore(log logrus.FieldLogger, storeType Type, config yaml.RawMessage) (S
 			return nil, err
 		}
 
-		return NewS3Store(log, s3Config)
+		return NewS3Store(namespace, log, s3Config, opts)
 	case MemoryStoreType:
-		return NewMemoryStore(log), nil
+		return NewMemoryStore(namespace, log, opts), nil
 	default:
 		return nil, fmt.Errorf("unknown store type: %s", storeType)
 	}

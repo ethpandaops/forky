@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,7 +11,9 @@ import (
 )
 
 type FileSystem struct {
-	config FileSystemConfig
+	config       FileSystemConfig
+	opts         *Options
+	basicMetrics *BasicMetrics
 }
 
 type FileSystemConfig struct {
@@ -18,7 +21,7 @@ type FileSystemConfig struct {
 }
 
 // NewFileSystem creates a new FileSystem instance with the specified base directory.
-func NewFileSystem(config FileSystemConfig) (*FileSystem, error) {
+func NewFileSystem(namespace string, config FileSystemConfig, opts *Options) (*FileSystem, error) {
 	if config.BaseDir == "" {
 		return nil, fmt.Errorf("base directory is required")
 	}
@@ -28,8 +31,14 @@ func NewFileSystem(config FileSystemConfig) (*FileSystem, error) {
 		return nil, err
 	}
 
+	metrics := NewBasicMetrics(namespace, string(FileSystemStoreType), opts.MetricsEnabled)
+
+	metrics.SetImplementation(string(FileSystemStoreType))
+
 	return &FileSystem{
-		config: config,
+		config:       config,
+		opts:         opts,
+		basicMetrics: NewBasicMetrics(namespace, string(FileSystemStoreType), opts.MetricsEnabled),
 	}, nil
 }
 
@@ -47,8 +56,10 @@ func (fs *FileSystem) SaveFrame(ctx context.Context, frame *types.Frame) error {
 
 	err = os.WriteFile(path, data, 0o600)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to write frame to disk: %v", err.Error())
 	}
+
+	fs.basicMetrics.ObserveItemAdded(string(FrameDataType))
 
 	return nil
 }
@@ -65,8 +76,14 @@ func (fs *FileSystem) GetFrame(ctx context.Context, id string) (*types.Frame, er
 
 	err = frame.FromGzipJSON(data)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, ErrFrameNotFound
+		}
+
+		return nil, fmt.Errorf("failed to read frame from disk: %v", err.Error())
 	}
+
+	fs.basicMetrics.ObserveItemRetreived(string(FrameDataType))
 
 	return &frame, nil
 }
@@ -76,8 +93,14 @@ func (fs *FileSystem) DeleteFrame(ctx context.Context, id string) error {
 
 	err := os.Remove(path)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return ErrFrameNotFound
+		}
+
 		return err
 	}
+
+	fs.basicMetrics.ObserveItemRemoved(string(FrameDataType))
 
 	return nil
 }

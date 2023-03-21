@@ -17,13 +17,14 @@ import (
 
 type ForkChoice struct {
 	config  *Config
+	opts    *Options
 	log     logrus.FieldLogger
 	sources map[string]source.Source
 	store   store.Store
 	indexer *db.Indexer
 }
 
-func NewForkChoice(log logrus.FieldLogger, config *Config) (*ForkChoice, error) {
+func NewForkChoice(namespace string, log logrus.FieldLogger, config *Config, opts *Options) (*ForkChoice, error) {
 	// Create our sources.
 	sources := make(map[string]source.Source)
 
@@ -36,8 +37,10 @@ func NewForkChoice(log logrus.FieldLogger, config *Config) (*ForkChoice, error) 
 		sources[s.Name] = sou
 	}
 
+	storeOpts := store.DefaultOptions().SetMetricsEnabled(opts.MetricsEnabled)
+
 	// Create our store.
-	st, err := store.NewStore(log, config.Store.Type, config.Store.Config)
+	st, err := store.NewStore(namespace, log, config.Store.Type, config.Store.Config, storeOpts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create store: %s", err)
 	}
@@ -50,6 +53,7 @@ func NewForkChoice(log logrus.FieldLogger, config *Config) (*ForkChoice, error) 
 
 	return &ForkChoice{
 		config:  config,
+		opts:    opts,
 		log:     log.WithField("component", "service"),
 		sources: sources,
 		store:   st,

@@ -3,12 +3,15 @@ package store
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/smithy-go"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
 	"github.com/sirupsen/logrus"
 )
@@ -18,7 +21,10 @@ type S3Store struct {
 
 	config *S3StoreConfig
 
-	log logrus.FieldLogger
+	log  logrus.FieldLogger
+	opts *Options
+
+	basicMetrics *BasicMetrics
 }
 
 type S3StoreConfig struct {
@@ -32,7 +38,7 @@ type S3StoreConfig struct {
 }
 
 // NewS3Store creates a new S3Store instance with the specified AWS configuration, bucket name, and key prefix.
-func NewS3Store(log logrus.FieldLogger, config *S3StoreConfig) (*S3Store, error) {
+func NewS3Store(namespace string, log logrus.FieldLogger, config *S3StoreConfig, opts *Options) (*S3Store, error) {
 	resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...any) (aws.Endpoint, error) {
 		return aws.Endpoint{
 			PartitionID:       "aws",
@@ -52,10 +58,16 @@ func NewS3Store(log logrus.FieldLogger, config *S3StoreConfig) (*S3Store, error)
 		o.UsePathStyle = config.UsePathStyle
 	})
 
+	metrics := NewBasicMetrics(namespace, string(S3StoreType), opts.MetricsEnabled)
+
+	metrics.SetImplementation(string(S3StoreType))
+
 	return &S3Store{
-		s3Client: s3Client,
-		config:   config,
-		log:      log,
+		s3Client:     s3Client,
+		config:       config,
+		log:          log,
+		opts:         opts,
+		basicMetrics: metrics,
 	}, nil
 }
 
@@ -72,6 +84,19 @@ func (s *S3Store) SaveFrame(ctx context.Context, frame *types.Frame) error {
 		Key:    aws.String(s.getFullName(frame.Metadata.ID)),
 		Body:   reader,
 	})
+	if err != nil {
+		var apiErr smithy.APIError
+		if errors.As(err, &apiErr) {
+			switch apiErr.(type) {
+			case *s3types.NoSuchBucket:
+				return errors.New("bucket does not exist: " + apiErr.Error())
+			case *s3types.NotFound:
+				return ErrFrameNotFound
+			default:
+				return errors.New("failed to save frame: " + apiErr.Error())
+			}
+		}
+	}
 
 	return err
 }
@@ -84,6 +109,16 @@ func (s *S3Store) GetFrame(ctx context.Context, id string) (*types.Frame, error)
 		Key:    aws.String(file),
 	})
 	if err != nil {
+		var apiErr smithy.APIError
+		if errors.As(err, &apiErr) {
+			switch apiErr.(type) {
+			case *s3types.NotFound:
+				return nil, ErrFrameNotFound
+			default:
+				return nil, errors.New("failed to get frame: " + apiErr.Error())
+			}
+		}
+
 		return nil, err
 	}
 	defer data.Body.Close()
@@ -111,6 +146,17 @@ func (s *S3Store) DeleteFrame(ctx context.Context, id string) error {
 		Bucket: aws.String(s.config.BucketName),
 		Key:    aws.String(s.getFullName(id)),
 	})
+	if err != nil {
+		var apiErr smithy.APIError
+		if errors.As(err, &apiErr) {
+			switch apiErr.(type) {
+			case *s3types.NotFound:
+				return ErrFrameNotFound
+			default:
+				return errors.New("failed to delete frame: " + apiErr.Error())
+			}
+		}
+	}
 
 	return err
 }
