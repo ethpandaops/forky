@@ -14,6 +14,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Server is the main server for the forkchoice service.
+// It glues together the service and the http api, while
+// also providing metrics and static file serving.
 type Server struct {
 	log *logrus.Logger
 	Cfg Config
@@ -37,6 +40,7 @@ func NewServer(log *logrus.Logger, conf *Config) *Server {
 	apiOpts := api.DefaultOptions().SetMetricsEnabled(conf.Metrics.Enabled)
 	h := api.NewHTTP(log, svc, apiOpts)
 
+	// Create our server.
 	s := &Server{
 		Cfg:  *conf,
 		log:  log,
