@@ -1,10 +1,17 @@
 package service
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"runtime"
+
+	"github.com/ethpandaops/forkchoice/pkg/version"
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 type Metrics struct {
 	namespace string
 
+	info             *prometheus.GaugeVec
+	versionInfo      *prometheus.GaugeVec
 	retentionPeriod  prometheus.Gauge
 	operations       *prometheus.CounterVec
 	operationsErrors *prometheus.CounterVec
@@ -13,6 +20,19 @@ type Metrics struct {
 func NewMetrics(namespace string, config *Config, enabled bool) *Metrics {
 	m := &Metrics{
 		namespace: namespace,
+
+		info: prometheus.NewGaugeVec(prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "info",
+			Help:      "Information about the implementation of the service",
+		}, []string{"version"}),
+
+		versionInfo: prometheus.NewGaugeVec(prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "version_info",
+			Help:      "Information about the version of the service",
+		}, []string{"short", "full", "full_with_goos", "git_commit", "go_version"}),
+
 		retentionPeriod: prometheus.NewGauge(prometheus.GaugeOpts{
 			Namespace: namespace,
 			Name:      "retention_period_seconds",
@@ -35,9 +55,20 @@ func NewMetrics(namespace string, config *Config, enabled bool) *Metrics {
 		prometheus.MustRegister(m.retentionPeriod)
 		prometheus.MustRegister(m.operations)
 		prometheus.MustRegister(m.operationsErrors)
+		prometheus.MustRegister(m.info)
+		prometheus.MustRegister(m.versionInfo)
 	}
 
 	m.retentionPeriod.Set(config.RetentionPeriod.Duration.Seconds())
+
+	m.info.WithLabelValues(version.FullVWithGOOS()).Set(1)
+	m.versionInfo.WithLabelValues(
+		version.Short(),
+		version.Full(),
+		version.FullVWithGOOS(),
+		version.GitCommit,
+		runtime.Version(),
+	).Set(1)
 
 	return m
 }
