@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/ethpandaops/forkchoice/cmd"
+	_ "github.com/lib/pq"
 )
 
 func main() {
