@@ -31,7 +31,7 @@ func (f *ForkChoice) DeleteOldFrames(ctx context.Context) error {
 		}
 	}
 
-	f.log.Infof("Deleted %v old frames", len(frames))
+	f.log.Debugf("Deleted %v old frames", len(frames))
 
 	return nil
 }

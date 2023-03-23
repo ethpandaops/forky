@@ -245,7 +245,7 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 			"wallclock_slot":  slot.Number(),
 			"wallclock_epoch": epoch.Number(),
 			"fetchedAt":       frame.Metadata.FetchedAt,
-		}).Info("Fetched frame")
+		}).Debug("Fetched frame")
 	}
 
 	return nil

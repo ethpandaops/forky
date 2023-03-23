@@ -160,7 +160,7 @@ func (f *ForkChoice) AddNewFrame(ctx context.Context, sourceName string, frame *
 		return err
 	}
 
-	logCtx.Info("Stored and indexed frame")
+	logCtx.Debug("Stored and indexed frame")
 
 	return nil
 }
