@@ -23,12 +23,17 @@ func (h *HTTP) handleV1MetadataList(ctx context.Context, r *http.Request, p http
 		return fhttp.NewBadRequestResponse(nil), err
 	}
 
+	filter := req.Filter
+	if filter == nil {
+		filter = &service.FrameFilter{}
+	}
+
 	page := req.Pagination
 	if page == nil {
 		page = service.DefaultPagination()
 	}
 
-	frames, pg, err := h.svc.ListMetadata(ctx, req.Filter, *page)
+	frames, pg, err := h.svc.ListMetadata(ctx, filter, *page)
 	if err != nil {
 		return fhttp.NewInternalServerErrorResponse(nil), err
 	}
@@ -64,7 +69,12 @@ func (h *HTTP) handleV1MetadataListNodes(ctx context.Context, r *http.Request, p
 		page = service.DefaultPagination()
 	}
 
-	nodes, pg, err := h.svc.ListNodes(ctx, req.Filter, *page)
+	filter := req.Filter
+	if filter == nil {
+		filter = &service.FrameFilter{}
+	}
+
+	nodes, pg, err := h.svc.ListNodes(ctx, filter, *page)
 	if err != nil {
 		return fhttp.NewInternalServerErrorResponse(nil), err
 	}
@@ -102,7 +112,12 @@ func (h *HTTP) handleV1MetadataListSlots(ctx context.Context, r *http.Request, p
 		page = service.DefaultPagination()
 	}
 
-	slots, pg, err := h.svc.ListSlots(ctx, req.Filter, *page)
+	filter := req.Filter
+	if filter == nil {
+		filter = &service.FrameFilter{}
+	}
+
+	slots, pg, err := h.svc.ListSlots(ctx, filter, *page)
 	if err != nil {
 		return fhttp.NewInternalServerErrorResponse(nil), err
 	}
@@ -140,7 +155,12 @@ func (h *HTTP) handleV1MetadataListEpochs(ctx context.Context, r *http.Request, 
 		page = service.DefaultPagination()
 	}
 
-	epochs, pg, err := h.svc.ListEpochs(ctx, req.Filter, *page)
+	filter := req.Filter
+	if filter == nil {
+		filter = &service.FrameFilter{}
+	}
+
+	epochs, pg, err := h.svc.ListEpochs(ctx, filter, *page)
 	if err != nil {
 		return fhttp.NewInternalServerErrorResponse(nil), err
 	}
@@ -178,7 +198,12 @@ func (h *HTTP) handleV1MetadataListLabels(ctx context.Context, r *http.Request, 
 		page = service.DefaultPagination()
 	}
 
-	labels, pg, err := h.svc.ListLabels(ctx, req.Filter, *page)
+	filter := req.Filter
+	if filter == nil {
+		filter = &service.FrameFilter{}
+	}
+
+	labels, pg, err := h.svc.ListLabels(ctx, filter, *page)
 	if err != nil {
 		return fhttp.NewInternalServerErrorResponse(nil), err
 	}
