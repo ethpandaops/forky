@@ -11,7 +11,6 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"gorm.io/plugin/prometheus"
 )
 
 type Indexer struct {
@@ -50,16 +49,6 @@ func NewIndexer(namespace string, log logrus.FieldLogger, config IndexerConfig, 
 
 	db = db.Session(&gorm.Session{FullSaveAssociations: true})
 
-	if err = db.Use(
-		prometheus.New(prometheus.Config{
-			DBName:          "forkchoice",
-			RefreshInterval: 15,
-			StartServer:     false,
-		}),
-	); err != nil {
-		return nil, perrors.Wrap(err, "failed to register prometheus plugin")
-	}
-
 	err = db.AutoMigrate(&FrameMetadata{})
 	if err != nil {
 		return nil, perrors.Wrap(err, "failed to auto migrate frame_metadata")
@@ -70,10 +59,12 @@ func NewIndexer(namespace string, log logrus.FieldLogger, config IndexerConfig, 
 		return nil, perrors.Wrap(err, "failed to auto migrate frame_metadata_label")
 	}
 
+	metrics := NewBasicMetrics(namespace, config.DriverName, opts.MetricsEnabled)
+
 	return &Indexer{
 		db:      db,
 		log:     log.WithField("component", "indexer"),
-		metrics: NewBasicMetrics(namespace, config.DriverName, opts.MetricsEnabled),
+		metrics: metrics,
 		opts:    opts,
 	}, nil
 }

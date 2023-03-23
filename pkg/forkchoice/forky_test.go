@@ -21,12 +21,13 @@ func newTestServer(withConfig string) (Server, error) {
 	// create mock log object
 	log := logrus.New()
 
-	port := 5555 + testDBCounter
+	port := 5560 + testDBCounter
 	dsn := fmt.Sprintf("file:%v?mode=memory&cache=shared", testDBCounter)
 
 	// create a new configuration
 	cfg := fmt.Sprintf(
-		`listen_addr: ":%d"
+		`
+listen_addr: ":%d"
 log_level: "debug"
 metrics:
   enabled: false
@@ -50,6 +51,8 @@ forky:
 	}
 
 	testDBCounter++
+
+	config.Metrics.Enabled = false
 
 	svc := NewServer(log, config)
 

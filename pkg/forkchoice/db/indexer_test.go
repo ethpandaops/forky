@@ -44,7 +44,7 @@ func newMockIndexer() (*Indexer, sqlmock.Sqlmock, error) {
 	indexer, err := NewIndexer("forky_test", logrus.New(), IndexerConfig{
 		DSN:        fmt.Sprintf("file:%v?mode=memory&cache=shared", testDBCounter),
 		DriverName: "sqlite",
-	}, DefaultOptions())
+	}, DefaultOptions().SetMetricsEnabled(false))
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to create indexer, got error: %v", err)
 	}
@@ -196,7 +196,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 		}
 
 		assert.Len(t, frames, 1)
-		assert.Equal(t, uint64(frame.WallClockSlot), frames[0].WallClockSlot)
+		assert.Equal(t, int64(frame.WallClockSlot), frames[0].WallClockSlot)
 	})
 
 	t.Run("By WallClockEpoch", func(t *testing.T) {
@@ -230,7 +230,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 		}
 
 		assert.Len(t, frames, 1)
-		assert.Equal(t, uint64(frame.WallClockEpoch), frames[0].WallClockEpoch)
+		assert.Equal(t, int64(frame.WallClockEpoch), frames[0].WallClockEpoch)
 	})
 
 	t.Run("Before and After", func(t *testing.T) {
