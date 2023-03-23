@@ -22,6 +22,7 @@ type ForkChoice struct {
 	sources map[string]source.Source
 	store   store.Store
 	indexer *db.Indexer
+	metrics *Metrics
 }
 
 func NewForkChoice(namespace string, log logrus.FieldLogger, config *Config, opts *Options) (*ForkChoice, error) {
@@ -38,9 +39,9 @@ func NewForkChoice(namespace string, log logrus.FieldLogger, config *Config, opt
 		sources[s.Name] = sou
 	}
 
+	// Create our store.
 	storeOpts := store.DefaultOptions().SetMetricsEnabled(opts.MetricsEnabled)
 
-	// Create our store.
 	st, err := store.NewStore(namespace, log, config.Store.Type, config.Store.Config, storeOpts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create store: %s", err)
@@ -61,6 +62,7 @@ func NewForkChoice(namespace string, log logrus.FieldLogger, config *Config, opt
 		sources: sources,
 		store:   st,
 		indexer: indexer,
+		metrics: NewMetrics(namespace+"_service", config, opts.MetricsEnabled),
 	}, nil
 }
 
@@ -115,12 +117,20 @@ func (f *ForkChoice) pollForUnwantedFrames(ctx context.Context) {
 }
 
 func (f *ForkChoice) AddNewFrame(ctx context.Context, sourceName string, frame *types.Frame) error {
+	operation := OperationAddFrame
+
+	f.metrics.ObserveOperation(operation)
+
 	if frame == nil {
+		f.metrics.ObserveOperationError(operation)
+
 		return errors.New("frame is nil")
 	}
 
 	// Check if the frame is valid.
 	if err := frame.Validate(); err != nil {
+		f.metrics.ObserveOperationError(operation)
+
 		return err
 	}
 
@@ -134,6 +144,8 @@ func (f *ForkChoice) AddNewFrame(ctx context.Context, sourceName string, frame *
 
 	// Store the frame in the store.
 	if err := f.store.SaveFrame(ctx, frame); err != nil {
+		f.metrics.ObserveOperationError(operation)
+
 		logCtx.WithError(err).Error("Failed to store frame")
 
 		return err
@@ -141,6 +153,8 @@ func (f *ForkChoice) AddNewFrame(ctx context.Context, sourceName string, frame *
 
 	// Add the frame to the indexer.
 	if err := f.indexer.InsertFrameMetadata(ctx, &frame.Metadata); err != nil {
+		f.metrics.ObserveOperationError(operation)
+
 		logCtx.WithError(err).Error("Failed to index frame")
 
 		return err
@@ -151,40 +165,31 @@ func (f *ForkChoice) AddNewFrame(ctx context.Context, sourceName string, frame *
 	return nil
 }
 
-func (f *ForkChoice) Sources(ctx context.Context) map[string]source.Source {
-	return f.sources
-}
-
-func (f *ForkChoice) GetSourceByName(name string) (source.Source, error) {
-	if s, ok := f.sources[name]; ok {
-		return s, nil
-	}
-
-	return nil, errors.New("unknown source")
-}
-
-func (f *ForkChoice) ListSources(ctx context.Context) ([]*SourceMetadata, error) {
-	sources := make([]*SourceMetadata, len(f.Sources(ctx)))
-
-	for _, source := range f.Sources(ctx) {
-		sources = append(sources, &SourceMetadata{
-			Name: source.Name(),
-			Type: source.Type(),
-		})
-	}
-
-	return sources, nil
-}
-
 func (f *ForkChoice) ListNodes(ctx context.Context, filter *FrameFilter, page PaginationCursor) ([]string, *PaginationResponse, error) {
+	operation := OperationListNodes
+
+	f.metrics.ObserveOperation(operation)
+
+	if filter == nil {
+		return nil, nil, ErrInvalidFilter
+	}
+
 	count, err := f.indexer.CountNodesWithFrames(ctx, filter.AsDBFilter())
 	if err != nil {
-		return nil, nil, err
+		f.metrics.ObserveOperationError(operation)
+
+		f.log.WithError(err).Error("failed to count nodes with frames for list nodes")
+
+		return nil, nil, ErrUnknownServerErrorOccurred
 	}
 
 	nodes, err := f.indexer.ListNodesWithFrames(ctx, filter.AsDBFilter(), page.AsDBPageCursor())
 	if err != nil {
-		return nil, nil, err
+		f.metrics.ObserveOperationError(operation)
+
+		f.log.WithError(err).Error("failed to list nodes with frames for list nodes")
+
+		return nil, nil, ErrUnknownServerErrorOccurred
 	}
 
 	return nodes, &PaginationResponse{
@@ -193,14 +198,32 @@ func (f *ForkChoice) ListNodes(ctx context.Context, filter *FrameFilter, page Pa
 }
 
 func (f *ForkChoice) ListSlots(ctx context.Context, filter *FrameFilter, page PaginationCursor) ([]phase0.Slot, *PaginationResponse, error) {
+	operation := OperationListSlots
+
+	f.metrics.ObserveOperation(operation)
+
+	if filter == nil {
+		f.metrics.ObserveOperationError(operation)
+
+		return nil, nil, ErrInvalidFilter
+	}
+
 	count, err := f.indexer.CountSlotsWithFrames(ctx, filter.AsDBFilter())
 	if err != nil {
-		return nil, nil, err
+		f.metrics.ObserveOperationError(operation)
+
+		f.log.WithError(err).Error("failed to count slots with frames for list slots")
+
+		return nil, nil, ErrUnknownServerErrorOccurred
 	}
 
 	slots, err := f.indexer.ListSlotsWithFrames(ctx, filter.AsDBFilter(), page.AsDBPageCursor())
 	if err != nil {
-		return nil, nil, err
+		f.metrics.ObserveOperationError(operation)
+
+		f.log.WithError(err).Error("failed to list slots with frames for list slots")
+
+		return nil, nil, ErrUnknownServerErrorOccurred
 	}
 
 	return slots, &PaginationResponse{
@@ -209,14 +232,32 @@ func (f *ForkChoice) ListSlots(ctx context.Context, filter *FrameFilter, page Pa
 }
 
 func (f *ForkChoice) ListEpochs(ctx context.Context, filter *FrameFilter, page PaginationCursor) ([]phase0.Epoch, *PaginationResponse, error) {
+	operation := OperationListEpochs
+
+	f.metrics.ObserveOperation(operation)
+
+	if filter == nil {
+		f.metrics.ObserveOperationError(operation)
+
+		return nil, nil, ErrInvalidFilter
+	}
+
 	count, err := f.indexer.CountEpochsWithFrames(ctx, filter.AsDBFilter())
 	if err != nil {
-		return nil, nil, err
+		f.metrics.ObserveOperationError(operation)
+
+		f.log.WithError(err).Error("failed to count epochs with frames for list epochs")
+
+		return nil, nil, ErrUnknownServerErrorOccurred
 	}
 
 	epochs, err := f.indexer.ListEpochsWithFrames(ctx, filter.AsDBFilter(), page.AsDBPageCursor())
 	if err != nil {
-		return nil, nil, err
+		f.metrics.ObserveOperationError(operation)
+
+		f.log.WithError(err).Error("failed to list epochs with frames for list epochs")
+
+		return nil, nil, ErrUnknownServerErrorOccurred
 	}
 
 	return epochs, &PaginationResponse{
@@ -225,14 +266,32 @@ func (f *ForkChoice) ListEpochs(ctx context.Context, filter *FrameFilter, page P
 }
 
 func (f *ForkChoice) ListLabels(ctx context.Context, filter *FrameFilter, page PaginationCursor) ([]string, *PaginationResponse, error) {
+	operation := OperationListLabels
+
+	f.metrics.ObserveOperation(operation)
+
+	if filter == nil {
+		f.metrics.ObserveOperationError(operation)
+
+		return nil, nil, ErrInvalidFilter
+	}
+
 	count, err := f.indexer.CountLabelsWithFrames(ctx, filter.AsDBFilter())
 	if err != nil {
-		return nil, nil, err
+		f.metrics.ObserveOperationError(operation)
+
+		f.log.WithError(err).Error("failed to count labels with frames for list labels")
+
+		return nil, nil, ErrUnknownServerErrorOccurred
 	}
 
 	labels, err := f.indexer.ListLabelsWithFrames(ctx, filter.AsDBFilter(), page.AsDBPageCursor())
 	if err != nil {
-		return nil, nil, err
+		f.metrics.ObserveOperationError(operation)
+
+		f.log.WithError(err).Error("failed to list labels with frames for list labels")
+
+		return nil, nil, ErrUnknownServerErrorOccurred
 	}
 
 	return labels.AsStrings(), &PaginationResponse{
@@ -241,14 +300,32 @@ func (f *ForkChoice) ListLabels(ctx context.Context, filter *FrameFilter, page P
 }
 
 func (f *ForkChoice) ListMetadata(ctx context.Context, filter *FrameFilter, page PaginationCursor) ([]*types.FrameMetadata, *PaginationResponse, error) {
+	operation := OperationListMetadata
+
+	f.metrics.ObserveOperation(operation)
+
+	if filter == nil {
+		f.metrics.ObserveOperationError(operation)
+
+		return nil, nil, ErrInvalidFilter
+	}
+
 	metadata, err := f.indexer.ListFrameMetadata(ctx, filter.AsDBFilter(), page.AsDBPageCursor())
 	if err != nil {
-		return nil, nil, err
+		f.metrics.ObserveOperationError(operation)
+
+		f.log.WithError(err).Error("failed to count metadata for list metadata")
+
+		return nil, nil, ErrUnknownServerErrorOccurred
 	}
 
 	count, err := f.indexer.CountFrameMetadata(ctx, filter.AsDBFilter())
 	if err != nil {
-		return nil, nil, err
+		f.metrics.ObserveOperationError(operation)
+
+		f.log.WithError(err).Error("failed to count metadata for list metadata")
+
+		return nil, nil, ErrUnknownServerErrorOccurred
 	}
 
 	md := db.FrameMetadatas(metadata)
@@ -259,15 +336,52 @@ func (f *ForkChoice) ListMetadata(ctx context.Context, filter *FrameFilter, page
 }
 
 func (f *ForkChoice) GetFrame(ctx context.Context, id string) (*types.Frame, error) {
-	return f.store.GetFrame(ctx, id)
+	operation := OperationGetFrame
+
+	f.metrics.ObserveOperation(operation)
+
+	if id == "" {
+		f.metrics.ObserveOperationError(operation)
+
+		return nil, ErrInvalidID
+	}
+
+	frame, err := f.store.GetFrame(ctx, id)
+	if err != nil {
+		f.metrics.ObserveOperationError(operation)
+
+		f.log.WithError(err).WithField("id", id).Error("failed to get frame")
+
+		return nil, ErrUnknownServerErrorOccurred
+	}
+
+	return frame, nil
 }
 
 func (f *ForkChoice) DeleteFrame(ctx context.Context, id string) error {
+	operation := OperationDeleteFrame
+
+	f.metrics.ObserveOperation(operation)
+
+	if id == "" {
+		f.metrics.ObserveOperationError(operation)
+
+		return ErrInvalidID
+	}
+
 	if err := f.store.DeleteFrame(ctx, id); err != nil {
+		f.metrics.ObserveOperationError(operation)
+
+		f.log.WithError(err).WithField("id", id).Error("failed to delete frame")
+
 		return err
 	}
 
 	if err := f.indexer.DeleteFrameMetadata(ctx, id); err != nil {
+		f.metrics.ObserveOperationError(operation)
+
+		f.log.WithError(err).WithField("id", id).Error("failed to delete frame")
+
 		return err
 	}
 
