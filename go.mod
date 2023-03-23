@@ -2,13 +2,14 @@ module github.com/ethpandaops/forkchoice
 
 go 1.19
 
-replace github.com/attestantio/go-eth2-client => ../../samcm/go-eth2-client
+replace github.com/attestantio/go-eth2-client v0.15.7 => github.com/samcm/go-eth2-client v0.15.8
 
 require (
 	github.com/attestantio/go-eth2-client v0.15.7
 	github.com/aws/aws-sdk-go-v2 v1.17.6
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.17
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.30.6
+	github.com/aws/smithy-go v1.13.5
 	github.com/creasty/defaults v1.7.0
 	github.com/ethpandaops/ethwallclock v0.3.0
 	github.com/go-co-op/gocron v1.18.1
@@ -26,6 +27,7 @@ require (
 	gorm.io/driver/postgres v1.5.0
 	gorm.io/driver/sqlite v1.4.4
 	gorm.io/gorm v1.24.7-0.20230306060331-85eaf9eeda11
+	gorm.io/plugin/prometheus v0.0.0-20230109022219-ee24990c7392
 )
 
 require (
@@ -37,7 +39,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.25 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.24 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.24 // indirect
-	github.com/aws/smithy-go v1.13.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

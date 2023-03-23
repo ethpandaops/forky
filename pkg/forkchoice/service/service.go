@@ -47,7 +47,9 @@ func NewForkChoice(namespace string, log logrus.FieldLogger, config *Config, opt
 	}
 
 	// Create our indexer.
-	indexer, err := db.NewIndexer(log, config.Indexer)
+	indexerOpts := db.DefaultOptions().SetMetricsEnabled(opts.MetricsEnabled)
+
+	indexer, err := db.NewIndexer(namespace, log, config.Indexer, indexerOpts)
 	if err != nil {
 		log.Fatalf("failed to create indexer: %s", err)
 	}
@@ -138,7 +140,7 @@ func (f *ForkChoice) AddNewFrame(ctx context.Context, sourceName string, frame *
 	}
 
 	// Add the frame to the indexer.
-	if err := f.indexer.AddFrameMetadata(ctx, &frame.Metadata); err != nil {
+	if err := f.indexer.InsertFrameMetadata(ctx, &frame.Metadata); err != nil {
 		logCtx.WithError(err).Error("Failed to index frame")
 
 		return err

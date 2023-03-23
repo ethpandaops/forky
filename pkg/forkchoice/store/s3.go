@@ -96,6 +96,8 @@ func (s *S3Store) SaveFrame(ctx context.Context, frame *types.Frame) error {
 		}
 	}
 
+	s.basicMetrics.ObserveItemAdded(string(FrameDataType))
+
 	return err
 }
 
@@ -136,6 +138,8 @@ func (s *S3Store) GetFrame(ctx context.Context, id string) (*types.Frame, error)
 		return nil, err
 	}
 
+	s.basicMetrics.ObserveItemRetreived(string(FrameDataType))
+
 	return &frame, nil
 }
 
@@ -155,6 +159,8 @@ func (s *S3Store) DeleteFrame(ctx context.Context, id string) error {
 			}
 		}
 	}
+
+	s.basicMetrics.ObserveItemRemoved(string(FrameDataType))
 
 	return err
 }

@@ -41,10 +41,10 @@ func newMockIndexer() (*Indexer, sqlmock.Sqlmock, error) {
 
 	testDBCounter++
 
-	indexer, err := NewIndexer(logrus.New(), IndexerConfig{
+	indexer, err := NewIndexer("forky_test", logrus.New(), IndexerConfig{
 		DSN:        fmt.Sprintf("file:%v?mode=memory&cache=shared", testDBCounter),
 		DriverName: "sqlite",
-	})
+	}, DefaultOptions())
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to create indexer, got error: %v", err)
 	}
@@ -93,7 +93,7 @@ func TestIndexer_AddFrame(t *testing.T) {
 			Labels:         []string{"a", "b", "c"},
 		}
 
-		err = indexer.AddFrameMetadata(context.Background(), frame)
+		err = indexer.InsertFrameMetadata(context.Background(), frame)
 		assert.NoError(t, err)
 	})
 }
@@ -117,7 +117,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 			Labels:         []string{"a", "b", "c"},
 		}
 
-		err = indexer.AddFrameMetadata(context.Background(), frame)
+		err = indexer.InsertFrameMetadata(context.Background(), frame)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -150,7 +150,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 			Labels:         []string{"a", "b", "c"},
 		}
 
-		err = indexer.AddFrameMetadata(context.Background(), frame)
+		err = indexer.InsertFrameMetadata(context.Background(), frame)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -183,7 +183,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 			Labels:         []string{"a", "b", "c"},
 		}
 
-		err = indexer.AddFrameMetadata(context.Background(), frame)
+		err = indexer.InsertFrameMetadata(context.Background(), frame)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -217,7 +217,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 			Labels:         []string{"a", "b", "c"},
 		}
 
-		err = indexer.AddFrameMetadata(context.Background(), frame)
+		err = indexer.InsertFrameMetadata(context.Background(), frame)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -250,7 +250,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 			Labels:         []string{"a", "b", "c"},
 		}
 
-		err = indexer.AddFrameMetadata(context.Background(), frame1)
+		err = indexer.InsertFrameMetadata(context.Background(), frame1)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -264,7 +264,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 			Labels:         []string{"a", "b", "c"},
 		}
 
-		err = indexer.AddFrameMetadata(context.Background(), frame2)
+		err = indexer.InsertFrameMetadata(context.Background(), frame2)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -305,7 +305,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 			Labels:         []string{"z", "a", "b", "c"},
 		}
 
-		err = indexer.AddFrameMetadata(context.Background(), frame1)
+		err = indexer.InsertFrameMetadata(context.Background(), frame1)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -319,7 +319,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 			Labels:         []string{"z", "d", "e", "f"},
 		}
 
-		err = indexer.AddFrameMetadata(context.Background(), frame2)
+		err = indexer.InsertFrameMetadata(context.Background(), frame2)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -388,7 +388,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 				Labels:         labels,
 			}
 
-			err = indexer.AddFrameMetadata(context.Background(), frame)
+			err = indexer.InsertFrameMetadata(context.Background(), frame)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -501,7 +501,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 				Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
 			}
 
-			err = indexer.AddFrameMetadata(context.Background(), frame)
+			err = indexer.InsertFrameMetadata(context.Background(), frame)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -548,7 +548,7 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 				Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
 			}
 
-			err = indexer.AddFrameMetadata(context.Background(), frame)
+			err = indexer.InsertFrameMetadata(context.Background(), frame)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -587,7 +587,7 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 				Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
 			}
 
-			err = indexer.AddFrameMetadata(context.Background(), frame)
+			err = indexer.InsertFrameMetadata(context.Background(), frame)
 			if err != nil {
 				t.Fatal(err)
 			}
