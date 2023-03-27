@@ -22,7 +22,7 @@ func NewBasicMetrics(namespace, sourceType, sourceName string, enabled bool) *Ba
 	}
 
 	if enabled {
-		prometheus.MustRegister(m.itemsFetched)
+		// prometheus.MustRegister(m.itemsFetched)
 	}
 
 	return m
