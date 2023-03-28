@@ -66,6 +66,15 @@ func NewBadRequestResponse(resolvers ContentTypeResolvers) *Response {
 	}
 }
 
+func NewNotFoundResponse(resolvers ContentTypeResolvers) *Response {
+	return &Response{
+		resolvers:  resolvers,
+		StatusCode: http.StatusNotFound,
+		Headers:    make(map[string]string),
+		ExtraData:  make(map[string]interface{}),
+	}
+}
+
 func NewUnsupportedMediaTypeResponse(resolvers ContentTypeResolvers) *Response {
 	return &Response{
 		resolvers:  resolvers,

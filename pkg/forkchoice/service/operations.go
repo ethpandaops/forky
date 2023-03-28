@@ -13,4 +13,8 @@ const (
 	OperationListSlots  Operation = "list_slots"
 	OperationListEpochs Operation = "list_epochs"
 	OperationListLabels Operation = "list_labels"
+
+	OperationGetEthereumNow         Operation = "get_ethereum_now"
+	OperationGetEthereumSpec        Operation = "get_ethereum_spec"
+	OperationGetEthereumNetworkName Operation = "get_ethereum_network_name"
 )
