@@ -7,11 +7,12 @@ import (
 	"net/http"
 
 	fhttp "github.com/ethpandaops/forkchoice/pkg/forkchoice/api/http"
+	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
 
 	"github.com/julienschmidt/httprouter"
 )
 
-func (h *HTTP) handleV1GetFrame(ctx context.Context, r *http.Request, p httprouter.Params, contentType fhttp.ContentType) (*fhttp.Response, error) {
+func (h *HTTP) handleV1GetFrame(ctx context.Context, _ *http.Request, p httprouter.Params, contentType fhttp.ContentType) (*fhttp.Response, error) {
 	if err := fhttp.ValidateContentType(contentType, []fhttp.ContentType{fhttp.ContentTypeJSON}); err != nil {
 		return fhttp.NewUnsupportedMediaTypeResponse(nil), err
 	}
@@ -23,6 +24,10 @@ func (h *HTTP) handleV1GetFrame(ctx context.Context, r *http.Request, p httprout
 
 	frame, err := h.svc.GetFrame(ctx, id)
 	if err != nil {
+		if errors.Is(err, service.ErrFrameNotFound) {
+			return fhttp.NewNotFoundResponse(nil), err
+		}
+
 		return fhttp.NewInternalServerErrorResponse(nil), err
 	}
 

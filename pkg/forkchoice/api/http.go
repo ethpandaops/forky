@@ -29,7 +29,10 @@ func NewHTTP(log logrus.FieldLogger, svc *service.ForkChoice, opts *Options) *HT
 	}
 }
 
-func (h *HTTP) BindToRouter(ctx context.Context, router *httprouter.Router) error {
+func (h *HTTP) BindToRouter(_ context.Context, router *httprouter.Router) error {
+	router.GET("/api/v1/ethereum/now", h.wrappedHandler(h.handleV1GetEthereumNow))
+	router.GET("/api/v1/ethereum/spec", h.wrappedHandler(h.handleV1GetEthereumSpec))
+
 	router.GET("/api/v1/frames/:id", h.wrappedHandler(h.handleV1GetFrame))
 
 	router.POST("/api/v1/metadata", h.wrappedHandler(h.handleV1MetadataList))

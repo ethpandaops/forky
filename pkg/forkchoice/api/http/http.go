@@ -1,18 +1,34 @@
 package http
 
 import (
+	"time"
+
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
 )
 
 // V1
-// // Sources
-type V1SourcesRequest struct {
+// // Ethereum
+type V1GetEthereumSpecRequest struct {
 }
 
-type V1SourcesResponse struct {
-	SourcesMetadata []*service.SourceMetadata `json:"sources_metadata"`
+type EthereumSpec struct {
+	SecondsPerSlot uint64    `json:"seconds_per_slot"`
+	SlotsPerEpoch  uint64    `json:"slots_per_epoch"`
+	GenesisTime    time.Time `json:"genesis_time"`
+}
+type V1GetEthereumSpecResponse struct {
+	NetworkName string       `json:"network_name"`
+	Spec        EthereumSpec `json:"spec"`
+}
+
+type V1GetEthereumNowRequest struct {
+}
+
+type V1GetEthereumNowResponse struct {
+	Slot  uint64 `json:"slot"`
+	Epoch uint64 `json:"epoch"`
 }
 
 // // Metadata

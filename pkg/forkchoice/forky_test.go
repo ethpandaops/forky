@@ -33,12 +33,20 @@ metrics:
   enabled: false
 
 forky:
+  ethereum:
+    network:
+      name: "mainnet"
+      spec:
+        seconds_per_slot: 12
+        slots_per_epoch: 32
+        genesis_time: 1609459200
   retention_period: 24h
   store:
     type: "memory"
   indexer:
     driver_name: "sqlite"
     dsn: "%s"
+
 `, port, dsn)
 
 	if withConfig != "" {

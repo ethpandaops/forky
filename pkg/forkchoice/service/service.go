@@ -8,6 +8,7 @@ import (
 
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/db"
+	"github.com/ethpandaops/forkchoice/pkg/forkchoice/ethereum"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/source"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/store"
 	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
@@ -23,6 +24,7 @@ type ForkChoice struct {
 	store   store.Store
 	indexer *db.Indexer
 	metrics *Metrics
+	eth     *ethereum.BeaconChain
 }
 
 func NewForkChoice(namespace string, log logrus.FieldLogger, config *Config, opts *Options) (*ForkChoice, error) {
@@ -55,6 +57,12 @@ func NewForkChoice(namespace string, log logrus.FieldLogger, config *Config, opt
 		log.Fatalf("failed to create indexer: %s", err)
 	}
 
+	// Create our ethereum beaconchain service.
+	eth, err := ethereum.NewBeaconChain(log, &config.Ethereum)
+	if err != nil {
+		log.Fatalf("failed to create ethereum beaconchain: %s", err)
+	}
+
 	return &ForkChoice{
 		config:  config,
 		opts:    opts,
@@ -63,6 +71,7 @@ func NewForkChoice(namespace string, log logrus.FieldLogger, config *Config, opt
 		store:   st,
 		indexer: indexer,
 		metrics: NewMetrics(namespace+"_service", config, opts.MetricsEnabled),
+		eth:     eth,
 	}, nil
 }
 
@@ -352,6 +361,10 @@ func (f *ForkChoice) GetFrame(ctx context.Context, id string) (*types.Frame, err
 
 		f.log.WithError(err).WithField("id", id).Error("failed to get frame")
 
+		if err == store.ErrFrameNotFound {
+			return nil, ErrFrameNotFound
+		}
+
 		return nil, ErrUnknownServerErrorOccurred
 	}
 
@@ -386,4 +399,53 @@ func (f *ForkChoice) DeleteFrame(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func (f *ForkChoice) GetEthereumNow(_ context.Context) (phase0.Slot, phase0.Epoch, error) {
+	operation := OperationGetEthereumNow
+
+	f.metrics.ObserveOperation(operation)
+
+	slot, epoch, err := f.eth.Wallclock().Now()
+	if err != nil {
+		f.metrics.ObserveOperationError(operation)
+
+		f.log.WithError(err).Error("failed to get ethereum now")
+
+		return 0, 0, ErrUnknownServerErrorOccurred
+	}
+
+	return phase0.Slot(slot.Number()), phase0.Epoch(epoch.Number()), nil
+}
+
+func (f *ForkChoice) GetEthereumSpecSecondsPerSlot(_ context.Context) uint64 {
+	operation := OperationGetEthereumSpec
+
+	f.metrics.ObserveOperation(operation)
+
+	return f.eth.Spec().SecondsPerSlot
+}
+
+func (f *ForkChoice) GetEthereumSpecSlotsPerEpoch(_ context.Context) uint64 {
+	operation := OperationGetEthereumSpec
+
+	f.metrics.ObserveOperation(operation)
+
+	return f.eth.Spec().SlotsPerEpoch
+}
+
+func (f *ForkChoice) GetEthereumSpecGenesisTime(_ context.Context) time.Time {
+	operation := OperationGetEthereumSpec
+
+	f.metrics.ObserveOperation(operation)
+
+	return f.eth.GenesisTime()
+}
+
+func (f *ForkChoice) GetEthereumNetworkName(_ context.Context) string {
+	operation := OperationGetEthereumSpec
+
+	f.metrics.ObserveOperation(operation)
+
+	return f.eth.NetworkName()
 }
