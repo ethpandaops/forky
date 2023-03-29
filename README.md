@@ -4,8 +4,6 @@
 
 Forky captures, stores and visualizes fork choice data from the Ethereum Beacon Chain. Forky is designed to provide a live view of the Ethereum network, along with historical access.
 
-
-----------
 <p align="center">
   <b> Live Versions </b>
 </p>
