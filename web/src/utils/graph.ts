@@ -210,6 +210,7 @@ export function weightedGraphFromData(data: ForkChoiceData): WeightedGraph {
       forkChoiceNode.parent_root &&
       forkChoiceNode.block_root !== data.finalized_checkpoint?.root
     ) {
+      // TODO: handle missing parent and rendering offset
       const parentForkChoiceNode = forkChoiceNodes[forkChoiceNode.parent_root];
       try {
         graph.addDirectedEdge(parentForkChoiceNode.block_root, forkChoiceNode.block_root, {
