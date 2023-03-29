@@ -9,10 +9,26 @@ forky:
 
   store:
     type: memory
+    config: {}
+  
+    # type: s3
+    # config:
+    #   region: "us-east-1"
+    #   endpoint: http://localhost:9000
+    #   bucket_name: forkchoice
+    #   access_key: minioadmin
+    #   access_secret: minioadmin
+
+    # type: fs
+    # config:
+    #  base_dir: "/data/forky"
 
   indexer:
-    dsn: ":memory:"
+    dsn: "file::memory:?cache=shared"
     driver_name: sqlite
+
+    # dsn: "postgres://user:secret@localhost:5432/mydatabasename"
+    # driver_name: postgres
 
   sources:
     - name: "example"
