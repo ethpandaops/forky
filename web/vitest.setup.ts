@@ -1,3 +1,4 @@
+import 'vi-canvas-mock';
 import matchers from '@testing-library/jest-dom/matchers';
 import { cleanup } from '@testing-library/react';
 import { expect, afterEach } from 'vitest';

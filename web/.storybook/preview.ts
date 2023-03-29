@@ -4,7 +4,7 @@ import type { Preview } from "@storybook/react";
 const preview: Preview = {
   parameters: {
     backgrounds: {
-      default: "light",
+      default: "dark",
     },
     actions: { argTypesRegex: "^on[A-Z].*" },
     controls: {

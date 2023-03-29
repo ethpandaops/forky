@@ -44,6 +44,15 @@
       ],
       "@assets/*": [
         "src/assets/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@providers/*": [
+        "src/providers/*"
+      ],
+      "@contexts/*": [
+        "src/contexts/*"
       ]
     }
   },
