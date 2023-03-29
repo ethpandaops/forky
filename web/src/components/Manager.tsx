@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import WeightedStage from '@app/components/WeightedStage';
 import { Response, V1GetEthereumNowResponse, V1MetadataListNodesResponse } from '@app/types/api';
-import Logo from '@assets/logo.png';
+import Logo from '@assets/forky_logo.png';
 import Control from '@components/Control';
 import EpochDial from '@components/EpochDial';
 import SlotDial from '@components/SlotDial';
@@ -23,38 +23,33 @@ export default function Manager(props: Props) {
     data: dataNow,
     isLoading: isLoadingNow,
     error: errorNow,
-  } = useQuery<Response<V1GetEthereumNowResponse>, Error>(
-    ['ethereum', 'now'],
-    async () => {
-      const res = await fetch('/api/v1/ethereum/now');
-      return res.json();
-    },
-    { refetchInterval: false },
-  );
+  } = useQuery<Response<V1GetEthereumNowResponse>, Error>(['ethereum', 'now'], async () => {
+    const res = await fetch('/api/v1/ethereum/now');
+    if (!res.ok) {
+      throw new Error(res.statusText);
+    }
+    return res.json();
+  });
   const {
     data: dataMetadata,
     isLoading: isLoadingMetadata,
     error: errorMetadata,
-  } = useQuery<Response<V1MetadataListNodesResponse>, Error>(
-    ['metadata', 'list'],
-    async () => {
-      const res = await fetch('/api/v1/metadata/nodes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+  } = useQuery<Response<V1MetadataListNodesResponse>, Error>(['metadata', 'list'], async () => {
+    const res = await fetch('/api/v1/metadata/nodes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        filter: {},
+        pagination: {
+          offset: 0,
+          limit: 1,
         },
-        body: JSON.stringify({
-          filter: {},
-          pagination: {
-            offset: 0,
-            limit: 1,
-          },
-        }),
-      });
-      return res.json();
-    },
-    { refetchInterval: false },
-  );
+      }),
+    });
+    return res.json();
+  });
 
   const initialFocusedTime = useMemo<number | undefined>(() => {
     if (dataNow?.data?.slot) {
@@ -78,7 +73,7 @@ export default function Manager(props: Props) {
     return (
       <div className="w-screen h-screen flex flex-col items-center justify-center bg-stone-900">
         <img src={Logo} className="object-contain w-72 h-72" />
-        <h1 className="text-2xl text-white">
+        <h1 className="mt-6 text-2xl text-white">
           {isLoadingNow || isLoadingMetadata
             ? 'Loading'
             : `Error: ${errorNow || errorMetadata || 'unexpected data returned'}`}
@@ -90,7 +85,7 @@ export default function Manager(props: Props) {
     return (
       <div className="w-screen h-screen flex flex-col items-center justify-center bg-stone-900">
         <img src={Logo} className="object-contain w-72 h-72" />
-        <h1 className="text-2xl text-white">
+        <h1 className="mt-6 text-2xl text-white">
           {!firstNode ? 'No nodes found' : 'Failed to calculate initial focused time'}
         </h1>
       </div>
