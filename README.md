@@ -4,16 +4,17 @@
 
 Forky is a tool for capturing, storing and visualizing fork choice data from the Ethereum Beacon Chain. Forky is designed to provide a live view of the Ethereum network, along with historical access.
 
-Forky captures fork choice dumps from multiple sources, stores them, indexes them and provides a web interface for viewing the data.
+Forky can capture fork choice dumps from multiple sources, store them, index them and provides a web interface for viewing them.
 
 ----------
-
 <p align="center">
-  <h2> Live Versions </h2>
-
+  <b> Live Versions </b>
+</p>
+<p align="center">
   <a href="forky.sepolia.ethpandaops.io" target="_blank">Sepolia</a>
 </p>
 
+----------
 ## Contents
 
 * [Features](#features)
