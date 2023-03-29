@@ -1,3 +1,3 @@
 FROM gcr.io/distroless/static-debian11:latest
-COPY forkchoice* /forkchoice
-ENTRYPOINT ["/forkchoice"]
+COPY forky* /forky
+ENTRYPOINT ["/forky"]
