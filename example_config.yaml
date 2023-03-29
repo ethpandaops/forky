@@ -11,7 +11,7 @@ forky:
     type: memory
 
   indexer:
-    dsn: ":memory:"
+    dsn: "file::memory:?cache=shared"
     driver_name: sqlite
 
   sources:
