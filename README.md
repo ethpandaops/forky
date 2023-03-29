@@ -1,6 +1,6 @@
 # Forky
 
-<img align="left"  width="460" height="300" src="/web/src/assets/forky_logo_small.png">
+<img align="left" src="/web/src/assets/forky_logo_small.png">
   <h1> Forky </h1>
 </img>
 
