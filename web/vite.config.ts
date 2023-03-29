@@ -3,7 +3,6 @@ import path from 'path';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import eslint from 'vite-plugin-eslint';
-import svgr from 'vite-plugin-svgr';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -22,7 +21,7 @@ export default defineConfig({
       '@contexts': path.resolve(__dirname, './src/contexts'),
     },
   },
-  plugins: [svgr(), react(), eslint()],
+  plugins: [react(), eslint()],
   build: {
     outDir: 'build/frontend',
   },
