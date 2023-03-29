@@ -3,7 +3,7 @@ package service
 import (
 	"runtime"
 
-	"github.com/ethpandaops/forkchoice/pkg/version"
+	"github.com/ethpandaops/forky/pkg/version"
 	"github.com/prometheus/client_golang/prometheus"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/ethpandaops/forkchoice/pkg/forky/types"
+	"github.com/ethpandaops/forky/pkg/forky/types"
 	"github.com/sirupsen/logrus"
 )
 
