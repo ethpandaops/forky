@@ -1,7 +1,8 @@
 import { useEffect, memo } from 'react';
 
-import { Stage } from '@pixi/react';
+import { Stage, Text } from '@pixi/react';
 import { useQuery } from '@tanstack/react-query';
+import { TextStyle } from 'pixi.js';
 
 import GraphViewport from '@app/components/GraphViewport';
 import useActiveFrame from '@app/hooks/useActiveFrame';
@@ -14,6 +15,7 @@ import useFrames from '@contexts/frames';
 import useFrame from '@hooks/useFrame';
 import useWeightedGraph from '@hooks/useWeightedGraph';
 import { equalForkChoiceData } from '@utils/api';
+import { colors, fonts } from '@utils/tailwind';
 
 const fetchFrameData = async (id: string): Promise<Response<V1GetFrameResponse>> => {
   const response = await fetch(`/api/v1/frames/${id}`);
@@ -80,15 +82,43 @@ function WeightedStage({
         >
           {(viewport) => {
             useEffect(() => {
-              viewport?.animate({
-                position: {
-                  x: (attributes.slotEnd - attributes.slotStart) * spacingX + spacingX,
-                  y: -spacingY,
-                },
-                scale: 0.5,
-                time: 0,
-              });
+              if (!viewport) return;
+              if (isLoading || error) {
+                viewport.animate({
+                  position: {
+                    x: -width / 2,
+                    y: 0,
+                  },
+                  scale: 1,
+                  time: 0,
+                });
+              } else {
+                viewport.animate({
+                  position: {
+                    x: (attributes.slotEnd - attributes.slotStart) * spacingX + spacingX,
+                    y: -spacingY,
+                  },
+                  scale: 0.5,
+                  time: 0,
+                });
+              }
             }, [viewport]);
+            if (isLoading || error)
+              return (
+                <Text
+                  text={isLoading ? 'Loading...' : `Error: ${error}`}
+                  position={[0, 0]}
+                  style={
+                    new TextStyle({
+                      align: 'center',
+                      fontFamily: fonts.sans,
+                      fontSize: 125,
+                      fill: colors.stone[50],
+                      wordWrap: false,
+                    })
+                  }
+                />
+              );
             return (
               <>
                 {edges.map((edge) => (
