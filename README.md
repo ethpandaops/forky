@@ -1,12 +1,18 @@
-# Forkchoice
+# Forky
 
-TODO
+<img align="left"  width="460" height="300" src="/web/src/assets/forky_logo_small.png">
+  <h1> Forky </h1>
+</img>
+
+Ethereum Beacon Chain fork choice capture, storage and visualization
 
 ----------
+
 ## Contents
+
 * [Features](#features)
-* [What is forkchoice?](#what-is-forkchoice)
-- [Usage](#usage)
+* [What is forky?](#what-is-forky)
+- [Usage](#usage) 
   * [Configuration](#configuration)
     + [Simple example](#simple-example)
     + [Full example](#full-example)
@@ -24,99 +30,106 @@ TODO
 
 ----------
 
+## What is forky?
+
+Forky is a tool for capturing, storing and visualizing fork choice data from the Ethereum Beacon Chain. Forky is designed to provide a live view of the Ethereum network, while also providing historical access.
+
+Forky captures fork choice dumps from multiple sources, stores them, indexes them and then provides a web interface for viewing the data.
+
+Forky can be configured with a retention period.
+
 ## Features
 
-TODO
+### Capturing
 
-## What is forkchoice?
+* [x] Ethereum Beacon Node (only Teku has support currently)
+* [ ] [Xatu](https://github.com/ethpandaops/xatu) Sentry (coming soon)
 
-TODO
+### Storing
 
-# Usage
-Forkchoice requires a config file. An example file can be found [here](https://github.com/ethpandaops/forkchoice/blob/master/example_config.yaml).
+* [x] Memory
+* [x] Filesystem
+* [x] S3
 
-```
-Forkchoice TODO
+### Indexing
+
+* [x] Sqlite
+* [x] Postgres
+
+## Usage
+
+Forky requires a config file. An example file can be found [here](https://github.com/ethpandaops/forky/blob/master/example_config.yaml).
+
+```bash
+forky - fetches and serves Ethereum fork choice data
 
 Usage:
-  forkchoice [flags]
+  forky [flags]
 
 Flags:
       --config string   config file (default is config.yaml) (default "config.yaml")
-  -h, --help            help for forkchoice
+  -h, --help            help for forky
 ```
-
-## Configuration
-
-Forkchoice relies entirely on a single `yaml` config file.
-
-| Name | Default | Description |
-| --- | --- | --- |
-| global.listenAddr | `:5555` | The address the main http server will listen on |
-| global.logging | `warn` | Log level (`panic`, `fatal`, `warn`, `info`, `debug`, `trace`) |
-| global.metricsAddr | `:9090` | The address the metrics server will listen on |
-
-
-### Simple example
-
-TODO
-
-### Full example
-
-TODO
 
 ## Getting Started
 
 ### Download a release
-Download the latest release from the [Releases page](https://github.com/ethpandaops/forkchoice/releases). Extract and run with:
-```
-./forkchoice --config your-config.yaml
+
+Download the latest release from the [Releases page](https://github.com/ethpandaops/forky/releases). Extract and run with:
+
+```bash
+./forky --config your-config.yaml
 ```
 
 ### Docker
-Available as a docker image at [ethpandaops/forkchoice](https://hub.docker.com/r/ethpandaops/forkchoice/tags)
+
+Available as a docker image at [ethpandaops/forky](https://hub.docker.com/r/ethpandaops/forky/tags)
 #### Images
+
 - `latest` - distroless, multiarch
 - `latest-debian` - debian, multiarch
-- `$version` - distroless, multiarch, pinned to a release (i.e. `0.4.0`)
-- `$version-debian` - debian, multiarch, pinned to a release (i.e. `0.4.0-debian`)
+- `$version` - distroless, multiarch, pinned to a release (i.e. `0.1.0`)
+- `$version-debian` - debian, multiarch, pinned to a release (i.e. `0.1.0-debian`)
 
 **Quick start**
-```
-docker run -d  --name forkchoice -v $HOST_DIR_CHANGE_ME/config.yaml:/opt/forkchoice/config.yaml -p 9090:9090 -p 5555:5555 -it ethpandaops/forkchoice:latest --config /opt/forkchoice/config.yaml;
-docker logs -f forkchoice;
+
+```bash
+docker run -d  --name forky -v $HOST_DIR_CHANGE_ME/config.yaml:/opt/forky/config.yaml -p 9090:9090 -p 5555:5555 -it ethpandaops/forky:latest --config /opt/forky/config.yaml;
+docker logs -f forky;
 ```
 
 ### Kubernetes via Helm
-[Read more](https://github.com/skylenet/ethereum-helm-charts/tree/master/charts/forkchoice)
-```
-helm repo add ethereum-helm-charts https://skylenet.github.io/ethereum-helm-charts
 
-helm install forkchoice ethereum-helm-charts/forkchoice -f your_values.yaml
+[Read more](https://github.com/skylenet/ethereum-helm-charts/tree/master/charts/forky)
+
+```bash
+helm repo add ethereum-helm-charts https://ethpandaops.github.io/ethereum-helm-charts
+
+helm install forky ethereum-helm-charts/forky -f your_values.yaml
 ```
 
 ### Building yourself
 
 1. Clone the repo
    ```sh
-   go get github.com/ethpandaops/forkchoice
+   go get github.com/ethpandaops/forky
    ```
 2. Change directories
    ```sh
-   cd ./forkchoice
+   cd ./forky
    ```
 3. Build the binary
    ```sh  
-    go build -o forkchoice .
+    go build -o forky .
    ```
 4. Run the service
    ```sh  
-    ./forkchoice
+    ./forky
    ```
 
 ## Contributing
 
-Contributions are greatly appreciated! Pull requests will be reviewed and merged promptly if you're interested in improving the Forkchoice!
+Contributions are greatly appreciated! Pull requests will be reviewed and merged promptly if you're interested in improving the forky!
 
 1. Fork the project
 2. Create your feature branch:
@@ -135,7 +148,7 @@ go run main.go --config your_config.yaml
 
 #### Frontend
 
-A frontend is provided in this project in [`./web`](https://github.com/ethpandaops/forkchoice/blob/master/example_config.yaml) directory which needs to be built before it can be served by the server, eg. `http://localhost:5555`.
+A frontend is provided in this project in [`./web`](https://github.com/ethpandaops/forky/blob/master/example_config.yaml) directory which needs to be built before it can be served by the server, eg. `http://localhost:5555`.
 
 The frontend can be built with the following command;
 ```bash
