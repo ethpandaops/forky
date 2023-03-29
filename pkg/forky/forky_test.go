@@ -1,4 +1,4 @@
-package forkchoice
+package forky
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
+	"github.com/ethpandaops/forkchoice/pkg/forky/service"
+	"github.com/ethpandaops/forkchoice/pkg/forky/types"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )

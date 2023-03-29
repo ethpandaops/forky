@@ -1,11 +1,11 @@
 package service
 
 import (
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/db"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/ethereum"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/human"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/source"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/store"
+	"github.com/ethpandaops/forkchoice/pkg/forky/db"
+	"github.com/ethpandaops/forkchoice/pkg/forky/ethereum"
+	"github.com/ethpandaops/forkchoice/pkg/forky/human"
+	"github.com/ethpandaops/forkchoice/pkg/forky/source"
+	"github.com/ethpandaops/forkchoice/pkg/forky/store"
 )
 
 type Config struct {

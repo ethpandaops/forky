@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	fhttp "github.com/ethpandaops/forkchoice/pkg/forkchoice/api/http"
+	fhttp "github.com/ethpandaops/forkchoice/pkg/forky/api/http"
 
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
+	"github.com/ethpandaops/forkchoice/pkg/forky/service"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
 )

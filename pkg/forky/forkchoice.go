@@ -1,4 +1,4 @@
-package forkchoice
+package forky
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/api"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
+	"github.com/ethpandaops/forkchoice/pkg/forky/api"
+	"github.com/ethpandaops/forkchoice/pkg/forky/service"
 	static "github.com/ethpandaops/forkchoice/web"
 	"github.com/julienschmidt/httprouter"
 	"github.com/prometheus/client_golang/prometheus/promhttp"

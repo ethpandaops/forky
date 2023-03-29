@@ -1,10 +1,10 @@
-package forkchoice
+package forky
 
 import (
 	"os"
 
 	"github.com/creasty/defaults"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
+	"github.com/ethpandaops/forkchoice/pkg/forky/service"
 	"gopkg.in/yaml.v2"
 )
 
