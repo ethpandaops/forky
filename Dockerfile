@@ -11,6 +11,6 @@ RUN apt-get update && apt-get -y upgrade && apt-get install -y --no-install-reco
   ca-certificates \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /bin/app /forkchoice
+COPY --from=builder /bin/app /forky
 EXPOSE 5555
-ENTRYPOINT ["/forkchoice"]
+ENTRYPOINT ["/forky"]
