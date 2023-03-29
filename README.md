@@ -1,8 +1,8 @@
-<img align="left" height="128px" src="/web/src/assets/forky_logo.png">
+<img align="left" height="168px" src="/web/src/assets/forky_logo.png">
   <h1> Forky </h1>
 </img>
 
-Forky is a tool for capturing, storing and visualizing fork choice data from the Ethereum Beacon Chain. Forky is designed to provide a live view of the Ethereum network, along with historical access.
+Forky captures, stores and visualizes fork choice data from the Ethereum Beacon Chain. Forky is designed to provide a live view of the Ethereum network, along with historical access.
 
 Forky can capture fork choice dumps from multiple sources, store them, index them and provides a web interface for viewing them.
 
