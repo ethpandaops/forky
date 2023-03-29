@@ -1,6 +1,6 @@
 package service
 
-import "github.com/ethpandaops/forkchoice/pkg/forkchoice/db"
+import "github.com/ethpandaops/forkchoice/pkg/forky/db"
 
 type PaginationCursor struct {
 	// The cursor to start from.

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/db"
+	"github.com/ethpandaops/forkchoice/pkg/forky/db"
 )
 
 func (f *ForkChoice) DeleteOldFrames(ctx context.Context) error {

@@ -6,8 +6,8 @@ import (
 	"errors"
 	"net/http"
 
-	fhttp "github.com/ethpandaops/forkchoice/pkg/forkchoice/api/http"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
+	fhttp "github.com/ethpandaops/forkchoice/pkg/forky/api/http"
+	"github.com/ethpandaops/forkchoice/pkg/forky/service"
 
 	"github.com/julienschmidt/httprouter"
 )

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	fhttp "github.com/ethpandaops/forkchoice/pkg/forkchoice/api/http"
+	fhttp "github.com/ethpandaops/forkchoice/pkg/forky/api/http"
 
 	"github.com/julienschmidt/httprouter"
 )

@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/attestantio/go-eth2-client/spec/phase0"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/service"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
+	"github.com/ethpandaops/forkchoice/pkg/forky/service"
+	"github.com/ethpandaops/forkchoice/pkg/forky/types"
 )
 
 // V1
