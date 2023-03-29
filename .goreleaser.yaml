@@ -6,9 +6,7 @@ before:
     - go generate ./...
     - make build-web
 builds:
-  - env:
-      - CGO_ENABLED=0
-    binary: forky-{{.Version}}
+  - binary: forky-{{.Version}}
     goos:
       - linux
       - windows
