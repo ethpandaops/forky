@@ -2,18 +2,23 @@
   <h1> Forky </h1>
 </img>
 
-Ethereum Beacon Chain fork choice capture, storage and visualization
+Forky is a tool for capturing, storing and visualizing fork choice data from the Ethereum Beacon Chain. Forky is designed to provide a live view of the Ethereum network, along with historical access.
+
+Forky captures fork choice dumps from multiple sources, stores them, indexes them and provides a web interface for viewing the data.
 
 ----------
+
+<p align="center">
+  <h2> Live Versions </h2>
+
+  <a href="forky.sepolia.ethpandaops.io" target="_blank">Sepolia</a>
+</p>
 
 ## Contents
 
 * [Features](#features)
-* [What is forky?](#what-is-forky)
 - [Usage](#usage) 
   * [Configuration](#configuration)
-    + [Simple example](#simple-example)
-    + [Full example](#full-example)
   * [Getting Started](#getting-started)
     + [Download a release](#download-a-release)
     + [Docker](#docker)
@@ -28,15 +33,12 @@ Ethereum Beacon Chain fork choice capture, storage and visualization
 
 ----------
 
-## What is forky?
-
-Forky is a tool for capturing, storing and visualizing fork choice data from the Ethereum Beacon Chain. Forky is designed to provide a live view of the Ethereum network, while also providing historical access.
-
-Forky captures fork choice dumps from multiple sources, stores them, indexes them and then provides a web interface for viewing the data.
-
-Forky can be configured with a retention period.
 
 ## Features
+
+* [x] Web interface for viewing fork choice data
+* [x] Configurable retention period
+* [x] Prometheus metrics
 
 ### Capturing
 
