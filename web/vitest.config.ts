@@ -14,6 +14,9 @@ export default defineConfig({
       '@public': path.resolve(__dirname, './public'),
       '@styles': path.resolve(__dirname, './src/styles'),
       '@assets': path.resolve(__dirname, './src/assets'),
+      '@utils': path.resolve(__dirname, './src/utils'),
+      '@providers': path.resolve(__dirname, './src/providers'),
+      '@contexts': path.resolve(__dirname, './src/contexts'),
       /**
        * Storybook (specifically the interactions addon) requires that we use their
        *   instrumented version of jest-expect. So our storybook does so. To make
