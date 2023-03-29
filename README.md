@@ -10,7 +10,7 @@ Forky captures, stores and visualizes fork choice data from the Ethereum Beacon 
   <b> Live Versions </b>
 </p>
 <p align="center">
-  <a href="forky.sepolia.ethpandaops.io" target="_blank">Sepolia</a>
+  <a href="https://forky.sepolia.ethpandaops.io" target="_blank">Sepolia</a>
 </p>
 
 ----------
