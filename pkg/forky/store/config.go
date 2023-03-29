@@ -3,7 +3,7 @@ package store
 import (
 	"fmt"
 
-	"github.com/ethpandaops/forkchoice/pkg/yaml"
+	"github.com/ethpandaops/forky/pkg/yaml"
 )
 
 type Config struct {

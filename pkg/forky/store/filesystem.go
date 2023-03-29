@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ethpandaops/forkchoice/pkg/forky/types"
+	"github.com/ethpandaops/forky/pkg/forky/types"
 )
 
 type FileSystem struct {

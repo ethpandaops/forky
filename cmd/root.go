@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/ethpandaops/forkchoice/pkg/forky"
+	"github.com/ethpandaops/forky/pkg/forky"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

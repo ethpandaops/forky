@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/attestantio/go-eth2-client/spec/phase0"
-	"github.com/ethpandaops/forkchoice/pkg/forky/db"
-	"github.com/ethpandaops/forkchoice/pkg/forky/ethereum"
-	"github.com/ethpandaops/forkchoice/pkg/forky/source"
-	"github.com/ethpandaops/forkchoice/pkg/forky/store"
-	"github.com/ethpandaops/forkchoice/pkg/forky/types"
-	"github.com/ethpandaops/forkchoice/pkg/version"
+	"github.com/ethpandaops/forky/pkg/forky/db"
+	"github.com/ethpandaops/forky/pkg/forky/ethereum"
+	"github.com/ethpandaops/forky/pkg/forky/source"
+	"github.com/ethpandaops/forky/pkg/forky/store"
+	"github.com/ethpandaops/forky/pkg/forky/types"
+	"github.com/ethpandaops/forky/pkg/version"
 	"github.com/sirupsen/logrus"
 )
 

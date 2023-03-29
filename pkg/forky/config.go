@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/creasty/defaults"
-	"github.com/ethpandaops/forkchoice/pkg/forky/service"
+	"github.com/ethpandaops/forky/pkg/forky/service"
 	"gopkg.in/yaml.v2"
 )
 

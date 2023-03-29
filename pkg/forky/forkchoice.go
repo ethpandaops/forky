@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ethpandaops/forkchoice/pkg/forky/api"
-	"github.com/ethpandaops/forkchoice/pkg/forky/service"
-	static "github.com/ethpandaops/forkchoice/web"
+	"github.com/ethpandaops/forky/pkg/forky/api"
+	"github.com/ethpandaops/forky/pkg/forky/service"
+	static "github.com/ethpandaops/forky/web"
 	"github.com/julienschmidt/httprouter"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"

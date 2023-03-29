@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/ethpandaops/forkchoice/pkg/forky/db"
+	"github.com/ethpandaops/forky/pkg/forky/db"
 )
 
 type SourceMetadata struct {

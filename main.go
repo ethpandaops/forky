@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/ethpandaops/forkchoice/cmd"
+	"github.com/ethpandaops/forky/cmd"
 	_ "github.com/lib/pq"
 )
 

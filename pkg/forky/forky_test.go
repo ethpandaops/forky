@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethpandaops/forkchoice/pkg/forky/service"
-	"github.com/ethpandaops/forkchoice/pkg/forky/types"
+	"github.com/ethpandaops/forky/pkg/forky/service"
+	"github.com/ethpandaops/forky/pkg/forky/types"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )

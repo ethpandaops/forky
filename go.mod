@@ -1,4 +1,4 @@
-module github.com/ethpandaops/forkchoice
+module github.com/ethpandaops/forky
 
 go 1.19
 

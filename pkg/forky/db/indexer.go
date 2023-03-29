@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/attestantio/go-eth2-client/spec/phase0"
-	"github.com/ethpandaops/forkchoice/pkg/forky/types"
+	"github.com/ethpandaops/forky/pkg/forky/types"
 	perrors "github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"

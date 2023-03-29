@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ethpandaops/forkchoice/pkg/forky/types"
-	"github.com/ethpandaops/forkchoice/pkg/yaml"
+	"github.com/ethpandaops/forky/pkg/forky/types"
+	"github.com/ethpandaops/forky/pkg/yaml"
 	"github.com/sirupsen/logrus"
 )
 
