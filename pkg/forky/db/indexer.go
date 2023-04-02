@@ -519,12 +519,6 @@ func (i *Indexer) DeleteFrameMetadata(ctx context.Context, id string) error {
 		return result.Error
 	}
 
-	if result.RowsAffected == 0 {
-		i.metrics.ObserveOperationError(operation)
-
-		return errors.New("frame_metadata_label not found")
-	}
-
 	return nil
 }
 
