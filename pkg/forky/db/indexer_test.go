@@ -96,6 +96,27 @@ func TestIndexer_AddFrame(t *testing.T) {
 		err = indexer.InsertFrameMetadata(context.Background(), frame)
 		assert.NoError(t, err)
 	})
+
+	t.Run("with no labels", func(t *testing.T) {
+		indexer, _, err := newMockIndexer()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		id := uuid.New()
+
+		frame := &types.FrameMetadata{
+			ID:             id.String(),
+			Node:           "node",
+			WallClockSlot:  phase0.Slot(42),
+			WallClockEpoch: phase0.Epoch(21),
+			FetchedAt:      time.Now(),
+			Labels:         nil,
+		}
+
+		err = indexer.InsertFrameMetadata(context.Background(), frame)
+		assert.NoError(t, err)
+	})
 }
 
 //nolint:gocyclo // its a test m8
@@ -115,6 +136,39 @@ func TestIndexer_ListFrames(t *testing.T) {
 			WallClockEpoch: phase0.Epoch(21),
 			FetchedAt:      time.Now(),
 			Labels:         []string{"a", "b", "c"},
+		}
+
+		err = indexer.InsertFrameMetadata(context.Background(), frame)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		frames, err := indexer.ListFrameMetadata(context.Background(), &FrameFilter{
+			ID: &id,
+		}, &PaginationCursor{})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Len(t, frames, 1)
+		assert.Equal(t, frame.ID, frames[0].ID)
+	})
+
+	t.Run("With no labels", func(t *testing.T) {
+		indexer, _, err := newMockIndexer()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		id := uuid.New().String()
+
+		frame := &types.FrameMetadata{
+			ID:             id,
+			Node:           "node",
+			WallClockSlot:  phase0.Slot(42),
+			WallClockEpoch: phase0.Epoch(21),
+			FetchedAt:      time.Now(),
+			Labels:         nil,
 		}
 
 		err = indexer.InsertFrameMetadata(context.Background(), frame)
@@ -615,5 +669,99 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 				assert.Equal(t, frame.Labels[0].Name, "label5")
 			}
 		}
+	})
+}
+
+func TestIndexer_DeleteFrameMetadata(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		indexer, _, err := newMockIndexer()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		ids := []string{}
+
+		// Add a few random frames
+		for i := 0; i < 5; i++ {
+			node := fmt.Sprintf("node%d", i)
+
+			frame := &types.FrameMetadata{
+				ID:             uuid.New().String(),
+				Node:           node,
+				WallClockSlot:  phase0.Slot(testRandIntn(1000)),
+				WallClockEpoch: phase0.Epoch(testRandIntn(100)),
+				FetchedAt:      time.Now(),
+				Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
+			}
+
+			err = indexer.InsertFrameMetadata(context.Background(), frame)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			ids = append(ids, frame.ID)
+		}
+
+		for _, id := range ids {
+			err = indexer.DeleteFrameMetadata(context.Background(), id)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// List nodes with frames
+		nodes, err := indexer.ListFrameMetadata(context.Background(), &FrameFilter{}, &PaginationCursor{})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Check that no frame metadata is returned
+		assert.Len(t, nodes, 0)
+	})
+
+	t.Run("with no labels", func(t *testing.T) {
+		indexer, _, err := newMockIndexer()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		ids := []string{}
+
+		// Add a few random frames
+		for i := 0; i < 5; i++ {
+			node := fmt.Sprintf("node%d", i)
+
+			frame := &types.FrameMetadata{
+				ID:             uuid.New().String(),
+				Node:           node,
+				WallClockSlot:  phase0.Slot(testRandIntn(1000)),
+				WallClockEpoch: phase0.Epoch(testRandIntn(100)),
+				FetchedAt:      time.Now(),
+				Labels:         nil,
+			}
+
+			err = indexer.InsertFrameMetadata(context.Background(), frame)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			ids = append(ids, frame.ID)
+		}
+
+		for _, id := range ids {
+			err = indexer.DeleteFrameMetadata(context.Background(), id)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// List nodes with frames
+		nodes, err := indexer.ListFrameMetadata(context.Background(), &FrameFilter{}, &PaginationCursor{})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Check that no frame metadata is returned
+		assert.Len(t, nodes, 0)
 	})
 }
