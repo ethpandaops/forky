@@ -10,6 +10,9 @@ type BasicMetrics struct {
 	itemsRemoved   *prometheus.CounterVec
 	itemsRetreived *prometheus.CounterVec
 	itemsStored    *prometheus.GaugeVec
+
+	cacheHit  *prometheus.CounterVec
+	cacheMiss *prometheus.CounterVec
 }
 
 func NewBasicMetrics(namespace, storeType string, enabled bool) *BasicMetrics {
@@ -42,6 +45,16 @@ func NewBasicMetrics(namespace, storeType string, enabled bool) *BasicMetrics {
 			Name:      "items_stored_total",
 			Help:      "Number of items stored in the store",
 		}, []string{"type"}),
+		cacheHit: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: namespace,
+			Name:      "cache_hit_count",
+			Help:      "Number of cache hits",
+		}, []string{"type"}),
+		cacheMiss: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: namespace,
+			Name:      "cache_miss_count",
+			Help:      "Number of cache misses",
+		}, []string{"type"}),
 	}
 
 	if enabled {
@@ -50,6 +63,8 @@ func NewBasicMetrics(namespace, storeType string, enabled bool) *BasicMetrics {
 		prometheus.MustRegister(m.itemsRemoved)
 		prometheus.MustRegister(m.itemsRetreived)
 		prometheus.MustRegister(m.itemsStored)
+		prometheus.MustRegister(m.cacheHit)
+		prometheus.MustRegister(m.cacheMiss)
 	}
 
 	m.info.WithLabelValues(storeType).Set(1)
@@ -71,4 +86,12 @@ func (m *BasicMetrics) ObserveItemRetreived(itemType string) {
 
 func (m *BasicMetrics) ObserveItemStored(itemType string, count int) {
 	m.itemsStored.WithLabelValues(itemType).Set(float64(count))
+}
+
+func (m *BasicMetrics) ObserveCacheHit(itemType string) {
+	m.cacheHit.WithLabelValues(itemType).Inc()
+}
+
+func (m *BasicMetrics) ObserveCacheMiss(itemType string) {
+	m.cacheMiss.WithLabelValues(itemType).Inc()
 }
