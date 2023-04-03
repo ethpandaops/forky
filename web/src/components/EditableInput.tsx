@@ -77,7 +77,7 @@ function EditableInput<T extends InputType>({ value, onChange, type, id }: Props
             id={id}
             ref={inputRef}
             type={type}
-            className="block w-48 rounded-none rounded-l-md border-0 py-1.5 text-stone-900 ring-1 ring-inset ring-stone-300 placeholder:text-stone-400 focus:ring-2 focus:ring-inset focus:ring-stone-600 sm:text-sm sm:leading-6"
+            className="block w-48 rounded-none rounded-l-md border-0 pl-1 py-1.5 text-stone-900 ring-1 ring-inset ring-stone-300 placeholder:text-stone-400 focus:ring-2 focus:ring-inset focus:ring-stone-600 sm:text-sm sm:leading-6"
             value={formattedValue(inputValue)}
             onChange={(e) => setInputValue(e.target.value as unknown as ValueType[T])}
             onBlur={handleSave}
@@ -96,7 +96,7 @@ function EditableInput<T extends InputType>({ value, onChange, type, id }: Props
         <input
           id={id}
           type={type}
-          className="block w-56 rounded-md py-1.5 text-stone-900 ring-1 ring-inset ring-stone-300 placeholder:text-stone-400 focus:ring-2 focus:ring-inset focus:ring-stone-600 sm:text-sm sm:leading-6"
+          className="block w-56 rounded-md pl-2 py-1.5 text-stone-900 ring-1 ring-inset ring-stone-300 placeholder:text-stone-400 focus:ring-2 focus:ring-inset focus:ring-stone-600 sm:text-sm sm:leading-6"
           value={formattedValue(value)}
           readOnly
           step="1"

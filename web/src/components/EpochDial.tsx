@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { memo } from 'react';
 
 import Ruler from '@components/Ruler';
 import TimeDrag from '@components/TimeDrag';
-import useTimeline from '@contexts/timeline';
+import useEthereum from '@contexts/ethereum';
+import useFocus from '@contexts/focus';
 import useWindowSize from '@hooks/useWindowSize';
 
 const SUB_MARKS = 0;
 
-const SlotDial = () => {
-  const { slotsPerEpoch, focusedEpoch, focusedTimeIntoEpoch, secondsPerSlot, focusedSlot } =
-    useTimeline();
+function SlotDial() {
+  const { slotsPerEpoch, secondsPerSlot } = useEthereum();
+  const { epoch: focusedEpoch, timeIntoEpoch: focusedTimeIntoEpoch } = useFocus();
   const [width] = useWindowSize();
 
   const epochWidth = slotsPerEpoch * 4 * (SUB_MARKS + 1);
@@ -65,6 +66,6 @@ const SlotDial = () => {
       <TimeDrag multiplier={multiplier} />
     </div>
   );
-};
+}
 
-export default React.memo(SlotDial);
+export default memo(SlotDial);

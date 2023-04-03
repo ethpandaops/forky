@@ -1,34 +1,36 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { memo } from 'react';
 
 import {
   ArrowUturnRightIcon,
   ArrowUturnLeftIcon,
   PauseIcon,
   PlayIcon,
-  PlayCircleIcon,
 } from '@heroicons/react/20/solid';
 
 import EditableInput from '@components/EditableInput';
-import useTimeline from '@contexts/timeline';
+import useEthereum from '@contexts/ethereum';
+import useFocus from '@contexts/focus';
+import usePlayer from '@contexts/player';
 
 function TimelineControl() {
   const {
-    focusedTime,
-    setFocusedTime,
-    setCurrentSlot,
-    setCurrentEpoch,
-    focusedSlot,
-    focusedEpoch,
-    genesisTime,
-    playTimer,
-    stopTimer,
+    setTime: setFocusedTime,
+    setSlot: setCurrentSlot,
+    setEpoch: setCurrentEpoch,
+    play: playTimer,
+    stop: stopTimer,
     playing,
-    focusedTimeIntoSlot,
-    secondsPerSlot,
-  } = useTimeline();
+  } = usePlayer();
+  const {
+    time: focusedTime,
+    slot: focusedSlot,
+    epoch: focusedEpoch,
+    timeIntoSlot: focusedTimeIntoSlot,
+  } = useFocus();
+  const { genesisTime, secondsPerSlot } = useEthereum();
 
   const isCloseToLiveSlot =
-    Math.abs(Math.floor((Date.now() - genesisTime) / 1000 / secondsPerSlot) - focusedSlot) <= 1;
+    Math.abs(Math.floor((Date.now() - genesisTime) / 1000 / secondsPerSlot) - focusedSlot) <= 2;
 
   const handleBack = () => {
     if (focusedTimeIntoSlot > 500) {
@@ -52,8 +54,8 @@ function TimelineControl() {
 
   return (
     <div className="flex justify-center">
-      <div className="flex items-center gap-2 bg-stone-200 pl-3 rounded-t-xl">
-        <div className="flex items-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 sm:gap-y-5 w-full xl:w-fit xl:grid-cols-4 bg-stone-200 p-3 xl:rounded-t-xl">
+        <div className="flex items-center justify-self-center">
           <label
             htmlFor="slot"
             className="mt-2 mr-2 font-bold block text-md leading-6 text-gray-900"
@@ -67,7 +69,7 @@ function TimelineControl() {
             type="number"
           />
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center justify-self-center">
           <label
             htmlFor="epoch"
             className="mt-2 mr-2 font-bold block text-md leading-6 text-gray-900"
@@ -81,7 +83,7 @@ function TimelineControl() {
             type="number"
           />
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center justify-self-center">
           <label
             htmlFor="time"
             className="mt-2 mr-2 font-bold block text-md leading-6 text-gray-900"
@@ -95,8 +97,7 @@ function TimelineControl() {
             type="datetime-local"
           />
         </div>
-        <br />
-        <div className="flex items-center gap-3 m-3">
+        <div className="flex items-center justify-self-center">
           <button
             type="button"
             className="p-2 group relative flex flex-shrink-0 items-center justify-center h-12 w-12 "
@@ -156,4 +157,4 @@ function TimelineControl() {
   );
 }
 
-export default TimelineControl;
+export default memo(TimelineControl);

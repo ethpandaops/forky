@@ -1,181 +1,95 @@
-import { useCallback, useState, memo, useMemo } from 'react';
+import { useState, memo } from 'react';
 
-import { Graphics, Container, Text } from '@pixi/react';
-import {
-  Graphics as PixiGraphics,
-  Circle,
-  FederatedEventHandler,
-  FederatedPointerEvent,
-  TextStyle,
-} from 'pixi.js';
+import classNames from 'classnames';
 
-import { arcToRadiansByPercentage } from '@utils/maths';
-import { truncateHash } from '@utils/strings';
-import { colors, fonts } from '@utils/tailwind';
+import ProgressCircle from '@components/ProgressCircle';
 
 function WeightedNode({
-  validity,
+  id,
   hash,
   weight,
-  weightPercentageComparedToHeaviestNeighbor,
   type,
-  visible = true,
-  x = 0,
-  y = 0,
-  radius = 200,
-  borderWidth = 20,
-  onPointerTap,
-  onPointerEnter,
-  onPointerLeave,
+  x,
+  y,
+  radius,
+  weightPercentageComparedToHeaviestNeighbor = 100,
+  className,
+  onClick,
 }: {
-  validity: 'valid' | string;
+  id?: string;
   hash: string;
   weight: string;
-  weightPercentageComparedToHeaviestNeighbor: number;
-  type: 'canonical' | 'fork' | 'finalized' | 'justified';
-  visible?: boolean;
-  x?: number;
-  y?: number;
-  radius?: number;
-  borderWidth?: number;
-  onPointerTap?: FederatedEventHandler<FederatedPointerEvent>;
-  onPointerEnter?: FederatedEventHandler<FederatedPointerEvent>;
-  onPointerLeave?: FederatedEventHandler<FederatedPointerEvent>;
+  type: 'canonical' | 'fork' | 'finalized' | 'justified' | 'detached';
+  x: number;
+  y: number;
+  radius: number;
+  weightPercentageComparedToHeaviestNeighbor?: number;
+  className?: string;
+  onClick?: (hash: string) => void;
 }) {
   const [isHighlighted, setIsHighlighted] = useState(false);
 
-  const outline = useMemo(() => {
-    if (validity !== 'valid') return 'rose';
-
+  const [color, backgroundColor, borderColor] = (() => {
     switch (type) {
       case 'canonical':
-        return 'emerald';
+        return ['text-emerald-600', 'text-emerald-800', 'border-emerald-900'];
       case 'fork':
-        return 'amber';
+        return ['text-amber-600', 'text-amber-800', 'border-amber-900'];
       case 'finalized':
-        return 'fuchsia';
+        return ['text-fuchsia-600', 'text-fuchsia-800', 'border-fuchsia-900'];
       case 'justified':
-        return 'indigo';
+        return ['text-indigo-600', 'text-indigo-800', 'border-indigo-900'];
+      case 'detached':
+        return ['text-red-600', 'text-red-800', 'border-red-900'];
       default:
-        return 'emerald';
+        return ['text-emerald-600', 'text-emerald-800', 'border-emerald-900'];
     }
-  }, [type, validity]);
-
-  function handlePointerEnter(e: FederatedPointerEvent) {
-    if (onPointerEnter) onPointerEnter(e);
-    setIsHighlighted(true);
-  }
-  function handlePointerLeave(e: FederatedPointerEvent) {
-    if (onPointerLeave) onPointerLeave(e);
-    setIsHighlighted(false);
-  }
-
-  const draw = useCallback(
-    (g: PixiGraphics) => {
-      g.clear();
-      g.lineStyle(0);
-      g.beginFill(colors.stone[800], 1);
-      g.drawCircle(0, 0, radius);
-      g.endFill();
-      g.beginFill(isHighlighted ? colors.stone[600] : colors.stone[700], 1);
-      g.drawCircle(0, 0, radius - borderWidth);
-      g.endFill();
-      g.lineStyle(4, colors[outline][800]);
-      if (weightPercentageComparedToHeaviestNeighbor >= 100) {
-        g.drawCircle(0, 0, radius - borderWidth - 2);
-      } else {
-        g.arc(
-          0,
-          0,
-          radius - borderWidth - 2,
-          -Math.PI / 2, // pixijs starts at 3 o'clock
-          arcToRadiansByPercentage(-Math.PI / 2, weightPercentageComparedToHeaviestNeighbor),
-        );
-      }
-      // move to top
-      g.moveTo(0, -radius + borderWidth / 2);
-      g.lineStyle(borderWidth, colors[outline][600]);
-      if (weightPercentageComparedToHeaviestNeighbor >= 100) {
-        g.drawCircle(0, 0, radius - borderWidth / 2);
-      } else {
-        g.arc(
-          0,
-          0,
-          radius - borderWidth / 2,
-          -Math.PI / 2, // pixijs starts at 3 o'clock
-          arcToRadiansByPercentage(-Math.PI / 2, weightPercentageComparedToHeaviestNeighbor),
-        );
-      }
-
-      g.eventMode = 'static';
-      g.hitArea = new Circle(0, 0, radius);
-      g.onpointerenter = handlePointerEnter;
-      g.onpointerleave = handlePointerLeave;
-      if (onPointerTap) {
-        g.onpointertap = onPointerTap;
-      }
-    },
-    [{ visible, isHighlighted, onPointerTap }],
-  );
-
-  if (!visible) return null;
+  })();
 
   return (
-    <Container x={x} y={y} data-testid="container">
-      <>
-        <Graphics data-testid="graphics" draw={draw} />
-        <Text
-          text={
-            validity !== 'valid'
-              ? 'INVALID'
-              : ['finalized', 'justified'].includes(type)
-              ? type.toUpperCase()
-              : 'VALID'
-          }
-          position={[0, 0]}
-          anchor={[0.5, 3]}
-          style={
-            new TextStyle({
-              align: 'center',
-              fontFamily: fonts.mono,
-              fontSize: 25,
-              fill: colors.stone[50],
-              wordWrap: false,
-            })
-          }
-        />
-        <Text
-          text={truncateHash(hash)}
-          position={[0, 0]}
-          anchor={[0.5, 0.5]}
-          style={
-            new TextStyle({
-              align: 'center',
-              fontFamily: fonts.mono,
-              fontSize: 35,
-              fill: colors.stone[50],
-              wordWrap: false,
-            })
-          }
-        />
-        {weight && weight !== '0' && (
-          <Text
-            text={weight}
-            position={[0, 0]}
-            anchor={[0.5, weight.length > 22 ? -4 : -2]}
-            style={
-              new TextStyle({
-                align: 'center',
-                fontFamily: fonts.mono,
-                fontSize: weight.length > 22 ? 15 : 25,
-                fill: colors.stone[50],
-                wordWrap: false,
-              })
-            }
-          />
+    <div
+      id={id}
+      className={classNames(
+        'absolute flex flex-col items-center justify-center rounded-full cursor-pointer gap-3 shadow-inner-xl',
+        borderColor,
+        isHighlighted ? 'bg-stone-600 dark:bg-stone-500' : 'bg-stone-700 dark:bg-stone-600',
+        className,
+      )}
+      style={{
+        left: `${x}px`,
+        top: `${y}px`,
+        width: `${radius * 2}px`,
+        height: `${radius * 2}px`,
+        borderWidth: '16px',
+      }}
+      onClick={() => onClick?.(hash)}
+      onMouseEnter={() => setIsHighlighted(true)}
+      onMouseLeave={() => setIsHighlighted(false)}
+    >
+      <ProgressCircle
+        progress={weightPercentageComparedToHeaviestNeighbor}
+        radius={radius}
+        className="absolute"
+        color={color}
+        backgroundColor={backgroundColor}
+      />
+      <p className="text-stone-50 text-xl font-mono mb-3">
+        {type === 'finalized' || type === 'justified' || type === 'detached'
+          ? type.toUpperCase()
+          : 'VALID'}
+      </p>
+      <p className="text-stone-50 text-2xl font-mono">
+        {hash.substring(0, 6)}...{hash.substring(hash.length - 4)}
+      </p>
+      <p
+        className={classNames(
+          'text-stone-50 text-xl font-mono mt-3',
+          weight.length < 22 ? 'text-xl' : '',
         )}
-      </>
-    </Container>
+      >
+        {weight && weight !== '0' ? weight : '\u00a0'}
+      </p>
+    </div>
   );
 }
 

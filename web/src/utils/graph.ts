@@ -29,6 +29,8 @@ export interface WeightedNodeAttributes extends NodeAttributes {
   canonical: boolean;
   checkpoint?: 'finalized' | 'justified';
   validity: 'valid' | string;
+  orphaned?: boolean;
+  blockRoot: string;
   weight: bigint;
   weightPercentageComparedToHeaviestNeighbor: number;
 }
@@ -186,6 +188,7 @@ export function weightedGraphFromData(data: ForkChoiceData): WeightedGraph {
     graph.addNode(forkChoiceNode.block_root, {
       slot: slot,
       canonical: true,
+      blockRoot: forkChoiceNode.block_root,
       checkpoint: getCheckpointType(
         forkChoiceNode.block_root,
         data.finalized_checkpoint.root,
@@ -203,6 +206,14 @@ export function weightedGraphFromData(data: ForkChoiceData): WeightedGraph {
     }
   }
 
+  // orphaned nodes can occur when a node has a parent before the finalized slot
+  const orphanedNodes: {
+    slot: number;
+    blockRoot: string;
+    highestOffset: number;
+    lowestOffset: number;
+  }[] = [];
+
   // iterate over nodes again and add edges
   graph.mapNodes((node) => {
     const forkChoiceNode = forkChoiceNodes[node];
@@ -210,7 +221,6 @@ export function weightedGraphFromData(data: ForkChoiceData): WeightedGraph {
       forkChoiceNode.parent_root &&
       forkChoiceNode.block_root !== data.finalized_checkpoint?.root
     ) {
-      // TODO: handle missing parent and rendering offset
       const parentForkChoiceNode = forkChoiceNodes[forkChoiceNode.parent_root];
       try {
         graph.addDirectedEdge(parentForkChoiceNode.block_root, forkChoiceNode.block_root, {
@@ -219,12 +229,14 @@ export function weightedGraphFromData(data: ForkChoiceData): WeightedGraph {
             Number.parseInt(forkChoiceNode.slot) - Number.parseInt(parentForkChoiceNode.slot),
         });
       } catch (e: unknown) {
-        if (e instanceof Error) {
-          const gerr = new GraphError(`failed to add edge: ${e.message}`, forkChoiceNode);
-          gerr.stack = e.stack;
-          throw gerr;
-        }
-        throw new GraphError('failed to add edge', forkChoiceNode);
+        // handle orphaned nodes
+        orphanedNodes.push({
+          slot: Number.parseInt(forkChoiceNode.slot),
+          blockRoot: forkChoiceNode.block_root,
+          highestOffset: 0,
+          lowestOffset: 0,
+        });
+        graph.updateNodeAttribute(node, 'orphaned', () => true);
       }
     }
   });
@@ -253,13 +265,16 @@ export function weightedGraphFromData(data: ForkChoiceData): WeightedGraph {
             if (highestWeightedNeighor === child) return;
           }
           if (child !== highestWeightedNeighor) {
-            const percentage =
-              Number.parseInt(
-                (
-                  (graph.getNodeAttribute(child, 'weight') * 10000n) /
-                  graph.getNodeAttribute(highestWeightedNeighor, 'weight')
-                ).toString(),
-              ) / 100;
+            let percentage = 0;
+            if (graph.getNodeAttribute(highestWeightedNeighor, 'weight') !== 0n) {
+              percentage =
+                Number.parseInt(
+                  (
+                    (graph.getNodeAttribute(child, 'weight') * 10000n) /
+                    graph.getNodeAttribute(highestWeightedNeighor, 'weight')
+                  ).toString(),
+                ) / 100;
+            }
             graph.updateNodeAttribute(
               child,
               'weightPercentageComparedToHeaviestNeighbor',
@@ -362,7 +377,7 @@ export function weightedGraphFromData(data: ForkChoiceData): WeightedGraph {
     }
   });
 
-  forks.forEach(({ blockRoot }) => {
+  forks.forEach(({ blockRoot, slot, lastSlot }) => {
     const offset = initialForkOffset[blockRoot];
 
     graph.updateNodeAttributes(blockRoot, (attributes) => ({
@@ -371,7 +386,36 @@ export function weightedGraphFromData(data: ForkChoiceData): WeightedGraph {
     }));
 
     applyWeightedNodeOffsetToAllChildren(graph, blockRoot, offset, offset > 0 ? 1 : -1);
+
+    // check orphan nodes overlap
+    orphanedNodes.forEach((node, i) => {
+      if (node.slot >= slot || node.slot <= lastSlot) {
+        orphanedNodes[i][offset > 0 ? 'highestOffset' : 'lowestOffset'] = offset;
+      }
+    });
   });
 
+  // offset orphan nodes outside of any forks
+  orphanedNodes
+    .sort((a, b) => a.slot - b.slot)
+    .forEach((node, i) => {
+      graph.updateNodeAttribute(node.blockRoot, 'offset', () => {
+        // handle orphan nodes that are at the same slot
+        const previousOrphan = orphanedNodes[i - 1];
+        if (previousOrphan && previousOrphan.slot === node.slot) {
+          const previousOffset = graph.getNodeAttribute(previousOrphan.blockRoot, 'offset');
+          if (previousOffset > 0) {
+            return previousOffset + 1;
+          }
+          return previousOffset - 1;
+        }
+
+        // get the highest offset
+        if (Math.abs(node.lowestOffset) > node.highestOffset) {
+          return node.highestOffset + 1;
+        }
+        return node.lowestOffset - 1;
+      });
+    });
   return graph;
 }

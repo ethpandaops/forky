@@ -1,58 +1,43 @@
-import { useMemo } from 'react';
+import { memo } from 'react';
 
-import { Sprite } from '@pixi/react';
-import { IPointData, Texture } from 'pixi.js';
+import classNames from 'classnames';
 
-export default function Edge({
-  source,
-  target,
-  visible = true,
-  width = 10,
+function Edge({
+  x1,
+  x2,
+  y1,
+  y2,
+  thickness,
+  className,
 }: {
-  source: IPointData;
-  target: IPointData;
-  visible?: boolean;
-  width?: number;
+  x1: number;
+  x2: number;
+  y1: number;
+  y2: number;
+  thickness: number;
+  className?: string;
 }) {
-  const { position, rotation, height } = useMemo(() => {
-    return {
-      position: { x: (source.x + target.x) / 2, y: (source.y + target.y) / 2 },
-      rotation: -Math.atan2(target.x - source.x, target.y - source.y),
-      height: Math.hypot(target.x - source.x, target.y - source.y),
-    };
-  }, [source, target]);
+  const length = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 
-  if (!visible) return null;
+  const cx = (x1 + x2) / 2 - length / 2;
+  const cy = (y1 + y2) / 2 - thickness / 2;
+
+  const angle = Math.atan2(y1 - y2, x1 - x2) * (180 / Math.PI);
+
+  const lineStyle = {
+    height: thickness,
+    left: `${cx}px`,
+    top: `${cy}px`,
+    width: `${length}px`,
+    transform: `rotate(${angle}deg)`,
+  };
+
   return (
-    <>
-      <Sprite
-        texture={Texture.WHITE}
-        tint={0x404040}
-        alpha={0.9}
-        anchor={0.5}
-        position={{ ...position, y: position.y - width * 0.2 }}
-        rotation={rotation}
-        height={height}
-        width={width}
-      />
-      <Sprite
-        texture={Texture.WHITE}
-        tint={0x404040}
-        alpha={0.9}
-        anchor={0.5}
-        position={{ ...position, y: position.y + width * 0.2 }}
-        rotation={rotation}
-        height={height}
-        width={width}
-      />
-      <Sprite
-        texture={Texture.WHITE}
-        anchor={0.5}
-        position={position}
-        rotation={rotation}
-        height={height}
-        width={width}
-      />
-    </>
+    <div
+      className={classNames('absolute px-0 py-0 m-0 leading-none', className)}
+      style={lineStyle}
+    />
   );
 }
+
+export default memo(Edge);

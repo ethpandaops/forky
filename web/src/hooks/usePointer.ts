@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 
-interface PointerState {
+export interface PointerState {
   x: number | null;
   up: boolean;
 }
 
-interface PointerProps {
+export interface PointerProps {
   listen: boolean;
 }
 

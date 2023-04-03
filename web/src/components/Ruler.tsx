@@ -24,7 +24,7 @@ const Ruler: React.FC<RulerProps> = ({
   children,
 }) => {
   const subMarksInterval = (subMarks ?? 0) + 1;
-  const totalSubmarks = marks * subMarksInterval;
+  const totalSubmarks = marks * subMarksInterval - 1;
 
   const generateRulerMarks = () => {
     const marks = [];
