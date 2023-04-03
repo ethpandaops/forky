@@ -6,6 +6,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	//nolint:gosec // running pprof on a separate port
+	_ "net/http/pprof"
+
 	"github.com/ethpandaops/forky/cmd"
 	_ "github.com/lib/pq"
 )
