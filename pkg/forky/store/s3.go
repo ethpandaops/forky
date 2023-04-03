@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -13,6 +14,7 @@ import (
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go"
 	"github.com/ethpandaops/forky/pkg/forky/types"
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,6 +27,8 @@ type S3Store struct {
 	opts *Options
 
 	basicMetrics *BasicMetrics
+
+	frameCache *ttlcache.Cache[string, *types.Frame]
 }
 
 type S3StoreConfig struct {
@@ -60,12 +64,19 @@ func NewS3Store(namespace string, log logrus.FieldLogger, config *S3StoreConfig,
 
 	metrics := NewBasicMetrics(namespace, string(S3StoreType), opts.MetricsEnabled)
 
+	frameCache := ttlcache.New(
+		ttlcache.WithTTL[string, *types.Frame](5 * time.Minute),
+	)
+
+	go frameCache.Start()
+
 	return &S3Store{
 		s3Client:     s3Client,
 		config:       config,
 		log:          log,
 		opts:         opts,
 		basicMetrics: metrics,
+		frameCache:   frameCache,
 	}, nil
 }
 
@@ -96,12 +107,23 @@ func (s *S3Store) SaveFrame(ctx context.Context, frame *types.Frame) error {
 		}
 	}
 
+	s.frameCache.Set(frame.Metadata.ID, frame, time.Minute*3)
+
 	s.basicMetrics.ObserveItemAdded(string(FrameDataType))
 
 	return err
 }
 
 func (s *S3Store) GetFrame(ctx context.Context, id string) (*types.Frame, error) {
+	cache := s.frameCache.Get(id)
+	if cache != nil {
+		s.basicMetrics.ObserveCacheHit(string(FrameDataType))
+
+		return cache.Value(), nil
+	}
+
+	s.basicMetrics.ObserveCacheMiss(string(FrameDataType))
+
 	file := s.getFullName(id)
 
 	data, err := s.s3Client.GetObject(ctx, &s3.GetObjectInput{
@@ -137,6 +159,8 @@ func (s *S3Store) GetFrame(ctx context.Context, id string) (*types.Frame, error)
 	if err != nil {
 		return nil, err
 	}
+
+	s.frameCache.Set(id, &frame, time.Minute*3)
 
 	s.basicMetrics.ObserveItemRetreived(string(FrameDataType))
 
