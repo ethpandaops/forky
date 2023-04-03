@@ -1,10 +1,12 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, memo } from 'react';
 
-import useTimeline from '@contexts/timeline';
+import useFocus from '@contexts/focus';
+import usePlayer from '@contexts/player';
 import usePointer from '@hooks/usePointer';
 
 const TimeDrag = ({ multiplier }: { multiplier: number }) => {
-  const { focusedTime, shiftFocusedTime, playing, stopTimer } = useTimeline();
+  const { shiftTime: shiftFocusedTime, playing, stop: stopTimer } = usePlayer();
+  const { time: focusedTime } = useFocus();
   const [dragging, setDragging] = useState(false);
   const { up, x } = usePointer({ listen: true });
   const prevX = useRef<number | null>(null);
@@ -101,4 +103,4 @@ const TimeDrag = ({ multiplier }: { multiplier: number }) => {
   );
 };
 
-export default TimeDrag;
+export default memo(TimeDrag);

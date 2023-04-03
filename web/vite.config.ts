@@ -4,15 +4,15 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import eslint from 'vite-plugin-eslint';
 
-// https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
     alias: {
       '@app': path.resolve(__dirname, './src'),
+      '@api': path.resolve(__dirname, './src/api'),
       '@components': path.resolve(__dirname, './src/components'),
       '@stories': path.resolve(__dirname, './src/stories'),
       '@hooks': path.resolve(__dirname, './src/hooks'),
-      '@pages': path.resolve(__dirname, './src/pages'),
+      '@parts': path.resolve(__dirname, './src/parts'),
       '@public': path.resolve(__dirname, './public'),
       '@styles': path.resolve(__dirname, './src/styles'),
       '@assets': path.resolve(__dirname, './src/assets'),

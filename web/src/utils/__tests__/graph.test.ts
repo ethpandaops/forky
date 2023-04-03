@@ -19,6 +19,7 @@ function generateWeightedNodeAttributes(
   slot: number,
   offset: number,
   weight: bigint,
+  blockRoot: string,
 ): WeightedNodeAttributes {
   return {
     slot,
@@ -27,6 +28,7 @@ function generateWeightedNodeAttributes(
     canonical: true,
     validity: 'valid',
     weightPercentageComparedToHeaviestNeighbor: 100,
+    blockRoot,
   };
 }
 
@@ -146,10 +148,10 @@ describe('graph', () => {
       const graph = new Graphology<WeightedNodeAttributes, EdgeAttributes, GraphAttributes>();
 
       // Adding nodes
-      graph.addNode('A', generateWeightedNodeAttributes(1, 0, 10n));
-      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 20n));
-      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 30n));
-      graph.addNode('D', generateWeightedNodeAttributes(4, 0, 40n));
+      graph.addNode('A', generateWeightedNodeAttributes(1, 0, 10n, 'A'));
+      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 20n, 'B'));
+      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 30n, 'C'));
+      graph.addNode('D', generateWeightedNodeAttributes(4, 0, 40n, 'D'));
 
       const result = highestWeightedNode(graph, ['A', 'B', 'C', 'D']);
       expect(result).toBe('D');
@@ -159,10 +161,10 @@ describe('graph', () => {
       const graph = new Graphology<WeightedNodeAttributes, EdgeAttributes, GraphAttributes>();
 
       // Adding nodes
-      graph.addNode('A', generateWeightedNodeAttributes(1, 0, 10n));
-      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 10n));
-      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 10n));
-      graph.addNode('D', generateWeightedNodeAttributes(4, 0, 10n));
+      graph.addNode('A', generateWeightedNodeAttributes(1, 0, 10n, 'A'));
+      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 10n, 'B'));
+      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 10n, 'C'));
+      graph.addNode('D', generateWeightedNodeAttributes(4, 0, 10n, 'D'));
 
       const result = highestWeightedNode(graph, ['A', 'B', 'C', 'D']);
       expect(result).toBe('A');
@@ -242,12 +244,12 @@ describe('graph', () => {
       const currentOffset = 0;
 
       // Adding nodes
-      graph.addNode('A', generateWeightedNodeAttributes(1, currentOffset, 10n));
-      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 9n));
-      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 6n));
-      graph.addNode('D', generateWeightedNodeAttributes(3, 0, 8n));
-      graph.addNode('E', generateWeightedNodeAttributes(4, 0, 5n));
-      graph.addNode('F', generateWeightedNodeAttributes(4, 0, 7n));
+      graph.addNode('A', generateWeightedNodeAttributes(1, currentOffset, 10n, 'A'));
+      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 9n, 'B'));
+      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 6n, 'C'));
+      graph.addNode('D', generateWeightedNodeAttributes(3, 0, 8n, 'D'));
+      graph.addNode('E', generateWeightedNodeAttributes(4, 0, 5n, 'E'));
+      graph.addNode('F', generateWeightedNodeAttributes(4, 0, 7n, 'F'));
 
       /** Adding edges
        *    A
@@ -279,14 +281,14 @@ describe('graph', () => {
       const currentOffset = 0;
 
       // Adding nodes
-      graph.addNode('A', generateWeightedNodeAttributes(1, currentOffset, 10n));
-      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 9n));
-      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 7n));
-      graph.addNode('D', generateWeightedNodeAttributes(3, 0, 8n));
-      graph.addNode('E', generateWeightedNodeAttributes(4, 0, 5n));
-      graph.addNode('F', generateWeightedNodeAttributes(4, 0, 6n));
-      graph.addNode('G', generateWeightedNodeAttributes(4, 0, 4n));
-      graph.addNode('H', generateWeightedNodeAttributes(5, 0, 3n));
+      graph.addNode('A', generateWeightedNodeAttributes(1, currentOffset, 10n, 'A'));
+      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 9n, 'B'));
+      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 7n, 'C'));
+      graph.addNode('D', generateWeightedNodeAttributes(3, 0, 8n, 'D'));
+      graph.addNode('E', generateWeightedNodeAttributes(4, 0, 5n, 'E'));
+      graph.addNode('F', generateWeightedNodeAttributes(4, 0, 6n, 'F'));
+      graph.addNode('G', generateWeightedNodeAttributes(4, 0, 4n, 'G'));
+      graph.addNode('H', generateWeightedNodeAttributes(5, 0, 3n, 'H'));
 
       // Adding edges
       graph.addEdge('A', 'B');
@@ -325,13 +327,13 @@ describe('graph', () => {
       const currentOffset = 0;
 
       // Adding nodes
-      graph.addNode('A', generateWeightedNodeAttributes(1, currentOffset, 10n));
-      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 9n));
-      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 7n));
-      graph.addNode('D', generateWeightedNodeAttributes(3, 0, 8n));
-      graph.addNode('E', generateWeightedNodeAttributes(4, 0, 5n));
-      graph.addNode('F', generateWeightedNodeAttributes(4, 0, 6n));
-      graph.addNode('G', generateWeightedNodeAttributes(4, 0, 4n));
+      graph.addNode('A', generateWeightedNodeAttributes(1, currentOffset, 10n, 'A'));
+      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 9n, 'B'));
+      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 7n, 'C'));
+      graph.addNode('D', generateWeightedNodeAttributes(3, 0, 8n, 'D'));
+      graph.addNode('E', generateWeightedNodeAttributes(4, 0, 5n, 'E'));
+      graph.addNode('F', generateWeightedNodeAttributes(4, 0, 6n, 'F'));
+      graph.addNode('G', generateWeightedNodeAttributes(4, 0, 4n, 'G'));
 
       // Adding edges
       graph.addEdge('A', 'B');
@@ -365,11 +367,11 @@ describe('graph', () => {
       const currentOffset = 2;
 
       // Adding nodes
-      graph.addNode('A', generateWeightedNodeAttributes(1, currentOffset, 10n));
-      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 9n));
-      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 7n));
-      graph.addNode('D', generateWeightedNodeAttributes(3, 0, 8n));
-      graph.addNode('E', generateWeightedNodeAttributes(4, 0, 5n));
+      graph.addNode('A', generateWeightedNodeAttributes(1, currentOffset, 10n, 'A'));
+      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 9n, 'B'));
+      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 7n, 'C'));
+      graph.addNode('D', generateWeightedNodeAttributes(3, 0, 8n, 'D'));
+      graph.addNode('E', generateWeightedNodeAttributes(4, 0, 5n, 'E'));
 
       // Adding edges
       graph.addEdge('A', 'B');
@@ -401,11 +403,11 @@ describe('graph', () => {
       const currentOffset = 0;
 
       // Adding nodes
-      graph.addNode('A', generateWeightedNodeAttributes(1, currentOffset, 10n));
-      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 9n));
-      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 7n));
-      graph.addNode('D', generateWeightedNodeAttributes(3, 0, 8n));
-      graph.addNode('E', generateWeightedNodeAttributes(4, 0, 5n));
+      graph.addNode('A', generateWeightedNodeAttributes(1, currentOffset, 10n, 'A'));
+      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 9n, 'B'));
+      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 7n, 'C'));
+      graph.addNode('D', generateWeightedNodeAttributes(3, 0, 8n, 'D'));
+      graph.addNode('E', generateWeightedNodeAttributes(4, 0, 5n, 'E'));
 
       // Adding edges
       graph.addEdge('A', 'B');
@@ -436,11 +438,11 @@ describe('graph', () => {
       const currentOffset = -2;
 
       // Adding nodes
-      graph.addNode('A', generateWeightedNodeAttributes(1, currentOffset, 10n));
-      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 9n));
-      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 7n));
-      graph.addNode('D', generateWeightedNodeAttributes(3, 0, 8n));
-      graph.addNode('E', generateWeightedNodeAttributes(4, 0, 5n));
+      graph.addNode('A', generateWeightedNodeAttributes(1, currentOffset, 10n, 'A'));
+      graph.addNode('B', generateWeightedNodeAttributes(2, 0, 9n, 'B'));
+      graph.addNode('C', generateWeightedNodeAttributes(3, 0, 7n, 'C'));
+      graph.addNode('D', generateWeightedNodeAttributes(3, 0, 8n, 'D'));
+      graph.addNode('E', generateWeightedNodeAttributes(4, 0, 5n, 'E'));
 
       // Adding edges
       graph.addEdge('A', 'B');
@@ -482,59 +484,61 @@ describe('graph', () => {
       ).toThrowError(GraphError);
     });
 
-    it('should return GraphError with invalid fork_choice_nodes parent block_root data payload', () => {
-      expect(() =>
-        weightedGraphFromData({
-          finalized_checkpoint: { epoch: '5', root: '0x' },
-          justified_checkpoint: { epoch: '6', root: '0x' },
-          fork_choice_nodes: [
-            {
-              slot: '10',
-              block_root: '0x38da44a74a79c6db9160fd904bd0866708a0b73e474e532fe6a66030c1b6a249',
-              parent_root: '0xaecade68feb38aff5f30103fac04f458ba127db0fad9c17839aa19e727ee6cd6',
-              justified_epoch: '6',
-              finalized_epoch: '5',
-              weight: '4728638123638428947',
-              validity: 'VALID',
-              execution_block_hash:
-                '0x4e54d078b4ce054728ad82b23ed6dae21b9bed4cbcaf16abdcb53140c2303cb0',
-              extra_data: {
-                state_root: '0x3b0e0d10d906db615a23681c2afd66e4b0e271c2753084d525d21591f35ca19a',
-                justified_root:
-                  '0x74b0dc800ff24c1947b49a639cc0d470c60109ba6d9386ccd8b0f6b499647e1a',
-                unrealised_justified_epoch: '6',
-                unrealized_justified_root:
-                  '0x62f852206db97e7fb45c4cc308072bcdee18c167ea8471d6f0292ae5dd920c86',
-                unrealised_finalized_epoch: '5',
-                unrealized_finalized_root:
-                  '0x38da44a74a79c6db9160fd904bd0866708a0b73e474e532fe6a66030c1b6a249',
-              },
+    it('should have orphaned node with invalid fork_choice_nodes parent block_root data payload', () => {
+      const graph = weightedGraphFromData({
+        finalized_checkpoint: { epoch: '5', root: '0x' },
+        justified_checkpoint: { epoch: '6', root: '0x' },
+        fork_choice_nodes: [
+          {
+            slot: '10',
+            block_root: '0x38da44a74a79c6db9160fd904bd0866708a0b73e474e532fe6a66030c1b6a249',
+            parent_root: '0xaecade68feb38aff5f30103fac04f458ba127db0fad9c17839aa19e727ee6cd6',
+            justified_epoch: '6',
+            finalized_epoch: '5',
+            weight: '4728638123638428947',
+            validity: 'VALID',
+            execution_block_hash:
+              '0x4e54d078b4ce054728ad82b23ed6dae21b9bed4cbcaf16abdcb53140c2303cb0',
+            extra_data: {
+              state_root: '0x3b0e0d10d906db615a23681c2afd66e4b0e271c2753084d525d21591f35ca19a',
+              justified_root: '0x74b0dc800ff24c1947b49a639cc0d470c60109ba6d9386ccd8b0f6b499647e1a',
+              unrealised_justified_epoch: '6',
+              unrealized_justified_root:
+                '0x62f852206db97e7fb45c4cc308072bcdee18c167ea8471d6f0292ae5dd920c86',
+              unrealised_finalized_epoch: '5',
+              unrealized_finalized_root:
+                '0x38da44a74a79c6db9160fd904bd0866708a0b73e474e532fe6a66030c1b6a249',
             },
-            {
-              slot: '11',
-              block_root: '0xba6e14383eed82ed37a4ab6a40e90b846a27b40156154ef9921355750f9017b7',
-              parent_root: '0x0000',
-              justified_epoch: '6',
-              finalized_epoch: '5',
-              weight: '4728638123638428337',
-              validity: 'VALID',
-              execution_block_hash:
-                '0x7dcb1bc33d9dcfa89491e0335ce609250f7bbb8f3c3c1d946d4233a29e926b77',
-              extra_data: {
-                state_root: '0xcd2e584c11f465eadae11f13e02d82fa857b2a8e7f2b01c65028a16a6a8ce803',
-                justified_root:
-                  '0xd29b33cfce4b2ac0d7e6e51ffc5f346b77921c3118f4bb4c91027e00fc5c159f',
-                unrealised_justified_epoch: '6',
-                unrealized_justified_root:
-                  '0x62f852206db97e7fb45c4cc308072bcdee18c167ea8471d6f0292ae5dd920c86',
-                unrealised_finalized_epoch: '5',
-                unrealized_finalized_root:
-                  '0x38da44a74a79c6db9160fd904bd0866708a0b73e474e532fe6a66030c1b6a249',
-              },
+          },
+          {
+            slot: '11',
+            block_root: '0xba6e14383eed82ed37a4ab6a40e90b846a27b40156154ef9921355750f9017b7',
+            parent_root: '0x0000',
+            justified_epoch: '6',
+            finalized_epoch: '5',
+            weight: '4728638123638428337',
+            validity: 'VALID',
+            execution_block_hash:
+              '0x7dcb1bc33d9dcfa89491e0335ce609250f7bbb8f3c3c1d946d4233a29e926b77',
+            extra_data: {
+              state_root: '0xcd2e584c11f465eadae11f13e02d82fa857b2a8e7f2b01c65028a16a6a8ce803',
+              justified_root: '0xd29b33cfce4b2ac0d7e6e51ffc5f346b77921c3118f4bb4c91027e00fc5c159f',
+              unrealised_justified_epoch: '6',
+              unrealized_justified_root:
+                '0x62f852206db97e7fb45c4cc308072bcdee18c167ea8471d6f0292ae5dd920c86',
+              unrealised_finalized_epoch: '5',
+              unrealized_finalized_root:
+                '0x38da44a74a79c6db9160fd904bd0866708a0b73e474e532fe6a66030c1b6a249',
             },
-          ],
-        } as ForkChoiceData),
-      ).toThrowError(GraphError);
+          },
+        ],
+      } as ForkChoiceData);
+      expect(
+        graph.getNodeAttribute(
+          '0xba6e14383eed82ed37a4ab6a40e90b846a27b40156154ef9921355750f9017b7',
+          'orphaned',
+        ),
+      ).toBe(true);
     });
 
     it('should return itself when no children', () => {

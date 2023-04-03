@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 function SnapshotMarker({
   secondsPerSlot,
   timeIntoSlot,
@@ -7,7 +9,7 @@ function SnapshotMarker({
   active: boolean;
   timeIntoSlot: number;
 }) {
-  const leftPercentage = (timeIntoSlot / (secondsPerSlot * 1000)) * 97;
+  const leftPercentage = (timeIntoSlot / (secondsPerSlot * 1000)) * 100;
   return (
     <div
       className="absolute"
@@ -25,4 +27,4 @@ function SnapshotMarker({
   );
 }
 
-export default SnapshotMarker;
+export default memo(SnapshotMarker);

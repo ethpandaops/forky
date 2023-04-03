@@ -1,9 +1,7 @@
 import { useState } from 'react';
 
-import { IPointData } from 'pixi.js';
-
+import { Data } from '@app/api/frames';
 import { ForkChoiceData } from '@app/types/api';
-import { Data } from '@hooks/useFrames';
 import { equalForkChoiceData } from '@utils/api';
 import {
   EdgeAttributes,
@@ -19,11 +17,17 @@ interface NodeData {
   attributes: WeightedNodeAttributes;
 }
 
+interface EdgeRelationship {
+  x: number;
+  y: number;
+  id: string;
+}
+
 interface EdgeData {
   id: string;
   canonical: boolean;
-  source: IPointData;
-  target: IPointData;
+  source: EdgeRelationship;
+  target: EdgeRelationship;
   attributes: EdgeAttributes;
 }
 
@@ -69,17 +73,19 @@ function generateEdgeData({
       id: edge,
       canonical: graph.getSourceAttribute(edge, 'canonical'),
       source: {
+        id: graph.getSourceAttribute(edge, 'blockRoot'),
         x:
           (graph.getSourceAttribute(edge, 'slot') - graph.getAttribute('slotStart')) * spacingX +
           spacingX,
         y: graph.getSourceAttribute(edge, 'offset') * spacingY - spacingY,
-      } as IPointData,
+      },
       target: {
+        id: graph.getTargetAttribute(edge, 'blockRoot'),
         x:
           (graph.getTargetAttribute(edge, 'slot') - graph.getAttribute('slotStart')) * spacingX +
           spacingX,
         y: graph.getTargetAttribute(edge, 'offset') * spacingY - spacingY,
-      } as IPointData,
+      },
       attributes: graph.getEdgeAttributes(edge),
     };
   });
@@ -108,7 +114,7 @@ export default function useWeightedGraph({
   spacingX: number;
   spacingY: number;
 }) {
-  const [currentData, setCurrentData] = useState<ForkChoiceData | undefined>(data?.data);
+  const [currentData, setCurrentData] = useState<ForkChoiceData | undefined>(data?.frame.data);
   const [currentSpacingX, setCurrentSpacingX] = useState<number>(spacingX);
   const [currentSpacingY, setCurrentSpacingY] = useState<number>(spacingY);
   const [attributes, setAttributes] = useState<GraphAttributes>(
@@ -132,10 +138,10 @@ export default function useWeightedGraph({
   }
 
   if (
-    !(currentData === undefined && data?.data === undefined) &&
-    !equalForkChoiceData(currentData, data?.data)
+    !(currentData === undefined && data?.frame.data === undefined) &&
+    !equalForkChoiceData(currentData, data?.frame.data)
   ) {
-    setCurrentData(data?.data);
+    setCurrentData(data?.frame.data);
     setAttributes(data?.graph.getAttributes() ?? { slotStart: 0, slotEnd: 0, forks: 0 });
     setNodes(generateNodeData({ graph: data?.graph, spacingX, spacingY }));
     setEdges(generateEdgeData({ graph: data?.graph, spacingX, spacingY }));

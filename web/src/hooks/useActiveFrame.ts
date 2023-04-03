@@ -1,30 +1,54 @@
-import useFrameMeta from '@contexts/frameMeta';
-import useFrames from '@contexts/frames';
-import useTimeline from '@contexts/timeline';
+import { useMemo } from 'react';
+
+import { FrameMetaData } from '@app/types/api';
+import useFocus from '@contexts/focus';
+import { useMetadataQuery } from '@hooks/useQuery';
 
 interface State {
   slot?: number;
   id?: string;
 }
 
-export default function useActiveFrame(): State {
-  const { focusedSlot, focusedTime } = useTimeline();
-  const { frames } = useFrames();
-  const { slots } = useFrameMeta();
+export function findPreviousFrame(
+  focusedTime: number,
+  metadata?: FrameMetaData[],
+): State | undefined {
+  const slotData = metadata
+    ?.sort((a, b) => new Date(b.fetched_at).getTime() - new Date(a.fetched_at).getTime())
+    .find((frame) => new Date(frame.fetched_at).getTime() < focusedTime);
 
-  const state: State = {};
-  // iterate backwards through slot meta data (max 5) until find latest focusedTime
-  for (let i = 0; i > -5; i--) {
-    const data = slots[focusedSlot + i];
-    const slotData = data?.frames?.find(
-      (frame) => new Date(frame.fetched_at).getTime() < focusedTime,
-    );
-    if (slotData) {
-      state.slot = focusedSlot + i;
-      state.id = slotData.id;
-      break;
-    }
+  if (slotData) {
+    return {
+      slot: slotData.wall_clock_slot,
+      id: slotData.id,
+    };
   }
 
-  return state;
+  return undefined;
+}
+
+export default function useActiveFrame(): State {
+  const { slot: focusedSlot, time: focusedTime } = useFocus();
+  const { data: metadataCurrent } = useMetadataQuery({
+    slot: focusedSlot,
+  });
+  const { data: metadataMinus1 } = useMetadataQuery({
+    slot: focusedSlot - 1,
+  });
+  const { data: metadataMinus2 } = useMetadataQuery({
+    slot: focusedSlot - 2,
+  });
+
+  return useMemo(() => {
+    const stateCurrentSlot = findPreviousFrame(focusedTime, metadataCurrent);
+    if (stateCurrentSlot) return stateCurrentSlot;
+
+    const stateMinus1Slot = findPreviousFrame(focusedTime, metadataMinus1);
+    if (stateMinus1Slot) return stateMinus1Slot;
+
+    const stateMinus2Slot = findPreviousFrame(focusedTime, metadataMinus2);
+    if (stateMinus2Slot) return stateMinus2Slot;
+
+    return {};
+  }, [focusedTime, metadataCurrent, metadataMinus1, metadataMinus2]);
 }
