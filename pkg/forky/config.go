@@ -12,6 +12,7 @@ type Config struct {
 	ListenAddr string        `yaml:"listen_addr" default:":5555"`
 	LogLevel   string        `yaml:"log_level" default:"warn"`
 	Metrics    MetricsConfig `yaml:"metrics"`
+	PProfAddr  *string       `yaml:"pprof_addr" default:":6060"`
 
 	Forky *service.Config `yaml:"forky"`
 }
