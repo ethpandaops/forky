@@ -56,6 +56,12 @@ func (s *Server) Start(ctx context.Context) error {
 		return err
 	}
 
+	if s.Cfg.PProfAddr != nil {
+		if err := s.ServePProf(ctx); err != nil {
+			return err
+		}
+	}
+
 	router := httprouter.New()
 
 	frontend, err := fs.Sub(static.FS, "build/frontend")
@@ -88,6 +94,23 @@ func (s *Server) Start(ctx context.Context) error {
 	if err := server.ListenAndServe(); err != nil {
 		s.log.Fatal(err)
 	}
+
+	return nil
+}
+
+func (s *Server) ServePProf(ctx context.Context) error {
+	pprofServer := &http.Server{
+		Addr:              *s.Cfg.PProfAddr,
+		ReadHeaderTimeout: 120 * time.Second,
+	}
+
+	go func() {
+		s.log.Infof("Serving pprof at %s", *s.Cfg.PProfAddr)
+
+		if err := pprofServer.ListenAndServe(); err != nil {
+			s.log.Fatal(err)
+		}
+	}()
 
 	return nil
 }
