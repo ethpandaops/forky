@@ -22,12 +22,14 @@ func newTestServer(withConfig string) (Server, error) {
 	log := logrus.New()
 
 	port := 5560 + testDBCounter
+	pprof := 6060 + testDBCounter
 	dsn := fmt.Sprintf("file:%v?mode=memory&cache=shared", testDBCounter)
 
 	// create a new configuration
 	cfg := fmt.Sprintf(
 		`
 listen_addr: ":%d"
+pprof_addr: ":%d"
 log_level: "debug"
 metrics:
   enabled: false
@@ -47,7 +49,7 @@ forky:
     driver_name: "sqlite"
     dsn: "%s"
 
-`, port, dsn)
+`, port, pprof, dsn)
 
 	if withConfig != "" {
 		cfg = withConfig
