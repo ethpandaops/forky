@@ -65,7 +65,8 @@ func NewS3Store(namespace string, log logrus.FieldLogger, config *S3StoreConfig,
 	metrics := NewBasicMetrics(namespace, string(S3StoreType), opts.MetricsEnabled)
 
 	frameCache := ttlcache.New(
-		ttlcache.WithTTL[string, *types.Frame](5 * time.Minute),
+		ttlcache.WithTTL[string, *types.Frame](5*time.Minute),
+		ttlcache.WithCapacity[string, *types.Frame](500),
 	)
 
 	go frameCache.Start()
