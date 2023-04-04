@@ -32,8 +32,11 @@ func NewForkChoice(namespace string, log logrus.FieldLogger, config *Config, opt
 	sources := make(map[string]source.Source)
 
 	sourceOpts := source.DefaultOptions().SetMetricsEnabled(opts.MetricsEnabled)
+
 	for _, s := range config.Sources {
-		sou, err := source.NewSource(namespace, log, s.Name, s.Type, s.Config, sourceOpts)
+		conf := s.Config
+		sou, err := source.NewSource(namespace, log, s.Name, s.Type, conf, sourceOpts)
+
 		if err != nil {
 			log.Fatalf("failed to create source %s: %s", s.Name, err)
 		}
@@ -85,13 +88,14 @@ func (f *ForkChoice) Start(ctx context.Context) error {
 		Info("Starting forky service")
 
 	for _, source := range f.sources {
-		source.OnFrame(func(ctx context.Context, frame *types.Frame) {
-			if err := f.AddNewFrame(ctx, source.Name(), frame); err != nil {
+		s := source
+		s.OnFrame(func(ctx context.Context, frame *types.Frame) {
+			if err := f.AddNewFrame(ctx, s.Name(), frame); err != nil {
 				f.log.WithError(err).Error("Failed to add new frame")
 			}
 		})
 
-		if err := source.Start(ctx); err != nil {
+		if err := s.Start(ctx); err != nil {
 			return err
 		}
 	}
