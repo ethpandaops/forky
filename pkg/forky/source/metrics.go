@@ -22,7 +22,8 @@ func NewBasicMetrics(namespace, sourceType, sourceName string, enabled bool) *Ba
 	}
 
 	if enabled {
-		prometheus.MustRegister(m.itemsFetched)
+		//nolint:errcheck // We can only register metrics once.
+		prometheus.Register(m.itemsFetched)
 	}
 
 	return m

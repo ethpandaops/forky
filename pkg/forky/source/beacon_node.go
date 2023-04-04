@@ -9,6 +9,7 @@ import (
 	v1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/http"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
+	"github.com/cenkalti/backoff/v4"
 	"github.com/ethpandaops/ethwallclock"
 	"github.com/ethpandaops/forky/pkg/forky/store"
 	"github.com/ethpandaops/forky/pkg/forky/types"
@@ -90,20 +91,8 @@ func (b *BeaconNode) Type() string {
 }
 
 func (b *BeaconNode) Start(ctx context.Context) error {
-	b.cron.StartAsync()
-
-	client, err := http.New(ctx,
-		http.WithAddress(b.config.Address),
-		http.WithLogLevel(zerolog.WarnLevel),
-	)
-	if err != nil {
-		return err
-	}
-
-	b.client = client
-
-	_, err = b.cron.Every(b.config.PollingInterval).Do(func() {
-		if err = b.fetchFrame(ctx); err != nil {
+	_, err := b.cron.Every(b.config.PollingInterval).Do(func() {
+		if err := b.fetchFrame(ctx); err != nil {
 			b.log.WithError(err).Error("Failed to fetch frame")
 		}
 	})
@@ -112,16 +101,25 @@ func (b *BeaconNode) Start(ctx context.Context) error {
 	}
 
 	go func() {
+		back := backoff.NewExponentialBackOff()
+
+		back.MaxInterval = time.Minute * 1
+		back.MaxElapsedTime = 0
+
 		for {
 			if err := b.bootstrap(ctx); err != nil {
-				b.log.WithError(err).Error("Failed to bootstrap")
+				sleepFor := back.NextBackOff()
+
+				b.log.WithError(err).WithField("next_attempt_in", sleepFor.String()).Error("Failed to bootstrap")
+
+				time.Sleep(sleepFor)
 			} else {
 				break
 			}
-
-			time.Sleep(time.Second * 1)
 		}
 	}()
+
+	b.cron.StartAsync()
 
 	return nil
 }
@@ -133,6 +131,10 @@ func (b *BeaconNode) Stop(ctx context.Context) error {
 }
 
 func (b *BeaconNode) Ready(ctx context.Context) bool {
+	if b.client == nil {
+		return false
+	}
+
 	if b.genesis == nil {
 		return false
 	}
@@ -163,6 +165,16 @@ func (b *BeaconNode) publishFrame(ctx context.Context, frame *types.Frame) {
 }
 
 func (b *BeaconNode) bootstrap(ctx context.Context) error {
+	client, err := http.New(ctx,
+		http.WithAddress(b.config.Address),
+		http.WithLogLevel(zerolog.WarnLevel),
+	)
+	if err != nil {
+		return perrors.Wrap(err, "failed to create client")
+	}
+
+	b.client = client
+
 	// Fetch the genesis time and network parameters.
 	genesis, err := b.client.(eth2client.GenesisProvider).Genesis(ctx)
 	if err != nil {
