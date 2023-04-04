@@ -2,7 +2,7 @@ module github.com/ethpandaops/forky
 
 go 1.19
 
-replace github.com/attestantio/go-eth2-client v0.15.7 => github.com/samcm/go-eth2-client v0.15.8
+replace github.com/attestantio/go-eth2-client v0.15.7 => github.com/samcm/go-eth2-client v0.15.9
 
 require (
 	github.com/attestantio/go-eth2-client v0.15.7
@@ -10,10 +10,12 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.17
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.30.6
 	github.com/aws/smithy-go v1.13.5
+	github.com/cenkalti/backoff/v4 v4.2.0
 	github.com/creasty/defaults v1.7.0
 	github.com/ethpandaops/ethwallclock v0.3.0
 	github.com/go-co-op/gocron v1.18.1
 	github.com/google/uuid v1.3.0
+	github.com/jellydator/ttlcache/v3 v3.0.1
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/lib/pq v1.10.7
 	github.com/pkg/errors v0.9.1
@@ -50,7 +52,6 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgx/v5 v5.3.0 // indirect
-	github.com/jellydator/ttlcache/v3 v3.0.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.1.2 // indirect
