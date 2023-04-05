@@ -12,7 +12,7 @@ import (
 
 	eth2v1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice/types"
+	"github.com/ethpandaops/forky/pkg/forky/types"
 	"github.com/ethpandaops/xatu/pkg/proto/xatu"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"

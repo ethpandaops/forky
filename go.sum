@@ -97,8 +97,6 @@ github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1m
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/ethpandaops/ethwallclock v0.3.0 h1:xF5fwtBf+bHFHZKBnwiPFEuelW3sMM7SD3ZNFq1lJY4=
 github.com/ethpandaops/ethwallclock v0.3.0/go.mod h1:y0Cu+mhGLlem19vnAV2x0hpFS5KZ7oOi2SWYayv9l24=
-github.com/ethpandaops/xatu v0.0.43 h1:Ruc9u2suwz0/i7ag1oaLleKUP7ngYjSPW9gQ757TnuQ=
-github.com/ethpandaops/xatu v0.0.43/go.mod h1:RF2vKC8zvtsaRjh1b0zrEiaHXVdAKzlRz0N/okQyEgM=
 github.com/fatih/color v1.10.0/go.mod h1:ELkj/draVOlAH/xkhN6mQ50Qd0MPOk5AAr3maGEBuJM=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
 github.com/fatih/color v1.14.1 h1:qfhVLaG5s+nCROl1zJsZRxFeYrHLqWroPOQ8BWiNb4w=
@@ -332,8 +330,7 @@ github.com/rs/zerolog v1.26.1/go.mod h1:/wSSJWX7lVrsOwlbyTRSOJvqRlc+WjWlfes+CiJ+
 github.com/rs/zerolog v1.29.0 h1:Zes4hju04hjbvkVkOhdl2HpZa+0PmVwigmo8XoORE5w=
 github.com/rs/zerolog v1.29.0/go.mod h1:NILgTygv/Uej1ra5XxGf82ZFSLk58MFGAUS2o6usyD0=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
-github.com/samcm/go-eth2-client v0.15.9 h1:9Q4Vpz9G052pmqodIPYW3b4J+u/mFcJzMqwTrPxVsWE=
-github.com/samcm/go-eth2-client v0.15.9/go.mod h1:PLRKnILnr63V3yl2VagBqnhVRFBWc0V+JhQSsXQaSwQ=
+github.com/samcm/go-eth2-client v0.15.11 h1:Fi6vDxcnTO1tTxSzpi+QoWtImL2x/bjGhT2alzKrRf0=
 github.com/samcm/go-eth2-client v0.15.11/go.mod h1:PLRKnILnr63V3yl2VagBqnhVRFBWc0V+JhQSsXQaSwQ=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
