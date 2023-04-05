@@ -168,6 +168,7 @@ func (b *BeaconNode) bootstrap(ctx context.Context) error {
 	client, err := http.New(ctx,
 		http.WithAddress(b.config.Address),
 		http.WithLogLevel(zerolog.WarnLevel),
+		http.WithTimeout(15*time.Second),
 	)
 	if err != nil {
 		return perrors.Wrap(err, "failed to create client")
