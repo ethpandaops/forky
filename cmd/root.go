@@ -4,18 +4,18 @@ import (
 	"context"
 	"os"
 
-	"github.com/ethpandaops/forkchoice/pkg/forkchoice"
+	"github.com/ethpandaops/forky/pkg/forky"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "forkchoice",
+	Use:   "forky",
 	Short: "Fetches and serves Ethereum fork choice data",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := initCommon()
-		p := forkchoice.NewServer(log, cfg)
+		p := forky.NewServer(log, cfg)
 		if err := p.Start(context.Background()); err != nil {
 			log.WithError(err).Fatal("failed to serve")
 		}
@@ -40,12 +40,12 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "config.yaml", "config file (default is config.yaml)")
 }
 
-func initCommon() *forkchoice.Config {
+func initCommon() *forky.Config {
 	log.SetFormatter(&logrus.TextFormatter{})
 
 	log.WithField("file", cfgFile).Info("Loading config")
 
-	config, err := forkchoice.NewConfigFromYAMLFile(cfgFile)
+	config, err := forky.NewConfigFromYAMLFile(cfgFile)
 	if err != nil {
 		log.Fatal(err)
 	}

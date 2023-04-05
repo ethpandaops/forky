@@ -1,11 +1,16 @@
 import matchers from '@testing-library/jest-dom/matchers';
 import { cleanup } from '@testing-library/react';
-import { expect, afterEach } from 'vitest';
+import { expect, afterEach, beforeAll, afterAll } from 'vitest';
 
-// extends Vitest's expect method with methods from react-testing-library
+import { server } from '@app/mocks/server';
+
 expect.extend(matchers);
 
-// runs a cleanup after each test case (e.g. clearing jsdom)
 afterEach(() => {
   cleanup();
+  server.resetHandlers();
 });
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+
+afterAll(() => server.close());

@@ -24,6 +24,9 @@
       "@app/*": [
         "src/*"
       ],
+      "@api/*": [
+        "src/api/*"
+      ],
       "@styles/*": [
         "src/styles/*"
       ],
@@ -33,8 +36,8 @@
       "@public/*": [
         "public/*"
       ],
-      "@pages/*": [
-        "src/pages/*"
+      "@parts/*": [
+        "src/parts/*"
       ],
       "@components/*": [
         "src/components/*"
@@ -44,6 +47,15 @@
       ],
       "@assets/*": [
         "src/assets/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@providers/*": [
+        "src/providers/*"
+      ],
+      "@contexts/*": [
+        "src/contexts/*"
       ]
     }
   },

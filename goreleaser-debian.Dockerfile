@@ -1,3 +1,3 @@
 FROM debian:latest
-COPY forkchoice* /forkchoice
-ENTRYPOINT ["/forkchoice"]
+COPY forky* /forky
+ENTRYPOINT ["/forky"]

@@ -5,19 +5,56 @@ metrics:
   enabled: true
 
 forky:
-  retentionPeriod: "30m"
+  retention_period: "30m"
 
   store:
     type: memory
+    config: {}
+  
+    # type: s3
+    # config:
+    #   region: "us-east-1"
+    #   endpoint: http://localhost:9000
+    #   bucket_name: forkchoice
+    #   access_key: minioadmin
+    #   access_secret: minioadmin
+
+    # type: fs
+    # config:
+    #  base_dir: "/data/forky"
 
   indexer:
-    dsn: ":memory:"
+    dsn: "file::memory:?cache=shared"
     driver_name: sqlite
+
+    # dsn: "postgres://user:secret@localhost:5432/mydatabasename"
+    # driver_name: postgres
 
   sources:
     - name: "example"
       type: "beacon_node"
       config:
-        beaconAddress: "http://localhost:5052"
-        pollingInterval: "12s"
-        cacheTtlSeconds: 300
+        address: "http://localhost:5052"
+        polling_interval: "12s"
+        labels:
+          - "example_label"
+  
+  ethereum:
+    network:
+      # name: "mainnet"
+      # spec:
+      #   seconds_per_slot: 12
+      #   slots_per_epoch: 32
+      #   genesis_time: 1606824023
+
+      # name: "goerli"
+      # spec:
+      #   seconds_per_slot: 12
+      #   slots_per_epoch: 32
+      #   genesis_time: 1616508000   
+
+      # name: "sepolia"
+      # spec:
+      #   seconds_per_slot: 12
+      #   slots_per_epoch: 32
+      #   genesis_time: 1655733600
