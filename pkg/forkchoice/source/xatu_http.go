@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	eth2v1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
@@ -57,8 +58,10 @@ func NewXatuHTTP(namespace, name string, log logrus.FieldLogger, config *XatuHTT
 	mux := http.NewServeMux()
 
 	server := &http.Server{
-		Addr:    config.Address,
-		Handler: mux,
+		Addr:              config.Address,
+		Handler:           mux,
+		ReadHeaderTimeout: 15 * time.Second,
+		WriteTimeout:      15 * time.Second,
 	}
 
 	return &XatuHTTP{
@@ -86,6 +89,8 @@ func (x *XatuHTTP) Type() string {
 func (x *XatuHTTP) Start(ctx context.Context) error {
 	x.registerHandler(ctx, x.mux)
 
+	x.log.WithField("address", x.config.Address).Info("Starting xatu_http source")
+
 	go func() {
 		err := x.server.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
@@ -111,39 +116,54 @@ func (x *XatuHTTP) registerHandler(ctx context.Context, mux *http.ServeMux) {
 	}
 
 	mux.HandleFunc(path, func(w http.ResponseWriter, req *http.Request) {
-		body, err := ioutil.ReadAll(req.Body)
+		body, err := io.ReadAll(req.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
+
+			if _, err = w.Write([]byte(err.Error())); err != nil {
+				x.log.WithError(err).Error("Failed to write error response")
+			}
 
 			return
 		}
 
 		switch req.Header.Get("Content-Type") {
 		case "application/json":
-			if err := x.handleJSONRequest(ctx, body); err != nil {
+			if err = x.handleJSONRequest(ctx, body); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte(err.Error()))
+
+				if _, err = w.Write([]byte(err.Error())); err != nil {
+					x.log.WithError(err).Error("Failed to write error response")
+				}
 
 				return
 			}
 		case "application/x-ndjson":
-			if err := x.handleNDJSONRequest(ctx, body); err != nil {
+			if err = x.handleNDJSONRequest(ctx, body); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				x.log.WithError(err).Error("Failed to handle NDJSON request")
-				w.Write([]byte(err.Error()))
+
+				if _, err = w.Write([]byte(err.Error())); err != nil {
+					x.log.WithError(err).Error("Failed to write error response")
+				}
 
 				return
 			}
 		default:
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Unsupported content type"))
+
+			if _, err = w.Write([]byte("Unsupported content type")); err != nil {
+				x.log.WithError(err).Error("Failed to write error response")
+			}
 
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+
+		if _, err = w.Write([]byte("OK")); err != nil {
+			x.log.WithError(err).Error("Failed to write response")
+		}
 	})
 }
 
@@ -201,6 +221,23 @@ func (x *XatuHTTP) handleXatuEvent(ctx context.Context, event *xatu.DecoratedEve
 
 	if shouldBeFiltered {
 		// TODO(sam.calder-mason): Add metrics
+		return nil
+	}
+
+	// Drop it if its from a network that we don't care about
+	name := event.GetMeta().GetClient().GetEthereum().GetNetwork().GetName()
+
+	found := false
+
+	for _, network := range x.opts.AllowedEthereumNetworks {
+		if network == name {
+			found = true
+
+			break
+		}
+	}
+
+	if !found {
 		return nil
 	}
 
