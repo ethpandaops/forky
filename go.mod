@@ -2,10 +2,7 @@ module github.com/ethpandaops/forky
 
 go 1.19
 
-replace (
-	github.com/attestantio/go-eth2-client v0.15.7 => github.com/samcm/go-eth2-client v0.15.11
-	github.com/ethpandaops/xatu => ../xatu
-)
+replace github.com/attestantio/go-eth2-client v0.15.7 => github.com/samcm/go-eth2-client v0.15.11
 
 require (
 	github.com/attestantio/go-eth2-client v0.15.7
@@ -16,7 +13,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.0
 	github.com/creasty/defaults v1.7.0
 	github.com/ethpandaops/ethwallclock v0.3.0
-	github.com/ethpandaops/xatu v0.0.43
+	github.com/ethpandaops/xatu v0.0.45
 	github.com/go-co-op/gocron v1.18.1
 	github.com/google/uuid v1.3.0
 	github.com/jellydator/ttlcache/v3 v3.0.1
