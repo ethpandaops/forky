@@ -24,6 +24,7 @@ type Source interface {
 }
 
 var _ = Source(&BeaconNode{})
+var _ = Source(&XatuHTTP{})
 
 func NewSource(namespace string, log logrus.FieldLogger, name, sourceType string, config yaml.RawMessage, opts *Options) (Source, error) {
 	namespace += "_source"
@@ -39,6 +40,20 @@ func NewSource(namespace string, log logrus.FieldLogger, name, sourceType string
 		}
 
 		source, err := NewBeaconNode(namespace, log, &conf, name, metrics)
+		if err != nil {
+			return nil, err
+		}
+
+		return source, nil
+
+	case XatuHTTPType:
+		conf := XatuHTTPConfig{}
+
+		if err := config.Unmarshal(&conf); err != nil {
+			return nil, err
+		}
+
+		source, err := NewXatuHTTP(namespace, name, log, &conf, metrics)
 		if err != nil {
 			return nil, err
 		}

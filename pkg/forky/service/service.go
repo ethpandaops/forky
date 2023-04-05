@@ -31,7 +31,10 @@ func NewForkChoice(namespace string, log logrus.FieldLogger, config *Config, opt
 	// Create our sources.
 	sources := make(map[string]source.Source)
 
-	sourceOpts := source.DefaultOptions().SetMetricsEnabled(opts.MetricsEnabled)
+	sourceOpts := source.
+		DefaultOptions().
+		SetMetricsEnabled(opts.MetricsEnabled).
+		WithAllowedEthereumNetworks([]string{config.Ethereum.Network.Name})
 
 	for _, s := range config.Sources {
 		conf := s.Config

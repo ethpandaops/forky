@@ -1,12 +1,14 @@
 package source
 
 type Options struct {
-	MetricsEnabled bool
+	MetricsEnabled          bool
+	AllowedEthereumNetworks []string
 }
 
 func DefaultOptions() *Options {
 	return &Options{
-		MetricsEnabled: true,
+		MetricsEnabled:          true,
+		AllowedEthereumNetworks: []string{},
 	}
 }
 
@@ -28,6 +30,12 @@ func (o *Options) WithMetricsDisabled() *Options {
 
 func (o *Options) SetMetricsEnabled(enabled bool) *Options {
 	o.MetricsEnabled = enabled
+
+	return o
+}
+
+func (o *Options) WithAllowedEthereumNetworks(networks []string) *Options {
+	o.AllowedEthereumNetworks = networks
 
 	return o
 }
