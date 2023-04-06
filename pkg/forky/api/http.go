@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	fhttp "github.com/ethpandaops/forky/pkg/forky/api/http"
+	"github.com/pkg/errors"
 
 	"github.com/ethpandaops/forky/pkg/forky/service"
 	"github.com/julienschmidt/httprouter"
@@ -15,18 +16,24 @@ type HTTP struct {
 	log     logrus.FieldLogger
 	svc     *service.ForkChoice
 	metrics *fhttp.Metrics
+	config  *Config
 	opts    *Options
 }
 
-func NewHTTP(log logrus.FieldLogger, svc *service.ForkChoice, opts *Options) *HTTP {
+func NewHTTP(log logrus.FieldLogger, svc *service.ForkChoice, config *Config, opts *Options) (*HTTP, error) {
+	if err := config.Validate(); err != nil {
+		return nil, errors.Wrap(err, "invalid http config")
+	}
+
 	metrics := fhttp.NewMetrics(opts.MetricsEnabled, "http")
 
 	return &HTTP{
 		opts:    opts,
+		config:  config,
 		svc:     svc,
 		log:     log.WithField("component", "http"),
 		metrics: &metrics,
-	}
+	}, nil
 }
 
 func (h *HTTP) BindToRouter(_ context.Context, router *httprouter.Router) error {

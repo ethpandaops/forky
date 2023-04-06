@@ -4,6 +4,12 @@ metrics:
   addr: ":9090"
   enabled: true
 
+http:
+  edge_cache:
+    enabled: true
+
+    frame_ttl: 1440m
+
 forky:
   retention_period: "30m"
 

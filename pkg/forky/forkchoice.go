@@ -38,7 +38,11 @@ func NewServer(log *logrus.Logger, conf *Config) *Server {
 
 	// Create our HTTP API.
 	apiOpts := api.DefaultOptions().SetMetricsEnabled(conf.Metrics.Enabled)
-	h := api.NewHTTP(log, svc, apiOpts)
+
+	h, err := api.NewHTTP(log, svc, conf.HTTP, apiOpts)
+	if err != nil {
+		log.Fatalf("failed to create http api: %s", err)
+	}
 
 	// Create our server.
 	s := &Server{
