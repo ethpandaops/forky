@@ -97,8 +97,8 @@ github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1m
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/ethpandaops/ethwallclock v0.3.0 h1:xF5fwtBf+bHFHZKBnwiPFEuelW3sMM7SD3ZNFq1lJY4=
 github.com/ethpandaops/ethwallclock v0.3.0/go.mod h1:y0Cu+mhGLlem19vnAV2x0hpFS5KZ7oOi2SWYayv9l24=
-github.com/ethpandaops/xatu v0.0.45 h1:Vcxz5eKoByyOF0alJrXqouFpSNjewOhvJQv/wg0i1bA=
-github.com/ethpandaops/xatu v0.0.45/go.mod h1:BWg2v8/LEhYRvr2/pwFdn3v6afR/SgoLjsj+YuGrZ14=
+github.com/ethpandaops/xatu v0.0.48 h1:FftW3PG6fSBLbEGz6aaq0HN6oOUYNqU4Abw2hXN42HU=
+github.com/ethpandaops/xatu v0.0.48/go.mod h1:BWg2v8/LEhYRvr2/pwFdn3v6afR/SgoLjsj+YuGrZ14=
 github.com/fatih/color v1.10.0/go.mod h1:ELkj/draVOlAH/xkhN6mQ50Qd0MPOk5AAr3maGEBuJM=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
 github.com/fatih/color v1.14.1 h1:qfhVLaG5s+nCROl1zJsZRxFeYrHLqWroPOQ8BWiNb4w=
