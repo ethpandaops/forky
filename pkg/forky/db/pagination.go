@@ -11,16 +11,20 @@ type PaginationCursor struct {
 	OrderBy string `json:"order_by"`
 }
 
-func (p *PaginationCursor) ApplyToQuery(query *gorm.DB) *gorm.DB {
+func (p *PaginationCursor) ApplyOffsetLimit(query *gorm.DB) *gorm.DB {
 	if p.Limit != 0 {
 		query = query.Limit(p.Limit)
 	}
 
+	return query.Offset(p.Offset)
+}
+
+func (p *PaginationCursor) ApplyOrderBy(query *gorm.DB) *gorm.DB {
 	if p.OrderBy != "" {
 		query = query.Order(p.OrderBy)
 	} else {
 		query = query.Order("fetched_at ASC")
 	}
 
-	return query.Offset(p.Offset)
+	return query
 }

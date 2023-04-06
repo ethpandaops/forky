@@ -166,7 +166,9 @@ func (i *Indexer) ListFrameMetadata(ctx context.Context, filter *FrameFilter, pa
 	}
 
 	if page != nil {
-		query = page.ApplyToQuery(query)
+		query = page.ApplyOffsetLimit(query)
+
+		query = page.ApplyOrderBy(query)
 	}
 
 	query, err := filter.ApplyToQuery(query)
@@ -253,10 +255,10 @@ func (i *Indexer) ListNodesWithFrames(ctx context.Context, filter *FrameFilter, 
 	}
 
 	if page != nil {
-		query = page.ApplyToQuery(query)
+		query = page.ApplyOffsetLimit(query)
 	}
 
-	result := query.Preload("Labels").Distinct("node").Find(&nodes)
+	result := query.Distinct("node").Order("node ASC").Find(&nodes)
 	if result.Error != nil {
 		i.metrics.ObserveOperationError(operation)
 
@@ -333,10 +335,10 @@ func (i *Indexer) ListSlotsWithFrames(ctx context.Context, filter *FrameFilter, 
 	}
 
 	if page != nil {
-		query = page.ApplyToQuery(query)
+		query = page.ApplyOffsetLimit(query)
 	}
 
-	result := query.Preload("Labels").Distinct("wall_clock_slot").Find(&slots)
+	result := query.Distinct("wall_clock_slot").Order("wall_clock_slot ASC").Find(&slots)
 	if result.Error != nil {
 		i.metrics.ObserveOperationError(operation)
 
@@ -374,7 +376,7 @@ func (i *Indexer) CountEpochsWithFrames(ctx context.Context, filter *FrameFilter
 		return 0, err
 	}
 
-	result := query.Distinct("wall_clock_epoch").Count(&count)
+	result := query.Distinct("wall_clock_epoch").Order("wall_clock_epoch ASC").Count(&count)
 	if result.Error != nil {
 		i.metrics.ObserveOperationError(operation)
 
@@ -413,10 +415,10 @@ func (i *Indexer) ListEpochsWithFrames(ctx context.Context, filter *FrameFilter,
 	}
 
 	if page != nil {
-		query = page.ApplyToQuery(query)
+		query = page.ApplyOffsetLimit(query)
 	}
 
-	result := query.Preload("Labels").Distinct("wall_clock_epoch").Find(&epochs)
+	result := query.Distinct("wall_clock_epoch").Find(&epochs)
 	if result.Error != nil {
 		i.metrics.ObserveOperationError(operation)
 
@@ -449,7 +451,7 @@ func (i *Indexer) CountLabelsWithFrames(ctx context.Context, filter *FrameFilter
 	query := i.db.WithContext(ctx).Model(&FrameMetadataLabel{}).
 		Where("frame_id IN (?)", ids).Group("name")
 
-	result := query.Distinct("name").Count(&count)
+	result := query.Distinct("name").Order("name ASC").Count(&count)
 	if result.Error != nil {
 		i.metrics.ObserveOperationError(operation)
 
@@ -482,7 +484,7 @@ func (i *Indexer) ListLabelsWithFrames(ctx context.Context, filter *FrameFilter,
 	query := i.db.WithContext(ctx).Model(&FrameMetadataLabel{}).
 		Where("frame_id IN (?)", ids)
 
-	result := query.Distinct("name").Find(&labels)
+	result := query.Distinct("name").Order("name ASC").Find(&labels)
 	if result.Error != nil {
 		i.metrics.ObserveOperationError(operation)
 
