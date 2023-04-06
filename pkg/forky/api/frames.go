@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	fhttp "github.com/ethpandaops/forky/pkg/forky/api/http"
@@ -41,7 +42,9 @@ func (h *HTTP) handleV1GetFrame(ctx context.Context, _ *http.Request, p httprout
 		},
 	})
 
-	response.SetCacheControl("public, s-max-age=30")
+	if h.config.EdgeCacheConfig.Enabled {
+		response.SetCacheControl(fmt.Sprintf("public, s-max-age=%v", h.config.EdgeCacheConfig.FrameTTL.Seconds()))
+	}
 
 	return response, nil
 }

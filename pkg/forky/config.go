@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/creasty/defaults"
+	"github.com/ethpandaops/forky/pkg/forky/api"
 	"github.com/ethpandaops/forky/pkg/forky/service"
 	"gopkg.in/yaml.v2"
 )
@@ -15,6 +16,8 @@ type Config struct {
 	PProfAddr  *string       `yaml:"pprof_addr" default:":6060"`
 
 	Forky *service.Config `yaml:"forky"`
+
+	HTTP *api.Config `yaml:"http" default:"{}"`
 }
 
 type MetricsConfig struct {
@@ -23,6 +26,10 @@ type MetricsConfig struct {
 }
 
 func (c *Config) Validate() error {
+	if err := c.HTTP.Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
