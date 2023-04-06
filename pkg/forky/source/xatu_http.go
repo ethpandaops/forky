@@ -44,7 +44,7 @@ type XatuHTTP struct {
 	filter xatu.EventFilter
 }
 
-func NewXatuHTTP(namespace, name string, log logrus.FieldLogger, config *XatuHTTPConfig, metrics *BasicMetrics) (*XatuHTTP, error) {
+func NewXatuHTTP(namespace, name string, log logrus.FieldLogger, config *XatuHTTPConfig, metrics *BasicMetrics, opts *Options) (*XatuHTTP, error) {
 	filter, err := xatu.NewEventFilter(&xatu.EventFilterConfig{
 		EventNames: []string{
 			xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE.String(),
@@ -73,6 +73,7 @@ func NewXatuHTTP(namespace, name string, log logrus.FieldLogger, config *XatuHTT
 		mux:              mux,
 		server:           server,
 		config:           config,
+		opts:             opts,
 		onFrameCallbacks: []func(ctx context.Context, frame *types.Frame){},
 		filter:           filter,
 	}, nil

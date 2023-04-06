@@ -53,7 +53,7 @@ func NewSource(namespace string, log logrus.FieldLogger, name, sourceType string
 			return nil, err
 		}
 
-		source, err := NewXatuHTTP(namespace, name, log, &conf, metrics)
+		source, err := NewXatuHTTP(namespace, name, log, &conf, metrics, opts)
 		if err != nil {
 			return nil, err
 		}
