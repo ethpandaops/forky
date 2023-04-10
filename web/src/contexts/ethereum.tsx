@@ -1,4 +1,4 @@
-import { useContext as reactUseContext, createContext, ReactNode, useState } from 'react';
+import { useContext as reactUseContext, createContext, useState } from 'react';
 
 export const Context = createContext<State | undefined>(undefined);
 

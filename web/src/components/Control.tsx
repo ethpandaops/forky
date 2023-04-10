@@ -10,27 +10,24 @@ import {
 import EditableInput from '@components/EditableInput';
 import useEthereum from '@contexts/ethereum';
 import useFocus from '@contexts/focus';
-import usePlayer from '@contexts/player';
 
 function TimelineControl() {
   const {
     setTime: setFocusedTime,
     setSlot: setCurrentSlot,
     setEpoch: setCurrentEpoch,
-    play: playTimer,
-    stop: stopTimer,
-    playing,
-  } = usePlayer();
-  const {
     time: focusedTime,
     slot: focusedSlot,
     epoch: focusedEpoch,
     timeIntoSlot: focusedTimeIntoSlot,
+    play: playTimer,
+    stop: stopTimer,
+    playing,
   } = useFocus();
   const { genesisTime, secondsPerSlot } = useEthereum();
 
-  const isCloseToLiveSlot =
-    Math.abs(Math.floor((Date.now() - genesisTime) / 1000 / secondsPerSlot) - focusedSlot) <= 2;
+  const slotDiff = Math.floor((Date.now() - genesisTime) / 1000 / secondsPerSlot) - focusedSlot;
+  const isCloseToLiveSlot = slotDiff <= 3 && slotDiff >= -1;
 
   const handleBack = () => {
     if (focusedTimeIntoSlot > 500) {
@@ -46,7 +43,8 @@ function TimelineControl() {
 
   const handleLive = () => {
     if (!isCloseToLiveSlot) {
-      setCurrentSlot(Math.floor((Date.now() - genesisTime) / 1000 / secondsPerSlot), true);
+      setCurrentSlot(Math.floor((Date.now() - genesisTime) / 1000 / secondsPerSlot) - 2);
+      playTimer();
     } else if (!playing) {
       playTimer();
     }
@@ -54,11 +52,11 @@ function TimelineControl() {
 
   return (
     <div className="flex justify-center">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 sm:gap-y-5 w-full xl:w-fit xl:grid-cols-4 bg-stone-200 p-3 xl:rounded-t-xl">
-        <div className="flex items-center justify-self-center">
+      <div className="flex gap-x-8 w-full h-12 xl:h-16 xl:w-fit bg-stone-200 dark:bg-stone-700 px-3 xl:py-3 xl:rounded-t-xl justify-center items-center">
+        <div className="relative hidden md:block">
           <label
             htmlFor="slot"
-            className="mt-2 mr-2 font-bold block text-md leading-6 text-gray-900"
+            className="absolute -top-2 left-2 inline-block bg-stone-300 dark:bg-stone-500 rounded px-1 text-xs font-medium text-stone-900 dark:text-stone-100"
           >
             Slot
           </label>
@@ -69,10 +67,10 @@ function TimelineControl() {
             type="number"
           />
         </div>
-        <div className="flex items-center justify-self-center">
+        <div className="relative hidden lg:block">
           <label
             htmlFor="epoch"
-            className="mt-2 mr-2 font-bold block text-md leading-6 text-gray-900"
+            className="absolute -top-2 left-2 inline-block bg-stone-300 dark:bg-stone-500 rounded px-1 text-xs font-medium text-stone-900 dark:text-stone-100"
           >
             Epoch
           </label>
@@ -83,24 +81,26 @@ function TimelineControl() {
             type="number"
           />
         </div>
-        <div className="flex items-center justify-self-center">
+        <div className="relative">
           <label
             htmlFor="time"
-            className="mt-2 mr-2 font-bold block text-md leading-6 text-gray-900"
+            className="absolute -top-2 left-2 bg-stone-300 dark:bg-stone-500 rounded px-1 text-xs font-medium text-stone-900 dark:text-stone-100 hidden sm:inline-block"
           >
             Time
           </label>
-          <EditableInput
-            id="time"
-            value={Math.ceil(focusedTime / 1000) * 1000}
-            onChange={(value) => setFocusedTime(value)}
-            type="datetime-local"
-          />
+          <div className="w-72">
+            <EditableInput
+              id="time"
+              value={Math.ceil(focusedTime / 1000) * 1000}
+              onChange={(value) => setFocusedTime(value)}
+              type="datetime-local"
+            />
+          </div>
         </div>
         <div className="flex items-center justify-self-center">
           <button
             type="button"
-            className="p-2 group relative flex flex-shrink-0 items-center justify-center h-12 w-12 "
+            className="p-2 group relative hidden xl:flex flex-shrink-0 items-center justify-center h-12 w-12 text-stone-900 dark:text-stone-100"
             onClick={handleBack}
             aria-label="Back"
           >
@@ -108,7 +108,7 @@ function TimelineControl() {
           </button>
           <button
             type="button"
-            className="p-2 group relative flex flex-shrink-0 items-center justify-center rounded-full bg-slate-700 hover:bg-slate-900 focus:outline-none focus:ring-slate-700 h-18 w-18 focus:ring focus:ring-offset-4"
+            className="p-2 group relative flex flex-shrink-0 items-center justify-center rounded-full bg-stone-700 dark:bg-stone-200 hover:bg-stone-900 dark:hover:bg-stone-100 focus:outline-none focus:ring-stone-700 dark:focus:ring-stone-300 h-18 w-18 focus:ring focus:ring-offset-1"
             onClick={() => {
               if (playing) stopTimer();
               else playTimer();
@@ -116,20 +116,20 @@ function TimelineControl() {
             aria-label={playing ? 'Pause' : 'Play'}
           >
             {playing ? (
-              <PauseIcon className="fill-white group-active:fill-white/80 h-7 w-7" />
+              <PauseIcon className="fill-stone-100 dark:fill-stone-900 group-active:fill-stone-100/80 dark:group-active:fill-stone-900/80 h-4 w-4 xl:h-7 xl:w-7" />
             ) : (
-              <PlayIcon className="fill-white group-active:fill-white/80 h-7 w-7 pl-1" />
+              <PlayIcon className="fill-stone-100 dark:fill-stone-900 group-active:fill-stone-100/80 dark:group-active:fill-stone-900/80 h-4 w-4 xl:h-7 xl:w-7 pl-1" />
             )}
           </button>
           <button
             type="button"
-            className="p-2 group relative flex flex-shrink-0 items-center justify-center h-12 w-12 "
+            className="p-2 group relative hidden xl:flex flex-shrink-0 items-center justify-center h-12 w-12 text-stone-900 dark:text-stone-100"
             onClick={handleForward}
             aria-label="Back"
           >
             <ArrowUturnRightIcon className="h-6 w-6" />
           </button>
-          <span className="relative inline-flex">
+          <span className="relative inline-flex ml-4 xl:ml-0 text-stone-900 dark:text-stone-100">
             <button onClick={handleLive} disabled={playing && isCloseToLiveSlot}>
               Live
             </button>
@@ -141,12 +141,14 @@ function TimelineControl() {
             >
               <span
                 className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
-                  playing && isCloseToLiveSlot ? 'bg-rose-400' : 'bg-slate-400'
+                  playing && isCloseToLiveSlot
+                    ? 'bg-rose-400 dark:bg-rose-600'
+                    : 'bg-stone-400 dark:bg-stone-100'
                 } opacity-75`}
               ></span>
               <span
                 className={`relative inline-flex rounded-full h-3 w-3 ${
-                  playing && isCloseToLiveSlot ? 'bg-rose-500' : 'bg-slate-500'
+                  playing && isCloseToLiveSlot ? 'bg-rose-500' : 'bg-stone-500 dark:bg-stone-200'
                 }`}
               ></span>
             </span>

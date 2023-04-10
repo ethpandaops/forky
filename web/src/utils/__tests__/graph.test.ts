@@ -1,18 +1,21 @@
 import Graphology from 'graphology';
 
-import { ForkChoiceData, ForkChoiceNode } from '@app/types/api';
+import { ForkChoiceData, Frame } from '@app/types/api';
+import {
+  NodeAttributes,
+  WeightedNodeAttributes,
+  EdgeAttributes,
+  WeightedGraphAttributes,
+} from '@app/types/graph';
 import {
   getLastSlotFromNode,
   countForksFromNode,
   highestWeightedNode,
   applyNodeAttributeToAllChildren,
-  applyWeightedNodeOffsetToAllChildren,
-  weightedGraphFromData,
-  WeightedNodeAttributes,
+  applyNodeOffsetToAllChildren,
+  processForkChoiceData,
   GraphError,
-  NodeAttributes,
-  EdgeAttributes,
-  GraphAttributes,
+  generateNodeId,
 } from '@utils/graph';
 
 function generateWeightedNodeAttributes(
@@ -35,23 +38,23 @@ function generateWeightedNodeAttributes(
 describe('graph', () => {
   describe('getLastSlotFromNode', () => {
     it('should return itself when no children', () => {
-      const graph = new Graphology<NodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<NodeAttributes, EdgeAttributes, WeightedGraphAttributes>();
 
       // Adding nodes
-      graph.addNode('A', { slot: 1, offset: 0 });
+      graph.addNode('A', { slot: 1, offset: 0, canonical: true, blockRoot: '0x' });
 
       const result = getLastSlotFromNode(graph, 'A');
       expect(result).toBe(1);
     });
 
     it('should return last slot with no forks', () => {
-      const graph = new Graphology<NodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<NodeAttributes, EdgeAttributes, WeightedGraphAttributes>();
 
       // Adding nodes
-      graph.addNode('A', { slot: 1, offset: 0 });
-      graph.addNode('B', { slot: 2, offset: 0 });
-      graph.addNode('C', { slot: 3, offset: 0 });
-      graph.addNode('D', { slot: 4, offset: 0 });
+      graph.addNode('A', { slot: 1, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('B', { slot: 2, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('C', { slot: 3, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('D', { slot: 4, offset: 0, canonical: true, blockRoot: '0x' });
 
       // Adding edges
       graph.addEdge('A', 'B');
@@ -63,16 +66,16 @@ describe('graph', () => {
     });
 
     it('should return last slot with forks', () => {
-      const graph = new Graphology<NodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<NodeAttributes, EdgeAttributes, WeightedGraphAttributes>();
 
       // Adding nodes
-      graph.addNode('A', { slot: 1, offset: 0 });
-      graph.addNode('B', { slot: 2, offset: 0 });
-      graph.addNode('C', { slot: 3, offset: 0 });
-      graph.addNode('D', { slot: 4, offset: 0 });
-      graph.addNode('E', { slot: 5, offset: 0 });
-      graph.addNode('F', { slot: 6, offset: 0 });
-      graph.addNode('G', { slot: 7, offset: 0 });
+      graph.addNode('A', { slot: 1, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('B', { slot: 2, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('C', { slot: 3, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('D', { slot: 4, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('E', { slot: 5, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('F', { slot: 6, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('G', { slot: 7, offset: 0, canonical: true, blockRoot: '0x' });
 
       // Adding edges
       graph.addEdge('A', 'B');
@@ -89,23 +92,23 @@ describe('graph', () => {
 
   describe('countForksFromNode', () => {
     it('should return 0 when no children', () => {
-      const graph = new Graphology<NodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<NodeAttributes, EdgeAttributes, WeightedGraphAttributes>();
 
       // Adding nodes
-      graph.addNode('A', { slot: 1, offset: 0 });
+      graph.addNode('A', { slot: 1, offset: 0, canonical: true, blockRoot: '0x' });
 
       const result = countForksFromNode(graph, 'A');
       expect(result).toBe(0);
     });
 
     it('should return 0 when no forks', () => {
-      const graph = new Graphology<NodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<NodeAttributes, EdgeAttributes, WeightedGraphAttributes>();
 
       // Adding nodes
-      graph.addNode('A', { slot: 1, offset: 0 });
-      graph.addNode('B', { slot: 2, offset: 0 });
-      graph.addNode('C', { slot: 3, offset: 0 });
-      graph.addNode('D', { slot: 4, offset: 0 });
+      graph.addNode('A', { slot: 1, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('B', { slot: 2, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('C', { slot: 3, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('D', { slot: 4, offset: 0, canonical: true, blockRoot: '0x' });
 
       // Adding edges
       graph.addEdge('A', 'B');
@@ -117,16 +120,16 @@ describe('graph', () => {
     });
 
     it('should return the correct number of forks', () => {
-      const graph = new Graphology<NodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<NodeAttributes, EdgeAttributes, WeightedGraphAttributes>();
 
       // Adding nodes
-      graph.addNode('A', { slot: 1, offset: 0 });
-      graph.addNode('B', { slot: 2, offset: 0 });
-      graph.addNode('C', { slot: 3, offset: 0 });
-      graph.addNode('D', { slot: 4, offset: 0 });
-      graph.addNode('E', { slot: 5, offset: 0 });
-      graph.addNode('F', { slot: 6, offset: 0 });
-      graph.addNode('G', { slot: 7, offset: 0 });
+      graph.addNode('A', { slot: 1, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('B', { slot: 2, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('C', { slot: 3, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('D', { slot: 4, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('E', { slot: 5, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('F', { slot: 6, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('G', { slot: 7, offset: 0, canonical: true, blockRoot: '0x' });
 
       // Adding edges
       graph.addEdge('A', 'B');
@@ -145,7 +148,11 @@ describe('graph', () => {
 
   describe('highestWeightedNode', () => {
     it('should return the node with the highest weight', () => {
-      const graph = new Graphology<WeightedNodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<
+        WeightedNodeAttributes,
+        EdgeAttributes,
+        WeightedGraphAttributes
+      >();
 
       // Adding nodes
       graph.addNode('A', generateWeightedNodeAttributes(1, 0, 10n, 'A'));
@@ -158,7 +165,11 @@ describe('graph', () => {
     });
 
     it('should return the first node when all weights are equal', () => {
-      const graph = new Graphology<WeightedNodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<
+        WeightedNodeAttributes,
+        EdgeAttributes,
+        WeightedGraphAttributes
+      >();
 
       // Adding nodes
       graph.addNode('A', generateWeightedNodeAttributes(1, 0, 10n, 'A'));
@@ -173,11 +184,11 @@ describe('graph', () => {
 
   describe('applyNodeAttributeToAllChildren', () => {
     it('should not change the attribute of the starting node', () => {
-      const graph = new Graphology<NodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<NodeAttributes, EdgeAttributes, WeightedGraphAttributes>();
 
       // Adding nodes
-      graph.addNode('A', { slot: 1, offset: 0 });
-      graph.addNode('B', { slot: 2, offset: 0 });
+      graph.addNode('A', { slot: 1, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('B', { slot: 2, offset: 0, canonical: true, blockRoot: '0x' });
 
       // Adding edges
       graph.addEdge('A', 'B');
@@ -189,17 +200,17 @@ describe('graph', () => {
     });
 
     it('should apply the given attribute to all children', () => {
-      const graph = new Graphology<NodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<NodeAttributes, EdgeAttributes, WeightedGraphAttributes>();
 
       // Adding nodes
-      graph.addNode('A', { slot: 1, offset: 0 });
-      graph.addNode('B', { slot: 2, offset: 10 });
-      graph.addNode('C', { slot: 3, offset: 10 });
-      graph.addNode('D', { slot: 4, offset: 10 });
-      graph.addNode('E', { slot: 5, offset: 10 });
-      graph.addNode('F', { slot: 6, offset: 10 });
-      graph.addNode('G', { slot: 7, offset: 10 });
-      graph.addNode('H', { slot: 8, offset: 10 });
+      graph.addNode('A', { slot: 1, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('B', { slot: 2, offset: 10, canonical: true, blockRoot: '0x' });
+      graph.addNode('C', { slot: 3, offset: 10, canonical: true, blockRoot: '0x' });
+      graph.addNode('D', { slot: 4, offset: 10, canonical: true, blockRoot: '0x' });
+      graph.addNode('E', { slot: 5, offset: 10, canonical: true, blockRoot: '0x' });
+      graph.addNode('F', { slot: 6, offset: 10, canonical: true, blockRoot: '0x' });
+      graph.addNode('G', { slot: 7, offset: 10, canonical: true, blockRoot: '0x' });
+      graph.addNode('H', { slot: 8, offset: 10, canonical: true, blockRoot: '0x' });
 
       // Adding edges
       graph.addEdge('A', 'B');
@@ -226,11 +237,11 @@ describe('graph', () => {
     });
 
     it('should not change the attribute of nodes without children', () => {
-      const graph = new Graphology<NodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<NodeAttributes, EdgeAttributes, WeightedGraphAttributes>();
 
       // Adding nodes
-      graph.addNode('A', { slot: 1, offset: 0 });
-      graph.addNode('B', { slot: 2, offset: 0 });
+      graph.addNode('A', { slot: 1, offset: 0, canonical: true, blockRoot: '0x' });
+      graph.addNode('B', { slot: 2, offset: 0, canonical: true, blockRoot: '0x' });
 
       applyNodeAttributeToAllChildren<NodeAttributes>(graph, 'B', 'offset', 5);
 
@@ -238,9 +249,13 @@ describe('graph', () => {
       expect(graph.getNodeAttribute('B', 'offset')).toBe(0);
     });
   });
-  describe('applyWeightedNodeOffsetToAllChildren', () => {
+  describe('applyNodeOffsetToAllChildren', () => {
     it('should apply the correct offsets to all children', () => {
-      const graph = new Graphology<WeightedNodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<
+        WeightedNodeAttributes,
+        EdgeAttributes,
+        WeightedGraphAttributes
+      >();
       const currentOffset = 0;
 
       // Adding nodes
@@ -266,7 +281,7 @@ describe('graph', () => {
       graph.addEdge('C', 'E');
       graph.addEdge('D', 'F');
 
-      applyWeightedNodeOffsetToAllChildren(graph, 'A', currentOffset, 1);
+      applyNodeOffsetToAllChildren(graph, 'A', currentOffset, 1);
 
       expect(graph.getNodeAttribute('A', 'offset')).toBe(currentOffset);
       expect(graph.getNodeAttribute('B', 'offset')).toBe(currentOffset);
@@ -277,7 +292,11 @@ describe('graph', () => {
     });
 
     it('should apply the correct offsets to all children in a graph with multiple forks', () => {
-      const graph = new Graphology<WeightedNodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<
+        WeightedNodeAttributes,
+        EdgeAttributes,
+        WeightedGraphAttributes
+      >();
       const currentOffset = 0;
 
       // Adding nodes
@@ -299,7 +318,7 @@ describe('graph', () => {
       graph.addEdge('D', 'G');
       graph.addEdge('G', 'H');
 
-      applyWeightedNodeOffsetToAllChildren(graph, 'A', currentOffset, 1);
+      applyNodeOffsetToAllChildren(graph, 'A', currentOffset, 1);
 
       /** Should look like this
        *    A
@@ -323,7 +342,11 @@ describe('graph', () => {
     });
 
     it('should apply the correct offsets to all children in a graph with multiple neighbors in a single fork', () => {
-      const graph = new Graphology<WeightedNodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<
+        WeightedNodeAttributes,
+        EdgeAttributes,
+        WeightedGraphAttributes
+      >();
       const currentOffset = 0;
 
       // Adding nodes
@@ -343,7 +366,7 @@ describe('graph', () => {
       graph.addEdge('C', 'E');
       graph.addEdge('D', 'G');
 
-      applyWeightedNodeOffsetToAllChildren(graph, 'A', currentOffset, 1);
+      applyNodeOffsetToAllChildren(graph, 'A', currentOffset, 1);
 
       /** Should look like this
        *    A
@@ -363,7 +386,11 @@ describe('graph', () => {
       expect(graph.getNodeAttribute('F', 'offset')).toBe(currentOffset + 2);
     });
     it('should apply custom currentOffset to all children', () => {
-      const graph = new Graphology<WeightedNodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<
+        WeightedNodeAttributes,
+        EdgeAttributes,
+        WeightedGraphAttributes
+      >();
       const currentOffset = 2;
 
       // Adding nodes
@@ -379,7 +406,7 @@ describe('graph', () => {
       graph.addEdge('B', 'D');
       graph.addEdge('C', 'E');
 
-      applyWeightedNodeOffsetToAllChildren(graph, 'A', currentOffset, 1);
+      applyNodeOffsetToAllChildren(graph, 'A', currentOffset, 1);
 
       // should not change the offset of A
       expect(graph.getNodeAttribute('A', 'offset')).toBe(currentOffset);
@@ -399,7 +426,11 @@ describe('graph', () => {
       expect(graph.getNodeAttribute('D', 'offset')).toBe(currentOffset + 1);
     });
     it('should apply negative direction for offset', () => {
-      const graph = new Graphology<WeightedNodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<
+        WeightedNodeAttributes,
+        EdgeAttributes,
+        WeightedGraphAttributes
+      >();
       const currentOffset = 0;
 
       // Adding nodes
@@ -415,7 +446,7 @@ describe('graph', () => {
       graph.addEdge('B', 'D');
       graph.addEdge('C', 'E');
 
-      applyWeightedNodeOffsetToAllChildren(graph, 'A', currentOffset, -1);
+      applyNodeOffsetToAllChildren(graph, 'A', currentOffset, -1);
 
       /** Should look like this
        *    A
@@ -434,7 +465,11 @@ describe('graph', () => {
     });
 
     it('should apply custom currentOffset and negative direction for offset', () => {
-      const graph = new Graphology<WeightedNodeAttributes, EdgeAttributes, GraphAttributes>();
+      const graph = new Graphology<
+        WeightedNodeAttributes,
+        EdgeAttributes,
+        WeightedGraphAttributes
+      >();
       const currentOffset = -2;
 
       // Adding nodes
@@ -450,7 +485,7 @@ describe('graph', () => {
       graph.addEdge('B', 'D');
       graph.addEdge('C', 'E');
 
-      applyWeightedNodeOffsetToAllChildren(graph, 'A', currentOffset, -1);
+      applyNodeOffsetToAllChildren(graph, 'A', currentOffset, -1);
 
       /** Should look like this
        *    A
@@ -469,73 +504,87 @@ describe('graph', () => {
     });
   });
 
-  describe('weightedGraphFromData', () => {
+  describe('processForkChoiceData', () => {
     it('should return GraphError with missing data payload', () => {
-      expect(() => weightedGraphFromData({} as ForkChoiceData)).toThrowError(GraphError);
+      expect(() =>
+        processForkChoiceData({ data: {}, metadata: {} } as Required<Frame>),
+      ).toThrowError(GraphError);
     });
 
     it('should return GraphError with invalid fork_choice_nodes slot data payload', () => {
       expect(() =>
-        weightedGraphFromData({
-          finalized_checkpoint: { epoch: '5', root: '0x' },
-          justified_checkpoint: { epoch: '6', root: '0x' },
-          fork_choice_nodes: [{ slot: 'abc' }],
-        } as ForkChoiceData),
+        processForkChoiceData({
+          data: {
+            finalized_checkpoint: { epoch: '5', root: '0x' },
+            justified_checkpoint: { epoch: '6', root: '0x' },
+            fork_choice_nodes: [{ slot: 'abc' }],
+          },
+          metadata: {},
+        } as Required<Frame>),
       ).toThrowError(GraphError);
     });
 
     it('should have orphaned node with invalid fork_choice_nodes parent block_root data payload', () => {
-      const graph = weightedGraphFromData({
-        finalized_checkpoint: { epoch: '5', root: '0x' },
-        justified_checkpoint: { epoch: '6', root: '0x' },
-        fork_choice_nodes: [
-          {
-            slot: '10',
-            block_root: '0x38da44a74a79c6db9160fd904bd0866708a0b73e474e532fe6a66030c1b6a249',
-            parent_root: '0xaecade68feb38aff5f30103fac04f458ba127db0fad9c17839aa19e727ee6cd6',
-            justified_epoch: '6',
-            finalized_epoch: '5',
-            weight: '4728638123638428947',
-            validity: 'VALID',
-            execution_block_hash:
-              '0x4e54d078b4ce054728ad82b23ed6dae21b9bed4cbcaf16abdcb53140c2303cb0',
-            extra_data: {
-              state_root: '0x3b0e0d10d906db615a23681c2afd66e4b0e271c2753084d525d21591f35ca19a',
-              justified_root: '0x74b0dc800ff24c1947b49a639cc0d470c60109ba6d9386ccd8b0f6b499647e1a',
-              unrealised_justified_epoch: '6',
-              unrealized_justified_root:
-                '0x62f852206db97e7fb45c4cc308072bcdee18c167ea8471d6f0292ae5dd920c86',
-              unrealised_finalized_epoch: '5',
-              unrealized_finalized_root:
-                '0x38da44a74a79c6db9160fd904bd0866708a0b73e474e532fe6a66030c1b6a249',
+      const { graph } = processForkChoiceData({
+        data: {
+          finalized_checkpoint: { epoch: '5', root: '0x' },
+          justified_checkpoint: { epoch: '6', root: '0x' },
+          fork_choice_nodes: [
+            {
+              slot: '10',
+              block_root: '0x38da44a74a79c6db9160fd904bd0866708a0b73e474e532fe6a66030c1b6a249',
+              parent_root: '0xaecade68feb38aff5f30103fac04f458ba127db0fad9c17839aa19e727ee6cd6',
+              justified_epoch: '6',
+              finalized_epoch: '5',
+              weight: '4728638123638428947',
+              validity: 'VALID',
+              execution_block_hash:
+                '0x4e54d078b4ce054728ad82b23ed6dae21b9bed4cbcaf16abdcb53140c2303cb0',
+              extra_data: {
+                state_root: '0x3b0e0d10d906db615a23681c2afd66e4b0e271c2753084d525d21591f35ca19a',
+                justified_root:
+                  '0x74b0dc800ff24c1947b49a639cc0d470c60109ba6d9386ccd8b0f6b499647e1a',
+                unrealised_justified_epoch: '6',
+                unrealized_justified_root:
+                  '0x62f852206db97e7fb45c4cc308072bcdee18c167ea8471d6f0292ae5dd920c86',
+                unrealised_finalized_epoch: '5',
+                unrealized_finalized_root:
+                  '0x38da44a74a79c6db9160fd904bd0866708a0b73e474e532fe6a66030c1b6a249',
+              },
             },
-          },
-          {
-            slot: '11',
-            block_root: '0xba6e14383eed82ed37a4ab6a40e90b846a27b40156154ef9921355750f9017b7',
-            parent_root: '0x0000',
-            justified_epoch: '6',
-            finalized_epoch: '5',
-            weight: '4728638123638428337',
-            validity: 'VALID',
-            execution_block_hash:
-              '0x7dcb1bc33d9dcfa89491e0335ce609250f7bbb8f3c3c1d946d4233a29e926b77',
-            extra_data: {
-              state_root: '0xcd2e584c11f465eadae11f13e02d82fa857b2a8e7f2b01c65028a16a6a8ce803',
-              justified_root: '0xd29b33cfce4b2ac0d7e6e51ffc5f346b77921c3118f4bb4c91027e00fc5c159f',
-              unrealised_justified_epoch: '6',
-              unrealized_justified_root:
-                '0x62f852206db97e7fb45c4cc308072bcdee18c167ea8471d6f0292ae5dd920c86',
-              unrealised_finalized_epoch: '5',
-              unrealized_finalized_root:
-                '0x38da44a74a79c6db9160fd904bd0866708a0b73e474e532fe6a66030c1b6a249',
+            {
+              slot: '11',
+              block_root: '0xba6e14383eed82ed37a4ab6a40e90b846a27b40156154ef9921355750f9017b7',
+              parent_root: '0x0000',
+              justified_epoch: '6',
+              finalized_epoch: '5',
+              weight: '4728638123638428337',
+              validity: 'VALID',
+              execution_block_hash:
+                '0x7dcb1bc33d9dcfa89491e0335ce609250f7bbb8f3c3c1d946d4233a29e926b77',
+              extra_data: {
+                state_root: '0xcd2e584c11f465eadae11f13e02d82fa857b2a8e7f2b01c65028a16a6a8ce803',
+                justified_root:
+                  '0xd29b33cfce4b2ac0d7e6e51ffc5f346b77921c3118f4bb4c91027e00fc5c159f',
+                unrealised_justified_epoch: '6',
+                unrealized_justified_root:
+                  '0x62f852206db97e7fb45c4cc308072bcdee18c167ea8471d6f0292ae5dd920c86',
+                unrealised_finalized_epoch: '5',
+                unrealized_finalized_root:
+                  '0x38da44a74a79c6db9160fd904bd0866708a0b73e474e532fe6a66030c1b6a249',
+              },
             },
-          },
-        ],
-      } as ForkChoiceData);
+          ],
+        },
+        metadata: {},
+      } as Required<Frame>);
       expect(
         graph.getNodeAttribute(
-          '0xba6e14383eed82ed37a4ab6a40e90b846a27b40156154ef9921355750f9017b7',
+          generateNodeId({
+            slot: 11,
+            blockRoot: '0xba6e14383eed82ed37a4ab6a40e90b846a27b40156154ef9921355750f9017b7',
+            parentRoot: '0x0000',
+          }),
           'orphaned',
         ),
       ).toBe(true);
@@ -857,7 +906,7 @@ describe('graph', () => {
         ],
       };
 
-      const graph = weightedGraphFromData(data);
+      const { graph } = processForkChoiceData({ data, metadata: {} } as Required<Frame>);
 
       expect(graph.getAttribute('slotStart')).to.equal(10);
       expect(graph.getAttribute('slotEnd')).to.equal(16);

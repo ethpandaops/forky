@@ -18,7 +18,7 @@ export default function Header() {
           <div className="flex flex-1">
             <Link href="/" className="flex gap-2 items-center -m-1.5 p-1.5">
               <img className="h-8 w-auto" src={LogoSmall} alt="" />
-              <span className="text-xl font-bold text-stone-950 dark:text-white">Forky</span>
+              <span className="text-xl font-bold text-stone-950 dark:text-teal-400/80">Forky</span>
             </Link>
           </div>
           <div className="flex gap-5">
@@ -99,7 +99,7 @@ export default function Header() {
                                 If you&apos;d like to run your own instance of{' '}
                                 <span className="font-semibold">Forky</span>, checkout out the{' '}
                                 <a
-                                  className="underline text-emerald-500 hover:text-emerald-600 dark:text-green-200 dark:hover:text-green-300"
+                                  className="underline text-green-500 hover:text-green-600 dark:text-green-200 dark:hover:text-green-300"
                                   href="https://github.com/ethpandaops/forky"
                                 >
                                   Github repository

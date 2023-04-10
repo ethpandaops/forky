@@ -6,14 +6,14 @@ const config: StorybookConfig = {
     '@storybook/addon-essentials',
     '@storybook/addon-interactions',
     {
-      name: '@storybook/addon-postcss',
+      name: "@storybook/addon-styling",
       options: {
-        postcssLoaderOptions: { implementation: require('postcss') },
+        postCss: {
+          implementation: require("postcss"),
+        },
       },
     },
-    // TODO: move back to `storybook-dark-mode` when it supports v7
-    // https://github.com/hipstersmoothie/storybook-dark-mode/issues/221
-    'storybook-dark-mode-v7',
+    'storybook-dark-mode',
   ],
   framework: {
     name: '@storybook/react-vite',

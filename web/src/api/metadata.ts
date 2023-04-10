@@ -8,18 +8,6 @@ import {
 } from '@app/types/api';
 import { BASE_URL } from '@utils/environment';
 
-/* 
-  rest.get(`${BASE_URL}api/v1/ethereum/now`, async (_, res, ctx) => {
-    return res(ctx.json({ data: getNow() }));
-  }),
-  rest.get(`${BASE_URL}api/v1/ethereum/spec`, (_, res, ctx) => {
-    return res(ctx.json({ data: { network_name: networkName, spec } }));
-  }),
-  rest.post(`${BASE_URL}api/v1/metadata/nodes`, (_, res, ctx) => {
-    return res(ctx.json({ data: nodes }));
-  }),
-*/
-
 export async function fetchMetadataNodes(payload: V1MetadataListNodesRequest): Promise<string[]> {
   const response = await fetch(`${BASE_URL}api/v1/metadata/nodes`, {
     method: 'POST',
@@ -30,7 +18,7 @@ export async function fetchMetadataNodes(payload: V1MetadataListNodesRequest): P
   });
 
   if (!response.ok) {
-    throw new Error('Failed to fetch slot data');
+    throw new Error('Failed to fetch metadata nodes');
   }
 
   const json = (await response.json()) as Response<V1MetadataListNodesResponse>;

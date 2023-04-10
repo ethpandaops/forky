@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect, HTMLAttributes, KeyboardEvent } from 'react';
 
-import { CheckCircleIcon } from '@heroicons/react/20/solid';
-
 type InputType = 'text' | 'number' | 'datetime-local';
 
 type ValueType = {
@@ -70,40 +68,31 @@ function EditableInput<T extends InputType>({ value, onChange, type, id }: Props
   };
 
   return (
-    <div className="mt-2 flex rounded-md shadow-sm h-10">
+    <>
       {isEditing ? (
-        <>
-          <input
-            id={id}
-            ref={inputRef}
-            type={type}
-            className="block w-48 rounded-none rounded-l-md border-0 pl-1 py-1.5 text-stone-900 ring-1 ring-inset ring-stone-300 placeholder:text-stone-400 focus:ring-2 focus:ring-inset focus:ring-stone-600 sm:text-sm sm:leading-6"
-            value={formattedValue(inputValue)}
-            onChange={(e) => setInputValue(e.target.value as unknown as ValueType[T])}
-            onBlur={handleSave}
-            step="1"
-            onKeyDownCapture={handleKeyPress}
-          />
-          <button
-            type="button"
-            tabIndex={-1}
-            className="relative w-8 inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm bg-blue-600 font-semibold text-stone-900 ring-1 ring-inset ring-stone-300 hover:bg-blue-500"
-          >
-            <CheckCircleIcon className="-m-1 h-5 w-5 text-white" aria-hidden="true" />
-          </button>
-        </>
+        <input
+          id={id}
+          ref={inputRef}
+          type={type}
+          className="pl-2 bg-stone-100 dark:bg-stone-500 block w-full rounded-md border-0 py-1 text-stone-900 dark:text-stone-100 shadow-sm ring-1 ring-inset ring-stone-300 placeholder:text-stone-400 focus:ring-2 focus:ring-inset focus:ring-stone-600 text-sm leading-6"
+          value={formattedValue(inputValue)}
+          onChange={(e) => setInputValue(e.target.value as unknown as ValueType[T])}
+          onBlur={handleSave}
+          step="1"
+          onKeyDownCapture={handleKeyPress}
+        />
       ) : (
         <input
           id={id}
           type={type}
-          className="block w-56 rounded-md pl-2 py-1.5 text-stone-900 ring-1 ring-inset ring-stone-300 placeholder:text-stone-400 focus:ring-2 focus:ring-inset focus:ring-stone-600 sm:text-sm sm:leading-6"
+          className="pl-2 bg-stone-100 dark:bg-stone-600 block w-full rounded-md border-0 py-1 text-stone-900 dark:text-stone-100 shadow-sm ring-1 ring-inset ring-stone-300 placeholder:text-stone-400 focus:ring-2 focus:ring-inset focus:ring-stone-600 text-sm leading-6"
           value={formattedValue(value)}
           readOnly
           step="1"
           onFocus={() => setIsEditing(true)}
         />
       )}
-    </div>
+    </>
   );
 }
 

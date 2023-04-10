@@ -18,7 +18,7 @@ export function ProviderWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ApplicationProvider ethereum={ethereum} focus={{ initialTime }} player={{ playing: true }}>
+      <ApplicationProvider ethereum={ethereum} focus={{ initialTime, playing: true }}>
         {children}
       </ApplicationProvider>
     </QueryClientProvider>

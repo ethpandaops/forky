@@ -15,7 +15,7 @@ export async function fetchNow(): Promise<Required<V1GetEthereumNowResponse>> {
   const response = await fetch(`${BASE_URL}api/v1/ethereum/now`);
 
   if (!response.ok) {
-    throw new Error('Failed to fetch slot data');
+    throw new Error('Failed to fetch ethereum now');
   }
   const json = (await response.json()) as Response<V1GetEthereumNowResponse>;
 
@@ -32,7 +32,7 @@ export async function fetchSpec(): Promise<Required<Spec>> {
   const response = await fetch(`${BASE_URL}api/v1/ethereum/spec`);
 
   if (!response.ok) {
-    throw new Error('Failed to fetch slot data');
+    throw new Error('Failed to fetch ethereum spec');
   }
   const json = (await response.json()) as Response<V1GetEthereumSpecResponse>;
 

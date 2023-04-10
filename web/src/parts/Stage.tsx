@@ -1,20 +1,30 @@
-import useActiveFrame from '@hooks/useActiveFrame';
-import { useFrameQuery } from '@hooks/useQuery';
-import WeightedGraph from '@parts/WeightedGraph';
+import { ProcessedData } from '@app/types/graph';
+import useActive from '@hooks/useActive';
+import { useFrameQueries } from '@hooks/useQuery';
+import Graph from '@parts/Graph';
 
 export default function Stage() {
-  const { id } = useActiveFrame();
-  const { data, isLoading, error } = useFrameQuery(id ?? '', Boolean(id));
+  const { ids } = useActive();
+  const results = useFrameQueries(ids, ids.length > 0);
+
+  const isLoading = results.some((result) => result.isLoading);
+
+  let frames: ProcessedData[] = [];
+  if (!isLoading) {
+    frames = results.reduce<ProcessedData[]>((acc, result) => {
+      if (result.data) {
+        acc.push(result.data);
+      }
+      return acc;
+    }, []);
+  }
 
   return (
     <div
       className="w-full bg-stone-100 dark:bg-stone-900"
       style={{ height: 'calc(100vh - 148px)' }}
     >
-      <>
-        {isLoading || (error && <div>{error ? `${error}` : 'Loading...'}</div>)}
-        {data && <WeightedGraph data={data} />}
-      </>
+      {!isLoading && <Graph data={frames} ids={ids} unique={ids.join('_')} />}
     </div>
   );
 }

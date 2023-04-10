@@ -1,25 +1,27 @@
 import { ReactNode } from 'react';
 
+import { navigate } from 'wouter/use-location';
+
 import EthereumProvider, { Props as EthereumProps } from '@providers/ethereum';
 import FocusProvider, { Props as FocusProps } from '@providers/focus';
-import PlayerProvider, { Props as PlayerProps } from '@providers/player';
 import SelectionProvider, { Props as SelectionProps } from '@providers/selection';
 
 interface Props {
   children: ReactNode;
   ethereum: Omit<EthereumProps, 'children'>;
   focus: Omit<FocusProps, 'children'>;
-  player: Omit<PlayerProps, 'children'>;
   selection?: Omit<SelectionProps, 'children'>;
 }
 
-function Provider({ children, ethereum, focus, player, selection }: Props) {
+function Provider({ children, ethereum, focus, selection }: Props) {
+  // clear the time param if it exists
+  if (new URLSearchParams(window.location.search).get('t')) {
+    navigate(window.location.pathname, { replace: true });
+  }
   return (
     <EthereumProvider {...ethereum}>
       <FocusProvider {...focus}>
-        <PlayerProvider {...player}>
-          <SelectionProvider {...selection}>{children}</SelectionProvider>
-        </PlayerProvider>
+        <SelectionProvider {...selection}>{children}</SelectionProvider>
       </FocusProvider>
     </EthereumProvider>
   );

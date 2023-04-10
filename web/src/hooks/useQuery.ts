@@ -1,9 +1,10 @@
 import { useQuery, useQueries } from '@tanstack/react-query';
 
 import { fetchNow, fetchSpec, Spec } from '@api/ethereum';
-import { fetchFrame, Data } from '@api/frames';
+import { fetchFrame } from '@api/frames';
 import { fetchMetadataList, fetchMetadataNodes } from '@api/metadata';
 import { FrameFilter, FrameMetaData, V1GetEthereumNowResponse } from '@app/types/api';
+import { ProcessedData } from '@app/types/graph';
 
 export function useNowQuery(enabled = true) {
   return useQuery<
@@ -47,7 +48,7 @@ export function useMetadataQuery(filter: FrameFilter, enabled = true) {
 }
 
 export function useFrameQuery(id: string, enabled = true) {
-  return useQuery<Data, unknown, Data, string[]>({
+  return useQuery<ProcessedData, unknown, ProcessedData, string[]>({
     queryKey: ['frame', id],
     queryFn: () => fetchFrame(id),
     enabled,
