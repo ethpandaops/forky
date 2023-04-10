@@ -25,7 +25,7 @@ function SlotDial() {
       return (
         <div key={i} className="fixed" style={{ left: middleSlotX - (i + 1) * epochWidth }}>
           <Ruler
-            className="h-10"
+            className="h-10 shadow-inner-lg bg-stone-300 dark:bg-stone-700"
             marks={slotsPerEpoch}
             summary={`EPOCH ${focusedEpoch - i - 1}`}
             subMarks={SUB_MARKS}
@@ -40,7 +40,7 @@ function SlotDial() {
     return (
       <div key={i} className="fixed" style={{ left: middleSlotX + (i + 1) * epochWidth }}>
         <Ruler
-          className="h-10"
+          className="h-10 shadow-inner-lg bg-stone-300 dark:bg-stone-700"
           marks={slotsPerEpoch}
           summary={`EPOCH ${focusedEpoch + i + 1}`}
           subMarks={SUB_MARKS}
@@ -55,7 +55,7 @@ function SlotDial() {
       {leftSideRulers}
       <div className="fixed" style={{ left: middleSlotX }}>
         <Ruler
-          className="h-10"
+          className="h-10 shadow-inner-lg bg-stone-300 dark:bg-stone-700"
           marks={slotsPerEpoch}
           summary={`EPOCH ${focusedEpoch}`}
           subMarks={SUB_MARKS}

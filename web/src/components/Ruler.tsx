@@ -10,6 +10,7 @@ interface RulerProps {
   markSuffix?: string;
   flip?: boolean;
   className?: string;
+  style?: React.CSSProperties;
   children?: React.ReactNode;
 }
 
@@ -21,6 +22,7 @@ const Ruler: React.FC<RulerProps> = ({
   markSuffix,
   flip = false,
   className,
+  style,
   children,
 }) => {
   const subMarksInterval = (subMarks ?? 0) + 1;
@@ -35,7 +37,7 @@ const Ruler: React.FC<RulerProps> = ({
         <div
           key={i}
           className={classNames(
-            'border-l border-black w-1',
+            'border-l w-1 border-stone-500 dark:border-stone-400',
             i === 0 ? 'h-full' : isCentimeter ? 'h-2' : 'h-1',
             isCentimeter ? '' : 'opacity-60',
           )}
@@ -43,8 +45,8 @@ const Ruler: React.FC<RulerProps> = ({
           {markText && isCentimeter && i !== 0 && i != totalSubmarks && (
             <span
               className={classNames(
-                'text-black text-opacity-60 relative text-xs left-0.5',
-                flip ? '-top-5 mt-5' : '',
+                ' text-stone-800 dark:text-stone-500 relative text-[9px]',
+                flip ? '-top-5 mt-5' : '-top-0.5',
               )}
             >
               {i / subMarksInterval}
@@ -58,17 +60,17 @@ const Ruler: React.FC<RulerProps> = ({
   };
 
   return (
-    <div className={classNames('flex select-none', className)}>
+    <div className={classNames('flex select-none', className)} style={style}>
       <div
         className={classNames(
-          'absolute flex items-baseline flex-col justify-end w-full h-full ',
+          'absolute flex items-baseline flex-col justify-end w-full h-full',
           flip ? 'flex-col-reverse' : 'flex-col',
         )}
       >
         <div className={classNames(flip ? 'mb-5' : 'mt-5')}></div>
         <div className="pr-1 w-full h-full">{children}</div>
         {summary && (
-          <span className="whitespace-nowrap text-black text-opacity-40 text-xs pl-1">
+          <span className="whitespace-nowrap pl-1 text-xs text-stone-600 dark:text-stone-400">
             {summary}
           </span>
         )}

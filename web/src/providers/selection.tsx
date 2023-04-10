@@ -1,12 +1,12 @@
 import { ReactNode } from 'react';
 
-import { Context, useValue, ValueProps } from '@contexts/selection';
+import { Context, useValue } from '@contexts/selection';
 
-export interface Props extends ValueProps {
+export interface Props {
   children: ReactNode;
 }
 
-export default function Provider({ children, ...valueProps }: Props) {
-  const value = useValue(valueProps);
+export default function Provider({ children }: Props) {
+  const value = useValue();
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }

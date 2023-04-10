@@ -1,10 +1,4 @@
-import {
-  useContext as reactUseContext,
-  createContext,
-  ReactNode,
-  useState,
-  useEffect,
-} from 'react';
+import { useContext as reactUseContext, createContext, ReactNode, useState } from 'react';
 
 import { FrameMetaData } from '@app/types/api';
 

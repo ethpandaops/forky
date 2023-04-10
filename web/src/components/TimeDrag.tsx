@@ -1,12 +1,10 @@
-import { useState, useCallback, useRef, useEffect, memo } from 'react';
+import { useState, useCallback, useRef, useEffect, memo, ReactNode } from 'react';
 
 import useFocus from '@contexts/focus';
-import usePlayer from '@contexts/player';
 import usePointer from '@hooks/usePointer';
 
-const TimeDrag = ({ multiplier }: { multiplier: number }) => {
-  const { shiftTime: shiftFocusedTime, playing, stop: stopTimer } = usePlayer();
-  const { time: focusedTime } = useFocus();
+const TimeDrag = ({ multiplier, children }: { multiplier: number; children?: ReactNode }) => {
+  const { time: focusedTime, shiftTime: shiftFocusedTime, playing, stop: stopTimer } = useFocus();
   const [dragging, setDragging] = useState(false);
   const { up, x } = usePointer({ listen: true });
   const prevX = useRef<number | null>(null);
@@ -39,7 +37,7 @@ const TimeDrag = ({ multiplier }: { multiplier: number }) => {
   const updateFocusedTime = useCallback(() => {
     if (!playing) {
       const deltaTime = velocityRef.current;
-      shiftFocusedTime(deltaTime, false);
+      shiftFocusedTime(deltaTime);
       velocityRef.current *= 0.9;
     }
 
@@ -53,7 +51,7 @@ const TimeDrag = ({ multiplier }: { multiplier: number }) => {
   useEffect(() => {
     if (prevX.current !== x && dragging && x !== null && prevX.current !== null) {
       const deltaX = x - prevX.current;
-      shiftFocusedTime(-deltaX * multiplier, false);
+      shiftFocusedTime(-deltaX * multiplier);
 
       lastPositions.current.push(x);
       lastTimes.current.push(Date.now());
@@ -99,7 +97,9 @@ const TimeDrag = ({ multiplier }: { multiplier: number }) => {
       className="absolute top-0 left-0 w-full h-full"
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
-    ></div>
+    >
+      {children}
+    </div>
   );
 };
 

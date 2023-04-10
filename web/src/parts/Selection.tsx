@@ -1,47 +1,32 @@
-import { Fragment, useMemo } from 'react';
+import { Fragment } from 'react';
 
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import ReactTimeAgo from 'react-time-ago';
+import classNames from 'classnames';
 
-import { ForkChoiceNode, FrameMetaData } from '@app/types/api';
-import useEthereum from '@contexts/ethereum';
+import AggregatedBlockSummary from '@components/AggregatedBlockSummary';
+import AggregatedFramesSummary from '@components/AggregatedFramesSummary';
+import FrameBlockSummary from '@components/FrameBlockSummary';
+import FrameSummary from '@components/FrameSummary';
 import useSelection from '@contexts/selection';
-import useActiveFrame from '@hooks/useActiveFrame';
-import { useFrameQuery } from '@hooks/useQuery';
-import { WeightedNodeAttributes } from '@utils/graph';
-import { truncateHash } from '@utils/strings';
 
 export default function Selection() {
-  const { blockRoot, setBlockRoot } = useSelection();
-  const { slotsPerEpoch } = useEthereum();
-
-  const { id } = useActiveFrame();
-  const { data } = useFrameQuery(id ?? '', Boolean(id));
-
-  const { attributes, node, metadata } = useMemo<{
-    attributes?: WeightedNodeAttributes;
-    node?: ForkChoiceNode;
-    metadata?: FrameMetaData;
-  }>(() => {
-    if (!blockRoot) return {};
-    try {
-      return {
-        attributes: data?.graph?.getNodeAttributes(blockRoot),
-        node: data?.frame.data.fork_choice_nodes?.find((n) => n.block_root === blockRoot),
-        metadata: data?.frame.metadata,
-      };
-    } catch (err) {
-      setBlockRoot();
-      return {};
-    }
-  }, [data, blockRoot]);
+  const { frameId, aggregatedFrameIds, frameBlock, aggregatedFramesBlock, clearAll } =
+    useSelection();
 
   return (
     <div className="bg-stone-900">
       <header className="absolute inset-x-0 top-0 z-20">
-        <Transition.Root show={Boolean(blockRoot)} as={Fragment}>
-          <Dialog as="div" onClose={() => setBlockRoot()}>
+        <Transition.Root
+          show={
+            Boolean(frameId) ||
+            Boolean(aggregatedFrameIds) ||
+            Boolean(frameBlock) ||
+            Boolean(aggregatedFramesBlock)
+          }
+          as={Fragment}
+        >
+          <Dialog as="div" onClose={clearAll}>
             <Transition.Child
               as={Fragment}
               enter="ease-in-out duration-100"
@@ -65,215 +50,39 @@ export default function Selection() {
                     leaveFrom="translate-x-0"
                     leaveTo="translate-x-full"
                   >
-                    <Dialog.Panel className="fixed inset-y-0 overflow-x-hidden right-0 w-full overflow-y-auto bg-stone-100 dark:bg-stone-900 sm:max-w-screen-lg sm:ring-1 sm:ring-white/10">
-                      <div className="px-6 py-6">
-                        <div className="flex flex-row-reverse">
-                          <button
-                            type="button"
-                            className="mr-1.5 rounded-md p-1.5 text-stone-400 transition hover:bg-stone-900/5 dark:hover:bg-white/5"
-                            onClick={() => setBlockRoot()}
-                          >
-                            <span className="sr-only">Close menu</span>
-                            <XMarkIcon className="h-7 w-7" aria-hidden="true" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="relative pt-10 pb-20 sm:py-12">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
-                          <div className="mx-auto max-w-2xl lg:max-w-4xl lg:px-12">
-                            {attributes && node && metadata && (
-                              <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                                <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
-                                  <dl className="sm:divide-y sm:divide-gray-200">
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">Epoch</dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        {Math.floor(attributes.slot / slotsPerEpoch)}
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">Slot</dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        {attributes.slot}
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">
-                                        Snapshot Time
-                                      </dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        <ReactTimeAgo date={new Date(metadata.fetched_at)} />
-                                        <span className="pl-1">({metadata.fetched_at})</span>
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">
-                                        Block Root
-                                      </dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        <span className="lg:hidden font-mono flex">
-                                          <span className="relative top-1 group transition duration-300 cursor-pointer">
-                                            {truncateHash(node.block_root)}
-                                            <span className="relative -top-0.5 block max-w-0 group-hover:max-w-full transition-all duration-500 h-0.5 bg-emerald-400"></span>
-                                          </span>
-                                        </span>
-                                        <span className="hidden lg:table-cell font-mono">
-                                          {node.block_root}
-                                        </span>
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">
-                                        Parent Root
-                                      </dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        <span className="lg:hidden font-mono flex">
-                                          <span className="relative top-1 group transition duration-300 cursor-pointer">
-                                            {truncateHash(node.parent_root)}
-                                            <span className="relative -top-0.5 block max-w-0 group-hover:max-w-full transition-all duration-500 h-0.5 bg-emerald-400"></span>
-                                          </span>
-                                        </span>
-                                        <span className="hidden lg:table-cell font-mono">
-                                          {node.parent_root}
-                                        </span>
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">
-                                        Execution Block Hash
-                                      </dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        <span className="lg:hidden font-mono flex">
-                                          <span className="relative top-1 group transition duration-300 cursor-pointer">
-                                            {truncateHash(node.execution_block_hash)}
-                                            <span className="relative -top-0.5 block max-w-0 group-hover:max-w-full transition-all duration-500 h-0.5 bg-emerald-400"></span>
-                                          </span>
-                                        </span>
-                                        <span className="hidden lg:table-cell font-mono">
-                                          {node.execution_block_hash}
-                                        </span>
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">Weight</dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        {node.weight}
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">
-                                        Validity
-                                      </dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        {node.validity}
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">
-                                        Justified Epoch
-                                      </dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        {node.justified_epoch}
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">
-                                        Finalized Epoch
-                                      </dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        {node.finalized_epoch}
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">
-                                        State Root
-                                      </dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        <span className="lg:hidden font-mono flex">
-                                          <span className="relative top-1 group transition duration-300 cursor-pointer">
-                                            {truncateHash(node.extra_data.state_root)}
-                                            <span className="relative -top-0.5 block max-w-0 group-hover:max-w-full transition-all duration-500 h-0.5 bg-emerald-400"></span>
-                                          </span>
-                                        </span>
-                                        <span className="hidden lg:table-cell font-mono">
-                                          {node.extra_data.state_root}
-                                        </span>
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">
-                                        Justified Root
-                                      </dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        <span className="lg:hidden font-mono flex">
-                                          <span className="relative top-1 group transition duration-300 cursor-pointer">
-                                            {truncateHash(node.extra_data.justified_root)}
-                                            <span className="relative -top-0.5 block max-w-0 group-hover:max-w-full transition-all duration-500 h-0.5 bg-emerald-400"></span>
-                                          </span>
-                                        </span>
-                                        <span className="hidden lg:table-cell font-mono">
-                                          {node.extra_data.justified_root}
-                                        </span>
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">
-                                        Unrealized Justified Epoch
-                                      </dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        {node.extra_data.unrealised_justified_epoch}
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">
-                                        Unrealized Justified Root
-                                      </dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        <span className="lg:hidden font-mono flex">
-                                          <span className="relative top-1 group transition duration-300 cursor-pointer">
-                                            {truncateHash(
-                                              node.extra_data.unrealized_justified_root,
-                                            )}
-                                            <span className="relative -top-0.5 block max-w-0 group-hover:max-w-full transition-all duration-500 h-0.5 bg-emerald-400"></span>
-                                          </span>
-                                        </span>
-                                        <span className="hidden lg:table-cell font-mono">
-                                          {node.extra_data.unrealized_justified_root}
-                                        </span>
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">
-                                        Unrealized Finalized Epoch
-                                      </dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        {node.extra_data.unrealised_finalized_epoch}
-                                      </dd>
-                                    </div>
-                                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                                      <dt className="text-sm font-medium text-gray-500">
-                                        Unrealized Finalized Root
-                                      </dt>
-                                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-                                        <span className="lg:hidden font-mono flex">
-                                          <span className="relative top-1 group transition duration-300 cursor-pointer">
-                                            {truncateHash(
-                                              node.extra_data.unrealized_finalized_root,
-                                            )}
-                                            <span className="relative -top-0.5 block max-w-0 group-hover:max-w-full transition-all duration-500 h-0.5 bg-emerald-400"></span>
-                                          </span>
-                                        </span>
-                                        <span className="hidden lg:table-cell font-mono">
-                                          {node.extra_data.unrealized_finalized_root}
-                                        </span>
-                                      </dd>
-                                    </div>
-                                  </dl>
-                                </div>
-                              </div>
-                            )}
+                    <Dialog.Panel
+                      className={classNames(
+                        'fixed inset-y-0 overflow-x-hidden right-0 w-full overflow-y-auto bg-stone-100 dark:bg-stone-900 sm:ring-1 sm:ring-white/10',
+                        aggregatedFrameIds ? 'sm:max-w-[95%]' : 'sm:max-w-screen-lg',
+                      )}
+                    >
+                      <div className="flex h-full flex-col py-6 shadow-xl">
+                        <div className="px-4 mb-6 mt-1 sm:px-6">
+                          <div className="flex items-start justify-between">
+                            <Dialog.Title className="mt-1 flex items-center text-base font-semibold leading-6 text-stone-900 dark:text-stone-100">
+                              {frameId && 'Snapshot'}
+                              {aggregatedFrameIds && 'Aggregated Snapshots'}
+                              {frameBlock && 'Block'}
+                              {aggregatedFramesBlock && 'Aggregated Block'}
+                            </Dialog.Title>
+                            <div className="ml-3 flex h-7 items-center">
+                              <button
+                                type="button"
+                                className="rounded-md p-1.5 text-stone-400 transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+                                onClick={clearAll}
+                              >
+                                <span className="sr-only">Close menu</span>
+                                <XMarkIcon className="h-7 w-7" aria-hidden="true" />
+                              </button>
+                            </div>
                           </div>
                         </div>
+                        {frameId && <FrameSummary id={frameId} />}
+                        {aggregatedFrameIds && <AggregatedFramesSummary ids={aggregatedFrameIds} />}
+                        {frameBlock && <FrameBlockSummary {...frameBlock} />}
+                        {aggregatedFramesBlock && (
+                          <AggregatedBlockSummary {...aggregatedFramesBlock} />
+                        )}
                       </div>
                     </Dialog.Panel>
                   </Transition.Child>
@@ -286,13 +95,3 @@ export default function Selection() {
     </div>
   );
 }
-/* 
-extra_data
-  state_root: string;
-  justified_root: string;
-  unrealised_justified_epoch: string;
-  unrealized_justified_root: string;
-  unrealised_finalized_epoch: string;
-  unrealized_finalized_root: string;
-
-*/

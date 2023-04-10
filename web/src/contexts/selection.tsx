@@ -1,4 +1,7 @@
-import { useContext as reactUseContext, createContext, useState } from 'react';
+import { useContext as reactUseContext, createContext, useState, useCallback } from 'react';
+
+import { ForkChoiceNode, FrameMetaData } from '@app/types/api';
+import { WeightedNodeAttributes, AggregatedNodeAttributes } from '@app/types/graph';
 
 export const Context = createContext<State | undefined>(undefined);
 
@@ -10,20 +13,98 @@ export default function useContext() {
   return context;
 }
 
+export type WeightedNode = {
+  metadata: FrameMetaData;
+  attributes: WeightedNodeAttributes;
+  node: ForkChoiceNode;
+};
+
+export type AggregatedNode = {
+  nodes: Record<
+    string,
+    {
+      metadata: FrameMetaData;
+      attributes: WeightedNodeAttributes;
+      node: ForkChoiceNode;
+    }
+  >;
+  attributes: AggregatedNodeAttributes;
+};
+
+export type FrameBlock = {
+  frameId: string;
+  blockRoot: string;
+};
+
+export type AggregatedFramesBlock = {
+  frameIds: string[];
+  blockRoot: string;
+};
+
 export interface State {
-  blockRoot?: string;
-  setBlockRoot: (blockRoot?: string) => void;
+  frameId?: string;
+  setFrameId: (id?: string) => void;
+  aggregatedFrameIds?: string[];
+  setAggregatedFrameIds: (ids?: string[]) => void;
+  frameBlock?: FrameBlock;
+  setFrameBlock: (block?: FrameBlock) => void;
+  aggregatedFramesBlock?: AggregatedFramesBlock;
+  setAggregatedFramesBlock: (block?: AggregatedFramesBlock) => void;
+  clearAll: () => void;
 }
 
-export interface ValueProps {
-  blockRoot?: string;
-}
+export function useValue(): State {
+  const [frameId, setFrameId] = useState<string | undefined>();
+  const [aggregatedFrameIds, setAggregatedFrameIds] = useState<string[] | undefined>();
+  const [frameBlock, setFrameBlock] = useState<FrameBlock | undefined>();
+  const [aggregatedFramesBlock, setAggregatedFramesBlock] = useState<
+    AggregatedFramesBlock | undefined
+  >();
 
-export function useValue(props: ValueProps): State {
-  const [blockRoot, setBlockRoot] = useState<string | undefined>(props.blockRoot);
+  const setFrameIdWrapper = useCallback((id?: string) => {
+    setFrameId(id);
+    setAggregatedFrameIds(undefined);
+    setFrameBlock(undefined);
+    setAggregatedFramesBlock(undefined);
+  }, []);
+
+  const setAggregatedFrameIdsWrapper = useCallback((ids?: string[]) => {
+    setFrameId(undefined);
+    setAggregatedFrameIds(ids);
+    setFrameBlock(undefined);
+    setAggregatedFramesBlock(undefined);
+  }, []);
+
+  const setFrameBlockWrapper = useCallback((data?: FrameBlock) => {
+    setFrameId(undefined);
+    setAggregatedFrameIds(undefined);
+    setFrameBlock(data);
+    setAggregatedFramesBlock(undefined);
+  }, []);
+
+  const setAggregatedFramesBlockWrapper = useCallback((data?: AggregatedFramesBlock) => {
+    setFrameId(undefined);
+    setAggregatedFrameIds(undefined);
+    setFrameBlock(undefined);
+    setAggregatedFramesBlock(data);
+  }, []);
+
+  const clearAll = useCallback(() => {
+    setFrameId(undefined);
+    setAggregatedFrameIds(undefined);
+    setFrameBlock(undefined);
+    setAggregatedFramesBlock(undefined);
+  }, []);
 
   return {
-    blockRoot,
-    setBlockRoot,
+    frameId,
+    setFrameId: setFrameIdWrapper,
+    aggregatedFrameIds,
+    setAggregatedFrameIds: setAggregatedFrameIdsWrapper,
+    frameBlock,
+    setFrameBlock: setFrameBlockWrapper,
+    aggregatedFramesBlock,
+    setAggregatedFramesBlock: setAggregatedFramesBlockWrapper,
+    clearAll,
   };
 }

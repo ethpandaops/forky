@@ -1,6 +1,6 @@
-import React from 'react';
+import { memo } from 'react';
 
-interface ScrollProgressProps {
+interface ProcessCircleProps {
   progress: number;
   radius: number;
   className?: string;
@@ -8,13 +8,13 @@ interface ScrollProgressProps {
   backgroundColor: string;
 }
 
-const ScrollProgress: React.FC<ScrollProgressProps> = ({
+function ProcessCircle({
   progress,
   radius,
   className,
   backgroundColor,
   color,
-}) => {
+}: ProcessCircleProps) {
   const stroke = 16;
   const innerRadius = radius - stroke / 2 + 2;
   const circumference = innerRadius * 2 * Math.PI;
@@ -50,6 +50,6 @@ const ScrollProgress: React.FC<ScrollProgressProps> = ({
       />
     </svg>
   );
-};
+}
 
-export default ScrollProgress;
+export default memo(ProcessCircle);

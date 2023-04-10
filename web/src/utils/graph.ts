@@ -1,12 +1,21 @@
 import Graphology from 'graphology';
 import { Attributes } from 'graphology-types';
 
-import { ForkChoiceNode, ForkChoiceData } from '@app/types/api';
+import { ForkChoiceNode, Frame } from '@app/types/api';
+import {
+  Graph,
+  WeightedGraph,
+  WeightedNodeAttributes,
+  EdgeAttributes,
+  WeightedGraphAttributes,
+  AggregatedGraph,
+  AggregatedNodeAttributes,
+  AggregatedGraphAttributes,
+  ProcessedData,
+  OrphanReference,
+  ForkReference,
+} from '@app/types/graph';
 import { getCheckpointType } from '@app/utils/api';
-
-export type Graph = Graphology<NodeAttributes, EdgeAttributes, GraphAttributes>;
-
-export type WeightedGraph = Graphology<WeightedNodeAttributes, EdgeAttributes, GraphAttributes>;
 
 export class GraphError extends Error {
   forkChoiceNode?: ForkChoiceNode;
@@ -20,30 +29,12 @@ export class GraphError extends Error {
   }
 }
 
-export interface NodeAttributes {
-  slot: number;
-  offset: number;
+export function isAggregatedGraph(graph?: Graph): graph is AggregatedGraph {
+  return graph?.getAttribute('type') === 'aggregated';
 }
 
-export interface WeightedNodeAttributes extends NodeAttributes {
-  canonical: boolean;
-  checkpoint?: 'finalized' | 'justified';
-  validity: 'valid' | string;
-  orphaned?: boolean;
-  blockRoot: string;
-  weight: bigint;
-  weightPercentageComparedToHeaviestNeighbor: number;
-}
-
-export interface EdgeAttributes {
-  directed: boolean;
-  distance: number;
-}
-
-export interface GraphAttributes {
-  slotStart: number;
-  slotEnd: number;
-  forks: number;
+export function isWeightedGraph(graph?: Graph): graph is WeightedGraph {
+  return graph?.getAttribute('type') === 'weighted';
 }
 
 export function getLastSlotFromNode(graph: Graph, node: string): number {
@@ -78,6 +69,33 @@ export function highestWeightedNode(graph: WeightedGraph, nodes: string[]): stri
   });
 }
 
+export function highestAggregatedNode(graph: AggregatedGraph, nodes: string[]): string {
+  return nodes.reduce((a, b) => {
+    const {
+      highestWeight: highestWeightA,
+      seenByNodes: seenByNodesA,
+      canonicalForNodes: canonicalForNodesA,
+      blockRoot: blockRootA,
+    } = graph.getNodeAttributes(a);
+    const {
+      highestWeight: highestWeightB,
+      seenByNodes: seenByNodesB,
+      canonicalForNodes: canonicalForNodesB,
+      blockRoot: blockRootB,
+    } = graph.getNodeAttributes(b);
+    if (canonicalForNodesA.length !== canonicalForNodesB.length) {
+      return canonicalForNodesA.length > canonicalForNodesB.length ? a : b;
+    }
+    if (highestWeightA !== highestWeightB) {
+      return highestWeightA > highestWeightB ? a : b;
+    }
+    if (seenByNodesA.length !== seenByNodesB.length) {
+      return seenByNodesA.length > seenByNodesB.length ? a : b;
+    }
+    return blockRootA.localeCompare(blockRootB) > 0 ? a : b;
+  });
+}
+
 export function applyNodeAttributeToAllChildren<T extends Attributes>(
   graph: Graphology<T, Attributes, Attributes>,
   id: string,
@@ -92,8 +110,8 @@ export function applyNodeAttributeToAllChildren<T extends Attributes>(
   });
 }
 
-export function applyWeightedNodeOffsetToAllChildren(
-  graph: WeightedGraph,
+export function applyNodeOffsetToAllChildren(
+  graph: Graph,
   node: string,
   currentOffset: number,
   direction: number,
@@ -108,7 +126,7 @@ export function applyWeightedNodeOffsetToAllChildren(
       canonical: false,
       offset: currentOffset,
     }));
-    applyWeightedNodeOffsetToAllChildren(graph, children[0], currentOffset, direction);
+    applyNodeOffsetToAllChildren(graph, children[0], currentOffset, direction);
     return;
   }
 
@@ -135,184 +153,42 @@ export function applyWeightedNodeOffsetToAllChildren(
       canonical: false,
       offset: offset,
     }));
-    applyWeightedNodeOffsetToAllChildren(graph, blockRoot, offset, direction);
+    applyNodeOffsetToAllChildren(graph, blockRoot, offset, direction);
     acc += height;
     return acc;
   }, 0);
 }
 
-export function weightedGraphFromData(data: ForkChoiceData): WeightedGraph {
-  const graph = new Graphology<WeightedNodeAttributes, EdgeAttributes, GraphAttributes>();
+export function applyOrphanNodeOffset(graph: Graph, orphanReferences: OrphanReference[]) {
+  orphanReferences
+    .sort((a, b) => a.slot - b.slot)
+    .forEach((node, i) => {
+      graph.updateNodeAttribute(node.nodeId, 'offset', () => {
+        // handle orphan nodes that are at the same slot
+        const previousOrphan = orphanReferences[i - 1];
+        if (previousOrphan && previousOrphan.slot === node.slot) {
+          const previousOffset = graph.getNodeAttribute(previousOrphan.nodeId, 'offset');
+          if (previousOffset > 0) {
+            return previousOffset + 1;
+          }
+          return previousOffset - 1;
+        }
 
-  graph.updateAttributes((current) => ({
-    ...current,
-    slotStart: 0,
-    slotEnd: 0,
-    forks: 0,
-  }));
-
-  if (
-    data.fork_choice_nodes === undefined ||
-    data.fork_choice_nodes.length === 0 ||
-    data.finalized_checkpoint === undefined ||
-    data.justified_checkpoint === undefined
-  ) {
-    throw new GraphError('Invalid data payload');
-  }
-
-  // reverse sort data by highest slot first to later iterate over it
-  // and stop when hitting the finalized checkpoint
-  const sortedData = data.fork_choice_nodes.sort((a, b) => {
-    return Number.parseInt(b.slot) - Number.parseInt(a.slot);
-  });
-
-  // map block roots to fork choice nodes
-  const forkChoiceNodes: Record<ForkChoiceNode['block_root'], ForkChoiceNode> = {};
-
-  // iterate over nodes and add them to the graph
-  for (const forkChoiceNode of sortedData) {
-    const slot = Number.parseInt(forkChoiceNode.slot);
-    if (isNaN(slot) || slot < 0) {
-      throw new GraphError('Invalid slot', forkChoiceNode);
-    }
-
-    forkChoiceNodes[forkChoiceNode.block_root] = forkChoiceNode;
-    graph.setAttribute('slotEnd', Math.max(graph.getAttribute('slotEnd'), slot));
-    graph.setAttribute(
-      'slotStart',
-      graph.getAttribute('slotStart') === 0
-        ? slot
-        : Math.min(graph.getAttribute('slotStart'), slot),
-    );
-
-    graph.addNode(forkChoiceNode.block_root, {
-      slot: slot,
-      canonical: true,
-      blockRoot: forkChoiceNode.block_root,
-      checkpoint: getCheckpointType(
-        forkChoiceNode.block_root,
-        data.finalized_checkpoint.root,
-        data.justified_checkpoint.root,
-      ),
-      validity: forkChoiceNode.validity.toLowerCase(),
-      offset: 0,
-      weight: BigInt(forkChoiceNode.weight),
-      weightPercentageComparedToHeaviestNeighbor: 100,
+        // get the highest offset
+        if (Math.abs(node.lowestOffset) > node.highestOffset) {
+          return node.highestOffset + 1;
+        }
+        return node.lowestOffset - 1;
+      });
     });
+}
 
-    // don't bother with nodes that are earlier than the finalized slot
-    if (forkChoiceNode.block_root === data.finalized_checkpoint.root) {
-      break;
-    }
-  }
-
-  // orphaned nodes can occur when a node has a parent before the finalized slot
-  const orphanedNodes: {
-    slot: number;
-    blockRoot: string;
-    highestOffset: number;
-    lowestOffset: number;
-  }[] = [];
-
-  // iterate over nodes again and add edges
-  graph.mapNodes((node) => {
-    const forkChoiceNode = forkChoiceNodes[node];
-    if (
-      forkChoiceNode.parent_root &&
-      forkChoiceNode.block_root !== data.finalized_checkpoint?.root
-    ) {
-      const parentForkChoiceNode = forkChoiceNodes[forkChoiceNode.parent_root];
-      try {
-        graph.addDirectedEdge(parentForkChoiceNode.block_root, forkChoiceNode.block_root, {
-          directed: true,
-          distance:
-            Number.parseInt(forkChoiceNode.slot) - Number.parseInt(parentForkChoiceNode.slot),
-        });
-      } catch (e: unknown) {
-        // handle orphaned nodes
-        orphanedNodes.push({
-          slot: Number.parseInt(forkChoiceNode.slot),
-          blockRoot: forkChoiceNode.block_root,
-          highestOffset: 0,
-          lowestOffset: 0,
-        });
-        graph.updateNodeAttribute(node, 'orphaned', () => true);
-      }
-    }
-  });
-
-  const forks: {
-    slot: number;
-    parentSlot: number;
-    parentBlockRoot: ForkChoiceNode['block_root'];
-    blockRoot: ForkChoiceNode['block_root'];
-    height: number;
-    lastSlot: number;
-  }[] = [];
-
-  // find all forks along the canonical chain
-  // sort by slot to move along the graph in order to know if a node is canonical
-  graph
-    .nodes()
-    .sort((a, b) => graph.getNodeAttribute(a, 'slot') - graph.getNodeAttribute(b, 'slot'))
-    .forEach((node) => {
-      const forkChoiceNode = forkChoiceNodes[node];
-      const neighbors = graph.outNeighbors(node);
-      if (neighbors.length > 1) {
-        const highestWeightedNeighor = highestWeightedNode(graph, neighbors);
-        neighbors.forEach((child) => {
-          if (graph.getNodeAttribute(node, 'canonical')) {
-            if (highestWeightedNeighor === child) return;
-          }
-          if (child !== highestWeightedNeighor) {
-            let percentage = 0;
-            if (graph.getNodeAttribute(highestWeightedNeighor, 'weight') !== 0n) {
-              percentage =
-                Number.parseInt(
-                  (
-                    (graph.getNodeAttribute(child, 'weight') * 10000n) /
-                    graph.getNodeAttribute(highestWeightedNeighor, 'weight')
-                  ).toString(),
-                ) / 100;
-            }
-            graph.updateNodeAttribute(
-              child,
-              'weightPercentageComparedToHeaviestNeighbor',
-              () => percentage,
-            );
-          }
-
-          if (graph.getNodeAttribute(node, 'canonical')) {
-            const childForChoiceNode = forkChoiceNodes[child];
-
-            forks.push({
-              slot: Number.parseInt(childForChoiceNode.slot),
-              parentSlot: Number.parseInt(forkChoiceNode.slot),
-              parentBlockRoot: forkChoiceNode.block_root,
-              blockRoot: child,
-              height: 1 + countForksFromNode(graph, child),
-              lastSlot: getLastSlotFromNode(graph, child),
-            });
-
-            graph.updateNodeAttribute(child, 'canonical', () => false);
-            applyNodeAttributeToAllChildren<WeightedNodeAttributes>(
-              graph,
-              child,
-              'canonical',
-              false,
-            );
-          }
-
-          graph.updateAttributes((attributes) => ({
-            ...attributes,
-            forks: attributes.forks + 1,
-          }));
-        });
-      }
-    });
-
-  // sort by highest slot and block root to work backwards
-  forks.sort((a, b) => {
+export function applyForkNodeOffset(
+  graph: Graph,
+  forkReferences: ForkReference[],
+  orphanReferences: OrphanReference[],
+) {
+  forkReferences.sort((a, b) => {
     if (a.parentSlot !== b.parentSlot) {
       return b.parentSlot - a.parentSlot;
     }
@@ -321,15 +197,15 @@ export function weightedGraphFromData(data: ForkChoiceData): WeightedGraph {
       return b.lastSlot - a.lastSlot;
     }
 
-    return a.blockRoot.localeCompare(b.blockRoot);
+    return a.nodeId.localeCompare(b.nodeId);
   });
 
   // work out if the fork should go top or bottom based on height and last slot overlap
-  const initialForkOffset: Record<ForkChoiceNode['block_root'], number> = {};
+  const initialForkOffset: Record<string, number> = {};
 
-  forks.forEach(({ blockRoot, parentSlot, lastSlot }, index) => {
+  forkReferences.forEach(({ nodeId, parentSlot, lastSlot }, index) => {
     // lookup previous indices to see if they overlap
-    const previousOverlappingForks = forks
+    const previousOverlappingForks = forkReferences
       .slice(0, index)
       .reverse()
       .filter((fork) => {
@@ -347,14 +223,14 @@ export function weightedGraphFromData(data: ForkChoiceData): WeightedGraph {
       });
 
     if (previousOverlappingForks.length === 0) {
-      initialForkOffset[blockRoot] = -1;
+      initialForkOffset[nodeId] = -1;
     } else if (previousOverlappingForks.length === 1) {
-      initialForkOffset[blockRoot] =
-        initialForkOffset[previousOverlappingForks[0].blockRoot] > 0 ? -1 : 1;
+      initialForkOffset[nodeId] =
+        initialForkOffset[previousOverlappingForks[0].nodeId] > 0 ? -1 : 1;
     } else {
       const { highest, lowest } = previousOverlappingForks.reduce(
         (acc, fork) => {
-          let currentOffset = initialForkOffset[fork.blockRoot];
+          let currentOffset = initialForkOffset[fork.nodeId];
           if (currentOffset > 0) {
             currentOffset += fork.height - 1;
             if (currentOffset > acc.highest) {
@@ -373,49 +249,401 @@ export function weightedGraphFromData(data: ForkChoiceData): WeightedGraph {
         { highest: 0, lowest: 0 },
       );
 
-      initialForkOffset[blockRoot] = Math.abs(lowest) > highest ? highest + 1 : lowest - 1;
+      initialForkOffset[nodeId] = Math.abs(lowest) > highest ? highest + 1 : lowest - 1;
     }
   });
 
-  forks.forEach(({ blockRoot, slot, lastSlot }) => {
-    const offset = initialForkOffset[blockRoot];
+  forkReferences.forEach(({ nodeId, slot, lastSlot }) => {
+    const offset = initialForkOffset[nodeId];
 
-    graph.updateNodeAttributes(blockRoot, (attributes) => ({
+    graph.updateNodeAttributes(nodeId, (attributes) => ({
       ...attributes,
       offset,
     }));
 
-    applyWeightedNodeOffsetToAllChildren(graph, blockRoot, offset, offset > 0 ? 1 : -1);
+    applyNodeOffsetToAllChildren(graph, nodeId, offset, offset > 0 ? 1 : -1);
 
     // check orphan nodes overlap
-    orphanedNodes.forEach((node, i) => {
+    orphanReferences.forEach((node, i) => {
       if (node.slot >= slot || node.slot <= lastSlot) {
-        orphanedNodes[i][offset > 0 ? 'highestOffset' : 'lowestOffset'] = offset;
+        orphanReferences[i][offset > 0 ? 'highestOffset' : 'lowestOffset'] = offset;
       }
     });
   });
+}
 
-  // offset orphan nodes outside of any forks
-  orphanedNodes
-    .sort((a, b) => a.slot - b.slot)
-    .forEach((node, i) => {
-      graph.updateNodeAttribute(node.blockRoot, 'offset', () => {
-        // handle orphan nodes that are at the same slot
-        const previousOrphan = orphanedNodes[i - 1];
-        if (previousOrphan && previousOrphan.slot === node.slot) {
-          const previousOffset = graph.getNodeAttribute(previousOrphan.blockRoot, 'offset');
-          if (previousOffset > 0) {
-            return previousOffset + 1;
-          }
-          return previousOffset - 1;
-        }
+export function generateNodeId({
+  slot,
+  blockRoot,
+  parentRoot,
+}: {
+  slot: number;
+  blockRoot: string;
+  parentRoot?: string;
+}): string {
+  return `${slot}_${blockRoot}_${parentRoot}`;
+}
 
-        // get the highest offset
-        if (Math.abs(node.lowestOffset) > node.highestOffset) {
-          return node.highestOffset + 1;
-        }
-        return node.lowestOffset - 1;
-      });
+export function processForkChoiceData(frame: Required<Frame>): ProcessedData {
+  const { data, metadata } = frame;
+  const graph = new Graphology<WeightedNodeAttributes, EdgeAttributes, WeightedGraphAttributes>();
+
+  graph.updateAttributes((current) => ({
+    ...current,
+    slotStart: 0,
+    slotEnd: 0,
+    forks: 0,
+    id: metadata.id,
+    type: 'weighted',
+  }));
+
+  if (
+    data.fork_choice_nodes === undefined ||
+    data.fork_choice_nodes.length === 0 ||
+    data.finalized_checkpoint === undefined ||
+    data.justified_checkpoint === undefined
+  ) {
+    throw new GraphError('Invalid data payload');
+  }
+
+  // reverse sort data by highest slot first to later iterate over it
+  // and stop when hitting the finalized checkpoint
+  const sortedData = data.fork_choice_nodes.sort((a, b) => {
+    return Number.parseInt(b.slot) - Number.parseInt(a.slot);
+  });
+
+  // map block roots to fork choice nodes
+  const forkChoiceNodes: Record<string, ForkChoiceNode> = {};
+
+  // map block roots to node ids
+  const blockRootNodeIds: Record<string, string> = {};
+
+  // iterate over nodes and add them to the graph
+  for (const forkChoiceNode of sortedData) {
+    const slot = Number.parseInt(forkChoiceNode.slot);
+    if (isNaN(slot) || slot < 0) {
+      throw new GraphError('Invalid slot', forkChoiceNode);
+    }
+
+    const nodeId = generateNodeId({
+      slot,
+      blockRoot: forkChoiceNode.block_root,
+      parentRoot: forkChoiceNode.parent_root,
     });
+
+    blockRootNodeIds[forkChoiceNode.block_root] = nodeId;
+
+    forkChoiceNodes[nodeId] = forkChoiceNode;
+    graph.setAttribute('slotEnd', Math.max(graph.getAttribute('slotEnd'), slot));
+    graph.setAttribute(
+      'slotStart',
+      graph.getAttribute('slotStart') === 0
+        ? slot
+        : Math.min(graph.getAttribute('slotStart'), slot),
+    );
+
+    graph.addNode(nodeId, {
+      slot: slot,
+      canonical: true,
+      blockRoot: forkChoiceNode.block_root,
+      parentRoot: forkChoiceNode.parent_root,
+      checkpoint: getCheckpointType(
+        forkChoiceNode.block_root,
+        data.finalized_checkpoint.root,
+        data.justified_checkpoint.root,
+      ),
+      validity: forkChoiceNode.validity.toLowerCase(),
+      offset: 0,
+      weight: BigInt(forkChoiceNode.weight),
+      weightPercentageComparedToHeaviestNeighbor: 100,
+    });
+
+    // don't bother with nodes that are earlier than the finalized slot
+    if (forkChoiceNode.block_root === data.finalized_checkpoint.root) {
+      break;
+    }
+  }
+
+  // hack to order by slots internally
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  graph._nodes = new Map(
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    [...graph._nodes].sort(([_keyA, a], [_keyB, b]) => {
+      return a.attributes.slot - b.attributes.slot;
+    }),
+  );
+
+  // orphaned nodes can occur when a node has a parent before the finalized slot
+  const orphanedNodes: OrphanReference[] = [];
+
+  // iterate over nodes again and add edges
+  graph.forEachNode((nodeId) => {
+    const forkChoiceNode = forkChoiceNodes[nodeId];
+    if (
+      forkChoiceNode.parent_root &&
+      forkChoiceNode.block_root !== data.finalized_checkpoint?.root
+    ) {
+      try {
+        const parentNodeId = blockRootNodeIds[forkChoiceNode.parent_root];
+        const parentForkChoiceNode = forkChoiceNodes[parentNodeId];
+        graph.addDirectedEdge(parentNodeId, nodeId, {
+          directed: true,
+          distance:
+            Number.parseInt(forkChoiceNode.slot) - Number.parseInt(parentForkChoiceNode.slot),
+        });
+      } catch (e: unknown) {
+        // handle orphaned nodes
+        orphanedNodes.push({
+          slot: Number.parseInt(forkChoiceNode.slot),
+          nodeId,
+          highestOffset: 0,
+          lowestOffset: 0,
+        });
+        graph.updateNodeAttribute(nodeId, 'orphaned', () => true);
+      }
+    }
+  });
+
+  const forks: ForkReference[] = [];
+
+  // find all forks along the canonical chain
+  // sort by slot to move along the graph in order to know if a node is canonical
+  graph.nodes().forEach((nodeId) => {
+    const forkChoiceNode = forkChoiceNodes[nodeId];
+    const neighbors = graph.outNeighbors(nodeId);
+    if (neighbors.length > 1) {
+      const highestWeightedNeighor = highestWeightedNode(graph, neighbors);
+      neighbors.forEach((childNodeId) => {
+        if (graph.getNodeAttribute(nodeId, 'canonical')) {
+          if (highestWeightedNeighor === childNodeId) return;
+        }
+        if (childNodeId !== highestWeightedNeighor) {
+          let percentage = 0;
+          if (graph.getNodeAttribute(highestWeightedNeighor, 'weight') !== 0n) {
+            percentage =
+              Number.parseInt(
+                (
+                  (graph.getNodeAttribute(childNodeId, 'weight') * 10000n) /
+                  graph.getNodeAttribute(highestWeightedNeighor, 'weight')
+                ).toString(),
+              ) / 100;
+          }
+          graph.updateNodeAttribute(
+            childNodeId,
+            'weightPercentageComparedToHeaviestNeighbor',
+            () => percentage,
+          );
+        }
+
+        if (graph.getNodeAttribute(nodeId, 'canonical')) {
+          const childForChoiceNode = forkChoiceNodes[childNodeId];
+
+          forks.push({
+            slot: Number.parseInt(childForChoiceNode.slot),
+            parentSlot: Number.parseInt(forkChoiceNode.slot),
+            nodeId: childNodeId,
+            height: 1 + countForksFromNode(graph, childNodeId),
+            lastSlot: getLastSlotFromNode(graph, childNodeId),
+          });
+
+          graph.updateNodeAttribute(childNodeId, 'canonical', () => false);
+          applyNodeAttributeToAllChildren<WeightedNodeAttributes>(
+            graph,
+            childNodeId,
+            'canonical',
+            false,
+          );
+        }
+
+        graph.updateAttributes((attributes) => ({
+          ...attributes,
+          forks: attributes.forks + 1,
+        }));
+      });
+    }
+  });
+
+  applyForkNodeOffset(graph, forks, orphanedNodes);
+  applyOrphanNodeOffset(graph, orphanedNodes);
+
+  // find canonical head
+  const reversedNodes = [...graph.nodes()].reverse();
+  for (const nodeId of reversedNodes) {
+    if (graph.getNodeAttribute(nodeId, 'canonical')) {
+      graph.updateAttribute('head', () => nodeId);
+      break;
+    }
+  }
+
+  return { graph, frame };
+}
+
+export function aggregateProcessedData(data: ProcessedData[]): AggregatedGraph {
+  const graph = new Graphology<
+    AggregatedNodeAttributes,
+    EdgeAttributes,
+    AggregatedGraphAttributes
+  >();
+
+  graph.updateAttributes((attributes) => ({
+    ...attributes,
+    slotStart: 0,
+    slotEnd: 0,
+    nodes: [],
+    id: data.map((d) => d.frame.metadata.id).join('-'),
+    type: 'aggregated',
+  }));
+
+  // orphaned nodes can occur when a node has a parent before the finalized slot
+  let orphanedNodes: OrphanReference[] = [];
+
+  data.forEach(({ frame: { metadata, data: frameData }, graph: weightedGraph }) => {
+    const nodeMap: Record<string, { id: string; slot: number }> = {};
+    let head: WeightedNodeAttributes | undefined;
+    weightedGraph.nodes().forEach((blockRoot) => {
+      const node = weightedGraph.getNodeAttributes(blockRoot);
+      if (node.slot > (head?.slot ?? 0) && node.canonical) {
+        head = node;
+      }
+
+      const nodeId = generateNodeId(node);
+      nodeMap[node.blockRoot] = { id: nodeId, slot: node.slot };
+
+      // handle duplicate nodes
+      if (graph.hasNode(nodeId)) {
+        graph.updateNodeAttributes(nodeId, (attributes) => ({
+          ...attributes,
+          canonical: attributes.canonical || node.canonical,
+          checkpoints: node.checkpoint
+            ? [...attributes.checkpoints, { node: metadata.node, checkpoint: node.checkpoint }]
+            : attributes.checkpoints,
+          validities: [...attributes.validities, { node: metadata.node, validity: node.validity }],
+          orphaned: node.orphaned ? [...attributes.orphaned, metadata.node] : attributes.orphaned,
+          highestWeight:
+            node.weight > attributes.highestWeight ? node.weight : attributes.highestWeight,
+          canonicalForNodes: node.canonical
+            ? [...attributes.canonicalForNodes, metadata.node]
+            : attributes.canonicalForNodes,
+          seenByNodes: [...attributes.seenByNodes, metadata.node],
+        }));
+      } else {
+        graph.setAttribute('slotEnd', Math.max(graph.getAttribute('slotEnd'), node.slot));
+        graph.setAttribute(
+          'slotStart',
+          graph.getAttribute('slotStart') === 0
+            ? node.slot
+            : Math.min(graph.getAttribute('slotStart'), node.slot),
+        );
+        graph.addNode(nodeId, {
+          slot: node.slot,
+          offset: 0, // will be updated later
+          canonical: true, // defaults true
+          checkpoints: node.checkpoint
+            ? [{ node: metadata.node, checkpoint: node.checkpoint }]
+            : [],
+          validities: [{ node: metadata.node, validity: node.validity }],
+          orphaned: node.orphaned ? [metadata.node] : [],
+          blockRoot: node.blockRoot,
+          highestWeight: node.weight,
+          canonicalForNodes: node.canonical ? [metadata.node] : [],
+          seenByNodes: [metadata.node],
+        });
+
+        // check if parent exists to add edge
+        if (node.parentRoot && nodeMap[node.parentRoot]) {
+          if (!graph.hasEdge(nodeMap[node.parentRoot].id, nodeId)) {
+            graph.addDirectedEdge(nodeMap[node.parentRoot].id, nodeId, {
+              directed: true,
+              distance: node.slot - nodeMap[node.parentRoot].slot,
+            });
+          }
+        } else {
+          orphanedNodes.push({
+            slot: node.slot,
+            nodeId,
+            highestOffset: 0,
+            lowestOffset: 0,
+          });
+        }
+      }
+    });
+    graph.updateAttribute('nodes', (attribute) => {
+      return [
+        ...(attribute ?? []),
+        {
+          metadata: metadata,
+          head,
+          forks: weightedGraph.getAttribute('forks') ?? 0,
+          justifiedCheckpoint: frameData.justified_checkpoint,
+          finalizedCheckpoint: frameData.finalized_checkpoint,
+        },
+      ];
+    });
+  });
+
+  // check if orphaned nodes are actually connected to the graph after iterating through all the nodes
+  orphanedNodes = orphanedNodes.filter((node) => graph.hasEdge(node.nodeId));
+
+  const forks: ForkReference[] = [];
+
+  graph
+    .nodes()
+    .sort((a, b) => graph.getNodeAttribute(a, 'slot') - graph.getNodeAttribute(b, 'slot'))
+    .forEach((node) => {
+      const neighbors = graph.outNeighbors(node);
+      if (neighbors.length > 1) {
+        const highestAggegatedNeighor = highestAggregatedNode(graph, neighbors);
+        neighbors.forEach((child) => {
+          if (graph.getNodeAttribute(node, 'canonical')) {
+            if (highestAggegatedNeighor === child) return;
+          }
+
+          if (graph.getNodeAttribute(node, 'canonical')) {
+            forks.push({
+              slot: graph.getNodeAttribute(child, 'slot'),
+              parentSlot: graph.getNodeAttribute(node, 'slot'),
+              nodeId: child,
+              height: 1 + countForksFromNode(graph, child),
+              lastSlot: getLastSlotFromNode(graph, child),
+            });
+
+            graph.updateNodeAttribute(child, 'canonical', () => false);
+            applyNodeAttributeToAllChildren<AggregatedNodeAttributes>(
+              graph,
+              child,
+              'canonical',
+              false,
+            );
+          }
+        });
+      }
+    });
+
+  applyForkNodeOffset(graph, forks, orphanedNodes);
+  applyOrphanNodeOffset(graph, orphanedNodes);
+
+  // find canonical head
+  const head = data
+    .map((d) => d.graph.getAttribute('head'))
+    // head is prefixed by slot so reverse sort to get highest slot
+    .sort((a, b) => {
+      if (a === undefined) {
+        return 1;
+      }
+      if (b === undefined) {
+        return -1;
+      }
+      return b.localeCompare(a);
+    })
+    .reduce<string | undefined>((acc, nodeId) => {
+      if (acc !== undefined) return acc;
+      if (graph.getNodeAttribute(nodeId, 'canonical')) acc = nodeId;
+      return acc;
+    }, undefined);
+
+  if (head) graph.updateAttribute('head', () => head);
+
   return graph;
 }

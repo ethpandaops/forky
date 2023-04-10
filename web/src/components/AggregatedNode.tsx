@@ -1,31 +1,34 @@
 import { useState, memo } from 'react';
 
+import { EyeIcon, CheckIcon } from '@heroicons/react/20/solid';
 import classNames from 'classnames';
 
 import ProgressCircle from '@components/ProgressCircle';
 
-function WeightedNode({
+function AggregatedNode({
   id,
   hash,
-  weight,
   type,
   validity,
+  seen,
+  canonical,
+  total,
   x,
   y,
   radius,
-  weightPercentageComparedToHeaviestNeighbor = 100,
   className,
   onClick,
 }: {
   id?: string;
   hash: string;
-  weight: string;
   type: 'canonical' | 'fork' | 'finalized' | 'justified' | 'detached';
   validity: 'valid' | string;
+  seen: number;
+  canonical: number;
+  total: number;
   x: number;
   y: number;
   radius: number;
-  weightPercentageComparedToHeaviestNeighbor?: number;
   className?: string;
   onClick?: (hash: string) => void;
 }) {
@@ -84,13 +87,13 @@ function WeightedNode({
       onMouseLeave={() => setIsHighlighted(false)}
     >
       <ProgressCircle
-        progress={weightPercentageComparedToHeaviestNeighbor}
+        progress={(canonical / total) * 100}
         radius={radius}
         className="absolute"
         color={color}
         backgroundColor={backgroundColor}
       />
-      <p className="text-stone-950 dark:text-stone-50 text-xl font-mono mb-3">
+      <p className="text-stone-950 dark:text-stone-50 text-xl font-mono h-16 pt-6">
         {type === 'finalized' || type === 'justified' || type === 'detached'
           ? type.toUpperCase()
           : validity.toUpperCase()}
@@ -98,16 +101,16 @@ function WeightedNode({
       <p className="text-stone-950 dark:text-stone-50 text-2xl font-mono">
         {hash.substring(0, 6)}...{hash.substring(hash.length - 4)}
       </p>
-      <p
-        className={classNames(
-          'text-stone-950 dark:text-stone-50 text-xl font-mono mt-3',
-          weight.length < 22 ? 'text-xl' : '',
-        )}
-      >
-        {weight && weight !== '0' ? weight : '\u00a0'}
+      <p className="text-stone-950 dark:text-stone-50 text-xl font-mono flex gap-5 h-16 pt-2">
+        <span className="flex flex-col items-center gap-1">
+          <CheckIcon className="w-5 h-5" /> {canonical}/{total}
+        </span>
+        <span className="flex flex-col items-center gap-1">
+          <EyeIcon className="w-5 h-5" /> {seen}/{total}
+        </span>
       </p>
     </div>
   );
 }
 
-export default memo(WeightedNode);
+export default memo(AggregatedNode);
