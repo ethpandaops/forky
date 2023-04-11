@@ -389,7 +389,7 @@ func (f *ForkChoice) DeleteFrame(ctx context.Context, id string) error {
 		return ErrInvalidID
 	}
 
-	if err := f.store.DeleteFrame(ctx, id); err != nil {
+	if err := f.store.DeleteFrame(ctx, id); err != nil && err != store.ErrFrameNotFound {
 		f.metrics.ObserveOperationError(operation)
 
 		f.log.WithError(err).WithField("id", id).Error("failed to delete frame")
