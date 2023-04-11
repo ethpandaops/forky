@@ -73,7 +73,9 @@ func (s *Server) Start(ctx context.Context) error {
 		return err
 	}
 
-	router.NotFound = http.FileServer(http.FS(frontend))
+	filesystem := http.FS(frontend)
+
+	router.NotFound = wrapHandler(http.FileServer(filesystem), filesystem)
 
 	if s.Cfg.Metrics.Enabled {
 		if err := s.ServeMetrics(ctx); err != nil {
