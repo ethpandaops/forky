@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
+import { useRef, useState, useEffect, useMemo, useCallback, ReactNode, memo } from 'react';
 
 import { ViewfinderCircleIcon as ViewfinderCircleIconOutline } from '@heroicons/react/24/outline';
 import {
@@ -164,21 +164,42 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
 
     if (type === 'aggregated') {
       newNodes = nodes.map((node) => {
-        const { canonical, slot, blockRoot, canonicalForNodes, seenByNodes } =
-          node.attributes as AggregatedNodeAttributes;
-        // TODO: handle invalid nodes
-        const type: 'canonical' | 'fork' | 'finalized' | 'justified' | 'detached' = canonical
-          ? 'canonical'
-          : 'fork';
+        const {
+          canonical,
+          blockRoot,
+          canonicalForNodes,
+          seenByNodes,
+          checkpoints,
+          orphaned,
+          validities,
+        } = node.attributes as AggregatedNodeAttributes;
+
+        const type: 'canonical' | 'fork' = canonical ? 'canonical' : 'fork';
+
+        const [finalizedCheckpoints, justifiedCheckpoints] = checkpoints.reduce<[number, number]>(
+          ([finalized, justified], checkpoint) => {
+            if (checkpoint.checkpoint === 'finalized') {
+              return [finalized + 1, justified];
+            } else if (checkpoint.checkpoint === 'justified') {
+              return [finalized, justified + 1];
+            }
+            return [finalized, justified];
+          },
+          [0, 0],
+        );
+
         return (
           <AggregatedNode
             key={node.id}
             id={node.id === head ? 'head' : undefined}
             x={node.x}
             y={node.y}
-            validity="valid"
             seen={seenByNodes.length}
             canonical={canonicalForNodes.length}
+            finalizedCheckpoints={finalizedCheckpoints}
+            justifiedCheckpoints={justifiedCheckpoints}
+            orphans={orphaned.length}
+            valid={validities.filter((v) => v.validity === 'valid').length}
             total={data.length}
             type={type}
             hash={blockRoot}
@@ -270,7 +291,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
             <InformationCircleIcon className="h-6 w-6 mr-1" />
             Sources
           </button>
-          <div className="hidden lg:flex flex-col px-2 2xl:px-4 pt-1 pb-1 2xl:pb-4 rounded bg-stone-200/90 dark:bg-stone-800/90 text-stone-900 dark:text-stone-100">
+          <div className="hidden lg:flex max-h-52 2xl:max-h-72 flex-col px-2 2xl:px-4 pt-1 pb-1 2xl:pb-4 rounded bg-stone-200/90 dark:bg-stone-800/90 text-stone-900 dark:text-stone-100 overflow-y-auto">
             <div className="flex items-center justify-between w-full">
               <span className="font-bold">Sources</span>
               <button
@@ -284,7 +305,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
               </button>
             </div>
             <div className="mt-0 mb-1 2xl:mt-1 2xl:mb-3 border-t border-t-stone-900 dark:border-t-stone-100" />
-            <table className="min-w-full">
+            <table className="min-w-full h-full">
               <tbody className="divide-y divide-gray-800">{formattedSummary}</tbody>
             </table>
           </div>
@@ -323,7 +344,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
               <span
                 onClick={handleFocus}
                 title="Focus to the head of the canonical chain"
-                className="fixed z-10 right-6 lg:right-8 top-36 text-stone-700 dark:text-stone-300 cursor-pointer w-10 h-10 rounded-md transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+                className="fixed z-10 righttype-6 lg:right-8 top-36 text-stone-700 dark:text-stone-300 cursor-pointer w-10 h-10 rounded-md transition hover:bg-stone-900/5 dark:hover:bg-white/5"
               >
                 <span className="sr-only">Focus to the head of the canonical chain</span>
                 {focused && (
@@ -356,4 +377,4 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
   );
 }
 
-export default Graph;
+export default memo(Graph, (prevProps, nextProps) => prevProps.unique === nextProps.unique);

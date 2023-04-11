@@ -94,7 +94,7 @@ export interface FrameMetaData {
   fetched_at: string;
   wall_clock_slot: number;
   wall_clock_epoch: number;
-  labels?: string[];
+  labels?: string[] | null;
 }
 
 export interface EthereumSpec {

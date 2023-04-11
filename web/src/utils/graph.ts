@@ -550,23 +550,22 @@ export function aggregateProcessedData(data: ProcessedData[]): AggregatedGraph {
           canonicalForNodes: node.canonical ? [metadata.node] : [],
           seenByNodes: [metadata.node],
         });
-
-        // check if parent exists to add edge
-        if (node.parentRoot && nodeMap[node.parentRoot]) {
-          if (!graph.hasEdge(nodeMap[node.parentRoot].id, nodeId)) {
-            graph.addDirectedEdge(nodeMap[node.parentRoot].id, nodeId, {
-              directed: true,
-              distance: node.slot - nodeMap[node.parentRoot].slot,
-            });
-          }
-        } else {
-          orphanedNodes.push({
-            slot: node.slot,
-            nodeId,
-            highestOffset: 0,
-            lowestOffset: 0,
+      }
+      // check if parent exists to add edge
+      if (node.parentRoot && nodeMap[node.parentRoot]) {
+        if (!graph.hasEdge(nodeMap[node.parentRoot].id, nodeId)) {
+          graph.addDirectedEdge(nodeMap[node.parentRoot].id, nodeId, {
+            directed: true,
+            distance: node.slot - nodeMap[node.parentRoot].slot,
           });
         }
+      } else {
+        orphanedNodes.push({
+          slot: node.slot,
+          nodeId,
+          highestOffset: 0,
+          lowestOffset: 0,
+        });
       }
     });
     graph.updateAttribute('nodes', (attribute) => {
