@@ -8,9 +8,6 @@ import useSelection from '@contexts/selection';
 import { useFrameQuery } from '@hooks/useQuery';
 
 function parseLabel(label: string): [string, string | undefined] {
-  if (label.startsWith('xatu_event_name')) {
-    return ['xatu_event_name', label.replace('xatu_event_name', '')];
-  }
   const [key, value] = label.split('=', 2);
   return [key, value];
 }
