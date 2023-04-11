@@ -35,7 +35,7 @@ function FrameFooter() {
             <span className="flex-col items-center hidden sm:flex">
               <Download
                 data={JSON.stringify(data.frame)}
-                filename={`${data.frame.metadata.id}.json`}
+                filename={`snapshot-${data.frame.metadata.id}.json`}
                 size="lg"
               />
               Download

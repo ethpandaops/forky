@@ -36,6 +36,17 @@ export default function AggregatedBlockSummary({ frameIds, blockRoot }: Aggregat
     return <Loading message="Error: failed to find block root in snapshot" />;
   }
 
+  const hasInvalid = node.validities.some(({ validity }) => validity.toLowerCase() !== 'valid');
+  const hasOrphaned = node.orphaned.length > 0;
+  const [hasFinalized, hasJustified] = node.checkpoints.reduce(
+    ([hasFinalized, hasJustified], { checkpoint }) => {
+      if (checkpoint === 'finalized') return [true, hasJustified];
+      if (checkpoint === 'justified') return [hasFinalized, true];
+      return [hasFinalized, hasJustified];
+    },
+    [false, false],
+  );
+
   return (
     <div className="bg-stone-50 dark:bg-stone-800 shadow dark:shadow-inner">
       <div className="border-t border-stone-200 dark:border-b dark:border-stone-800 px-4 py-5 sm:p-0">
@@ -80,15 +91,53 @@ export default function AggregatedBlockSummary({ frameIds, blockRoot }: Aggregat
                   <th
                     scope="col"
                     className="px-3 py-3.5 text-sm font-semibold text-stone-900 dark:text-stone-100 text-center"
+                    title="Sources have this block as canonical"
                   >
                     Canonical
                   </th>
                   <th
                     scope="col"
                     className="px-3 py-3.5 text-sm font-semibold text-stone-900 dark:text-stone-100 text-center"
+                    title="Sources have seen this block"
                   >
                     Seen
                   </th>
+                  {hasFinalized && (
+                    <th
+                      scope="col"
+                      className="px-3 py-3.5 text-sm font-semibold text-stone-900 dark:text-stone-100 text-center"
+                      title="Sources have this block as a finalized checkpoint"
+                    >
+                      Finalized
+                    </th>
+                  )}
+                  {hasJustified && (
+                    <th
+                      scope="col"
+                      className="px-3 py-3.5 text-sm font-semibold text-stone-900 dark:text-stone-100 text-center"
+                      title="Sources have this block as a justified checkpoint"
+                    >
+                      Justified
+                    </th>
+                  )}
+                  {hasInvalid && (
+                    <th
+                      scope="col"
+                      className="px-3 py-3.5 text-sm font-semibold text-stone-900 dark:text-stone-100 text-center"
+                      title="Sources have this block as valid"
+                    >
+                      Validity
+                    </th>
+                  )}
+                  {hasOrphaned && (
+                    <th
+                      scope="col"
+                      className="px-3 py-3.5 text-sm font-semibold text-stone-900 dark:text-stone-100 text-center"
+                      title="Detached block means the source has the parent of this block before the finalized checkpoint"
+                    >
+                      Detached
+                    </th>
+                  )}
                   <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
                     <span className="sr-only">View</span>
                   </th>
@@ -100,11 +149,15 @@ export default function AggregatedBlockSummary({ frameIds, blockRoot }: Aggregat
                   let isAggregatedCanonical = false;
                   let seen = false;
                   let canonical = false;
+                  let validity = 'valid';
+                  let orphaned = false;
                   let attributes: WeightedNodeAttributes | undefined;
                   try {
                     const aggregatedAttributes = graph.getNodeAttributes(nodeId);
                     isAggregatedCanonical = aggregatedAttributes.canonical;
                     attributes = data.graph.getNodeAttributes(nodeId);
+                    validity = attributes.validity;
+                    orphaned = attributes.orphaned || false;
                     seen = true;
                     canonical = attributes.canonical;
                   } catch (err) {
@@ -145,7 +198,7 @@ export default function AggregatedBlockSummary({ frameIds, blockRoot }: Aggregat
                           {seen ? (
                             <CheckCircleIcon
                               className={classNames(
-                                'w-6 h-6 text-green-700 dark:text-green-300',
+                                'w-6 h-6',
                                 isAggregatedCanonical && 'text-green-700 dark:text-green-300',
                                 !isAggregatedCanonical && 'text-amber-500 dark:text-amber-300',
                               )}
@@ -161,6 +214,50 @@ export default function AggregatedBlockSummary({ frameIds, blockRoot }: Aggregat
                           )}
                         </div>
                       </td>
+                      {hasFinalized && (
+                        <td className="whitespace-nowrap py-4 text-sm text-stone-300">
+                          <div className="w-full flex justify-center">
+                            {attributes?.checkpoint === 'finalized' ? (
+                              <CheckCircleIcon className="w-6 h-6 text-green-700 dark:text-green-300" />
+                            ) : (
+                              <XCircleIcon className="w-6 h-6 text-amber-500 dark:text-amber-300" />
+                            )}
+                          </div>
+                        </td>
+                      )}
+                      {hasJustified && (
+                        <td className="whitespace-nowrap py-4 text-sm text-stone-300">
+                          <div className="w-full flex justify-center">
+                            {attributes?.checkpoint === 'justified' ? (
+                              <CheckCircleIcon className="w-6 h-6 text-green-700 dark:text-green-300" />
+                            ) : (
+                              <XCircleIcon className="w-6 h-6 text-amber-500 dark:text-amber-300" />
+                            )}
+                          </div>
+                        </td>
+                      )}
+                      {hasInvalid && (
+                        <td className="whitespace-nowrap py-4 text-sm text-stone-300">
+                          <div className="w-full flex justify-center">
+                            {validity.toLowerCase() === 'valid' ? (
+                              <CheckCircleIcon className="w-6 h-6 text-green-700 dark:text-green-300" />
+                            ) : (
+                              <XCircleIcon className="w-6 h-6 text-amber-500 dark:text-amber-300" />
+                            )}
+                          </div>
+                        </td>
+                      )}
+                      {hasOrphaned && (
+                        <td className="whitespace-nowrap py-4 text-sm text-stone-300">
+                          <div className="w-full flex justify-center">
+                            {orphaned ? (
+                              <CheckCircleIcon className="w-6 h-6 text-amber-500 dark:text-amber-300" />
+                            ) : (
+                              <XCircleIcon className="w-6 h-6 text-green-700 dark:text-green-300" />
+                            )}
+                          </div>
+                        </td>
+                      )}
                       <td className="whitespace-nowrap py-4 font-medium text-stone-900 dark:text-stone-100">
                         {attributes && (
                           <div className="flex justify-end">

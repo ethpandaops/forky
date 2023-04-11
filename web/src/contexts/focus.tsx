@@ -123,15 +123,18 @@ export function useValue(props: ValueProps): State {
       setTime(genesisTime + targetSlot * secondsPerSlot * 1000);
       if (playing) timer.current = requestAnimationFrame(step);
     },
-    [setTime, genesisTime, secondsPerSlot, step],
+    [setTime, genesisTime, secondsPerSlot, step, playing],
   );
 
   const setEpoch = useCallback(
     (targetEpoch: number) => {
       if (targetEpoch < 0) return;
+      if (playing && timer.current) cancelAnimationFrame(timer.current);
+      initialPlayTime.current = undefined;
       setTime(genesisTime + targetEpoch * slotsPerEpoch * secondsPerSlot * 1000);
+      if (playing) timer.current = requestAnimationFrame(step);
     },
-    [setTime, genesisTime, secondsPerSlot, slotsPerEpoch],
+    [setTime, genesisTime, secondsPerSlot, slotsPerEpoch, playing],
   );
 
   useEffect(() => {

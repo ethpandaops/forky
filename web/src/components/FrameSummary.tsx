@@ -84,7 +84,7 @@ export default function FrameSummary({ id }: { id: string }) {
                   return (
                     <div key={key} className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
                       <dt className="text-sm font-medium text-stone-500 dark:text-stone-300 capitalize">
-                        {key}
+                        {key.replaceAll('_', ' ')}
                       </dt>
                       <dd className="mt-1 text-sm text-stone-900 dark:text-stone-100 sm:mt-0 sm:col-span-4">
                         {value}

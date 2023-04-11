@@ -37,7 +37,7 @@ const TimeDrag = ({ multiplier, children }: { multiplier: number; children?: Rea
   const updateFocusedTime = useCallback(() => {
     if (!playing) {
       const deltaTime = velocityRef.current;
-      shiftFocusedTime(deltaTime);
+      shiftFocusedTime(-deltaTime);
       velocityRef.current *= 0.9;
     }
 

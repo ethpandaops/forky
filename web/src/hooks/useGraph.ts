@@ -112,7 +112,10 @@ export default function useGraph({
   spacingX: number;
   spacingY: number;
 }) {
-  const dataId = data.map((d) => d.graph.getAttribute('id')).join('-');
+  const dataId = data
+    .map((d) => d.graph.getAttribute('id'))
+    .sort()
+    .join('_');
 
   const { edges, nodes, offset, attributes, type } = useMemo<{
     edges: EdgeData[];
