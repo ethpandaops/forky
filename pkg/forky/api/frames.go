@@ -43,7 +43,7 @@ func (h *HTTP) handleV1GetFrame(ctx context.Context, _ *http.Request, p httprout
 	})
 
 	if h.config.EdgeCacheConfig.Enabled {
-		response.SetCacheControl(fmt.Sprintf("public, s-max-age=%v", h.config.EdgeCacheConfig.FrameTTL.Seconds()))
+		response.SetCacheControl(fmt.Sprintf("public, max-age=%[1]v, s-maxage=%[1]v", h.config.EdgeCacheConfig.FrameTTL.Seconds()))
 	}
 
 	return response, nil
