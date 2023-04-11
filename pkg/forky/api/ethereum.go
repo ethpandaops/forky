@@ -30,7 +30,7 @@ func (h *HTTP) handleV1GetEthereumSpec(ctx context.Context, _ *http.Request, _ h
 		},
 	})
 
-	response.SetCacheControl("public, s-max-age=60")
+	response.SetCacheControl("public, max-age=60, s-maxage=60")
 
 	return response, nil
 }
@@ -56,7 +56,7 @@ func (h *HTTP) handleV1GetEthereumNow(ctx context.Context, _ *http.Request, _ ht
 		},
 	})
 
-	response.SetCacheControl("public, s-max-age=1")
+	response.SetCacheControl("public, max-age=1, s-maxage=1")
 
 	return response, nil
 }
