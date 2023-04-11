@@ -24,7 +24,7 @@ function SnapshotMarker({
     for (let i = 0; i < numberOfSegments; i++) {
       const isActive = activeIds.includes(metadata[i].id);
       const isReorg = metadata[i].labels?.includes(
-        'xatu_event_nameBEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG',
+        'xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG',
       );
 
       let color = 'bg-sky-400 dark:bg-sky-700';
