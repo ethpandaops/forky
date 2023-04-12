@@ -291,7 +291,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
             <InformationCircleIcon className="h-6 w-6 mr-1" />
             Sources
           </button>
-          <div className="hidden lg:flex max-h-72 2xl:max-h-96 flex-col px-2 2xl:px-4 pt-1 pb-1 2xl:pb-4 rounded bg-stone-200/90 dark:bg-stone-800/90 text-stone-900 dark:text-stone-100 overflow-y-auto">
+          <div className="hidden lg:flex flex-col px-2 2xl:px-4 pt-1 pb-1 2xl:pb-4 rounded bg-stone-200/90 dark:bg-stone-800/90 text-stone-900 dark:text-stone-100 overflow-y-auto">
             <div className="flex items-center justify-between w-full">
               <span className="font-bold">Sources</span>
               <button
