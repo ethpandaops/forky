@@ -14,8 +14,16 @@ function findLatestFrameIdPerNode(
   metadata: FrameMetaData[] = [],
   focusedNode?: string,
 ): State {
-  // Filter metadata to include only frames with fetched_at before focusedTime
-  metadata = metadata.filter((frame) => new Date(frame.fetched_at).getTime() < focusedTime);
+  // Filter metadata
+  metadata = metadata.filter((frame) => {
+    // only frames with fetched_at before focusedTime
+    if (new Date(frame.fetched_at).getTime() >= focusedTime) return false;
+    // only frames that are not a reorg
+    if (frame.labels?.includes('xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG'))
+      return false;
+
+    return true;
+  });
 
   // Group metadata by node
   let groupedMetadata: { [key: string]: FrameMetaData[] } = {};

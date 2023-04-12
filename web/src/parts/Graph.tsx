@@ -259,7 +259,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
     <>
       {location.startsWith('/node/') && (
         <button
-          className="absolute text-stone-900 dark:text-stone-100 mt-24 ml-5 lg:ml-8 z-20 flex items-center p-2 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+          className="absolute text-stone-900 dark:text-stone-100 mt-24 ml-5 lg:ml-8 z-20 flex text-xs 2xl:text-sm items-center p-1 2xl:p-2 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5"
           onClick={handleNavigateAggregatedView}
         >
           <ArrowLeftCircleIcon className="h-6 w-6 mr-1" />
@@ -269,7 +269,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
       {type === 'weighted' && (
         <button
           className={classNames(
-            'absolute text-stone-900 dark:text-stone-100 ml-5 lg:ml-8 z-20 flex items-center p-2 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5',
+            'absolute text-stone-900 dark:text-stone-100 ml-5 lg:ml-8 z-20 flex text-xs 2xl:text-sm items-center p-1 2xl:p-2 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5',
             location.startsWith('/node/') ? 'mt-36' : ' mt-24',
           )}
           onClick={() => {
@@ -344,7 +344,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
               <span
                 onClick={handleFocus}
                 title="Focus to the head of the canonical chain"
-                className="fixed z-10 righttype-6 lg:right-8 top-36 text-stone-700 dark:text-stone-300 cursor-pointer w-10 h-10 rounded-md transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+                className="fixed z-10 right-6 lg:right-8 top-36 text-stone-700 dark:text-stone-300 cursor-pointer w-10 h-10 rounded-md transition hover:bg-stone-900/5 dark:hover:bg-white/5"
               >
                 <span className="sr-only">Focus to the head of the canonical chain</span>
                 {focused && (
