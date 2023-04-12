@@ -1,8 +1,9 @@
-import { Fragment } from 'react';
+import { Fragment, useEffect } from 'react';
 
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import classNames from 'classnames';
+import { useLocation } from 'wouter';
 
 import AggregatedBlockSummary from '@components/AggregatedBlockSummary';
 import AggregatedFramesSummary from '@components/AggregatedFramesSummary';
@@ -13,6 +14,9 @@ import useSelection from '@contexts/selection';
 export default function Selection() {
   const { frameId, aggregatedFrameIds, frameBlock, aggregatedFramesBlock, clearAll } =
     useSelection();
+  const [location] = useLocation();
+
+  useEffect(clearAll, [location]);
 
   return (
     <div className="bg-stone-900">

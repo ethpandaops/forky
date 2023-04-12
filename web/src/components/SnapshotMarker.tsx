@@ -50,6 +50,7 @@ function SnapshotMarker({
             i === 0 && 'rounded-t-full',
             i === numberOfSegments - 1 && 'rounded-b-full',
           )}
+          title={`${metadata[i].node} - ${metadata[i].id}`}
         />,
       );
     }
