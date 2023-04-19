@@ -269,7 +269,7 @@ func (x *XatuHTTP) handleForkChoiceEvent(ctx context.Context, event *xatu.Decora
 		return fmt.Errorf("event is missing additional data")
 	}
 
-	return x.createFrameFromSnapshotAndData(ctx, event, data, additionalData.GetSnapshot())
+	return x.createFrameFromSnapshotAndData(ctx, event, data, additionalData.GetSnapshot(), "")
 }
 
 func (x *XatuHTTP) handleForkChoiceReorgEvent(ctx context.Context, event *xatu.DecoratedEvent) error {
