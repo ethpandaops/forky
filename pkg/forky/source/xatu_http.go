@@ -238,7 +238,7 @@ func (x *XatuHTTP) handleXatuEvent(ctx context.Context, event *xatu.DecoratedEve
 
 	if shouldBeFiltered {
 		// TODO(sam.calder-mason): Add metrics
-		logCtx.WithField("event", event).Warning("Dropping xatu event as it was filtered out")
+		logCtx.WithField("event", event).Warn("Dropping xatu event as it was filtered out")
 
 		return nil
 	}
