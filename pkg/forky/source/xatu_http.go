@@ -329,18 +329,37 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 			WallClockSlot:  phase0.Slot(snapshot.GetRequestSlot().Number),
 			WallClockEpoch: phase0.Epoch(snapshot.GetRequestEpoch().Number),
 
-			FetchedAt: event.Event.DateTime.AsTime(),
+			FetchedAt: event.GetMeta().GetClient().GetEthV1DebugForkChoice().GetSnapshot().GetTimestamp().AsTime(),
 
 			Labels: []string{
-				"xatu_sentry=" + event.Meta.Client.Name,
-				"xatu_event_name=" + event.Event.Name.String(),
-				"consensus_client_implementation=" + event.Meta.Client.Ethereum.Consensus.Implementation,
-				"consensus_client_version=" + event.Meta.Client.Ethereum.Consensus.Version,
-				fmt.Sprintf("ethereum_network_id=%d", event.Meta.Client.Ethereum.Network.Id),
-				"ethereum_network_name=" + event.Meta.Client.Ethereum.Network.Name,
+				"xatu_sentry=" + event.GetMeta().GetClient().GetName(),
+				"xatu_event_name=" + event.GetEvent().GetName().String(),
+				"xatu_event_id=" + event.GetEvent().GetId(),
+				"consensus_client_implementation=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetImplementation(),
+				"consensus_client_version=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetVersion(),
+				fmt.Sprintf("ethereum_network_id=%d", event.GetMeta().GetClient().GetEthereum().GetNetwork().GetId()),
+				"ethereum_network_name=" + event.GetMeta().GetClient().GetEthereum().GetNetwork().GetName(),
+				"reorg_depth=" + snapshot.GetTimestamp().String(),
+				fmt.Sprintf("fetch_request_duration_ms=%d", snapshot.GetRequestDurationMs()),
 			},
 		},
 		Data: data,
+	}
+
+	if event.GetEvent().GetName() == xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG {
+		data := event.GetEthV1ForkChoiceReorg()
+
+		prefix := "xatu_reorg_event_"
+
+		frame.Metadata.Labels = append(frame.Metadata.Labels,
+			fmt.Sprintf(prefix+"slot=%d", data.GetEvent().GetSlot()),
+			fmt.Sprintf(prefix+"epoch=%d", data.GetEvent().GetEpoch()),
+			prefix+"old_head_block="+data.GetEvent().GetOldHeadBlock(),
+			prefix+"old_head_state="+data.GetEvent().GetOldHeadState(),
+			prefix+"new_head_block="+data.GetEvent().GetNewHeadBlock(),
+			prefix+"new_head_state="+data.GetEvent().GetNewHeadState(),
+			fmt.Sprintf(prefix+"depth=%d", +data.GetEvent().GetDepth()),
+		)
 	}
 
 	for _, fn := range x.onFrameCallbacks {
