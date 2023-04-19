@@ -299,7 +299,6 @@ func (x *XatuHTTP) handleForkChoiceReorgEvent(ctx context.Context, event *xatu.D
 	x.log.
 		WithField("event_id", event.GetMeta().GetClient().GetId()).
 		WithField("client_name", event.GetMeta().GetClient().GetName()).
-		WithField("depth", event.GetData()).
 		Info("Handling fork choice reorg event")
 
 	// Create 2 new frames based on the event (one for `before` the reorg and one for `after` the reorg)
