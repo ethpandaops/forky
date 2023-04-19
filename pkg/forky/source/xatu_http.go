@@ -334,6 +334,7 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 			Labels: []string{
 				"xatu_sentry=" + event.GetMeta().GetClient().GetName(),
 				"xatu_event_name=" + event.GetEvent().GetName().String(),
+				"xatu_event_id=" + event.GetEvent().GetId(),
 				"consensus_client_implementation=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetImplementation(),
 				"consensus_client_version=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetVersion(),
 				fmt.Sprintf("ethereum_network_id=%d", event.GetMeta().GetClient().GetEthereum().GetNetwork().GetId()),
