@@ -358,7 +358,7 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 			WallClockSlot:  phase0.Slot(snapshot.GetRequestSlot().Number),
 			WallClockEpoch: phase0.Epoch(snapshot.GetRequestEpoch().Number),
 
-			FetchedAt: event.GetMeta().GetClient().GetEthV1DebugForkChoice().GetSnapshot().GetTimestamp().AsTime(),
+			FetchedAt: snapshot.GetTimestamp().AsTime(),
 
 			Labels: []string{
 				"xatu_sentry=" + event.GetMeta().GetClient().GetName(),
