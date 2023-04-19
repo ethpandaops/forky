@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import Loading from '@components/Loading';
 import { ValueProps } from '@contexts/ethereum';
 import { useSpecQuery, useNowQuery } from '@hooks/useQuery';
+import Events from '@parts/Events';
 import FrameFooter from '@parts/FrameFooter';
 import Header from '@parts/Header';
 import Selection from '@parts/Selection';
@@ -70,6 +71,7 @@ export default function App({ node, frameId }: { node?: string; frameId?: string
         <div className="absolute top-0 left-0 w-full h-full">
           <Header />
           <Selection />
+          <Events />
           <main>
             <Stage />
           </main>

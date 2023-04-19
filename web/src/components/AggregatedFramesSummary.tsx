@@ -45,14 +45,14 @@ export default function AggregatedFramesSummary({ ids }: { ids: string[] }) {
                       <th
                         rowSpan={2}
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 align-bottom hidden md:table-cell"
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 align-bottom table-cell"
                       >
                         Taken At
                       </th>
                       <th
                         colSpan={2}
                         scope="col"
-                        className="px-3 py-3.5 text-sm font-semibold text-stone-900 dark:text-stone-100 text-center border-b border-b-stone-700 hidden sm:table-cell"
+                        className="px-3 py-3.5 text-sm font-semibold text-stone-900 dark:text-stone-100 text-center border-b border-b-stone-700 table-cell"
                       >
                         Head
                       </th>
@@ -66,21 +66,21 @@ export default function AggregatedFramesSummary({ ids }: { ids: string[] }) {
                       <th
                         colSpan={2}
                         scope="col"
-                        className="px-3 py-3.5 text-sm font-semibold text-stone-900 dark:text-stone-100 text-center border-b border-b-stone-700 hidden xl:table-cell"
+                        className="px-3 py-3.5 text-sm font-semibold text-stone-900 dark:text-stone-100 text-center border-b border-b-stone-700 table-cell"
                       >
                         Finalized
                       </th>
                       <th
                         colSpan={2}
                         scope="col"
-                        className="px-3 py-3.5 text-sm font-semibold text-stone-900 dark:text-stone-100 text-center border-b border-b-stone-700 hidden 2xl:table-cell"
+                        className="px-3 py-3.5 text-sm font-semibold text-stone-900 dark:text-stone-100 text-center border-b border-b-stone-700 table-cell"
                       >
                         Justified
                       </th>
                       <th
                         rowSpan={2}
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 align-bottom hidden 2xl:table-cell"
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 align-bottom table-cell"
                       >
                         Snapshot ID
                       </th>
@@ -95,37 +95,37 @@ export default function AggregatedFramesSummary({ ids }: { ids: string[] }) {
                     <tr className="divide-x divide-stone-700">
                       <th
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 border-l border-l-stone-700 hidden sm:table-cell"
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 border-l border-l-stone-700 table-cell"
                       >
                         Slot
                       </th>
                       <th
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 hidden sm:table-cell"
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 table-cell"
                       >
                         Root
                       </th>
                       <th
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 border-l border-l-stone-700 hidden xl:table-cell"
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 border-l border-l-stone-700 table-cell"
                       >
                         Epoch
                       </th>
                       <th
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 hidden xl:table-cell"
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 table-cell"
                       >
                         Root
                       </th>
                       <th
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 border-l border-l-stone-700 hidden 2xl:table-cell"
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 border-l border-l-stone-700 table-cell"
                       >
                         Epoch
                       </th>
                       <th
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 hidden 2xl:table-cell"
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 table-cell"
                       >
                         Root
                       </th>
@@ -156,7 +156,7 @@ export default function AggregatedFramesSummary({ ids }: { ids: string[] }) {
                             </Link>
                             <ArrowTopRightOnSquareIcon className="inline h-5 w-5 pl-1" />
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-stone-900 dark:text-stone-100 hidden md:table-cell">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-stone-900 dark:text-stone-100 table-cell">
                             <ReactTimeAgo date={new Date(data.frame.metadata.fetched_at)} />
                             <span className="pl-1">
                               ({new Date(data.frame.metadata.fetched_at).toISOString()})
@@ -164,7 +164,7 @@ export default function AggregatedFramesSummary({ ids }: { ids: string[] }) {
                           </td>
                           <td
                             className={classNames(
-                              'whitespace-nowrap px-3 py-4 text-sm font-semibold text-stone-900 dark:text-stone-100 hidden sm:table-cell',
+                              'whitespace-nowrap px-3 py-4 text-sm font-semibold text-stone-900 dark:text-stone-100 table-cell',
                               isCanonicalHead
                                 ? 'text-green-700 dark:text-green-300'
                                 : 'text-red-700 dark:text-red-300',
@@ -174,46 +174,34 @@ export default function AggregatedFramesSummary({ ids }: { ids: string[] }) {
                           </td>
                           <td
                             className={classNames(
-                              'whitespace-nowrap px-3 py-4 text-sm font-semibold text-stone-900 dark:text-stone-100 hidden sm:table-cell',
+                              'whitespace-nowrap px-3 py-4 text-sm font-semibold text-stone-900 dark:text-stone-100 table-cell',
                               isCanonicalHead
                                 ? 'text-green-700 dark:text-green-300'
                                 : 'text-red-700 dark:text-red-300',
                             )}
                             title={head?.blockRoot}
                           >
-                            {truncateHash(head?.blockRoot)}
+                            {head?.blockRoot}
                           </td>
-                          <td
-                            colSpan={2}
-                            className={classNames(
-                              'whitespace-nowrap px-3 py-4 text-sm font-semibold text-stone-900 dark:text-stone-100 table-cell sm:hidden',
-                              isCanonicalHead
-                                ? 'text-green-700 dark:text-green-300'
-                                : 'text-red-700 dark:text-red-300',
-                            )}
-                            title={head?.blockRoot}
-                          >
-                            {truncateHash(head?.blockRoot)}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-stone-900 dark:text-stone-100 hidden xl:table-cell">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-stone-900 dark:text-stone-100 table-cell">
                             {data.frame.data.finalized_checkpoint?.epoch}
                           </td>
                           <td
-                            className="whitespace-nowrap px-3 py-4 text-sm text-stone-900 dark:text-stone-100 hidden xl:table-cell"
+                            className="whitespace-nowrap px-3 py-4 text-sm text-stone-900 dark:text-stone-100 table-cell"
                             title={data.frame.data.finalized_checkpoint?.root}
                           >
-                            {truncateHash(data.frame.data.finalized_checkpoint?.root)}
+                            {data.frame.data.finalized_checkpoint?.root}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-stone-900 dark:text-stone-100 hidden 2xl:table-cell">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-stone-900 dark:text-stone-100 table-cell">
                             {data.frame.data.justified_checkpoint?.epoch}
                           </td>
                           <td
-                            className="whitespace-nowrap px-3 py-4 text-sm text-stone-900 dark:text-stone-100 hidden 2xl:table-cell"
+                            className="whitespace-nowrap px-3 py-4 text-sm text-stone-900 dark:text-stone-100 table-cell"
                             title={data.frame.data.justified_checkpoint?.root}
                           >
-                            {truncateHash(data.frame.data.justified_checkpoint?.root)}
+                            {data.frame.data.justified_checkpoint?.root}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-stone-900 dark:text-stone-100 hidden 2xl:table-cell font-semibold underline">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-stone-900 dark:text-stone-100 table-cell font-semibold underline">
                             <Link href={`/snapshot/${data.frame.metadata.id}`} onClick={clearAll}>
                               {data.frame.metadata.id}
                             </Link>

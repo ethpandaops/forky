@@ -1,8 +1,8 @@
 import { Fragment, useState } from 'react';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import { Link } from 'wouter';
+import { Bars3Icon, XMarkIcon, CalendarDaysIcon } from '@heroicons/react/24/outline';
+import { Link, useLocation } from 'wouter';
 
 import Walker from '@app/components/Walker';
 import LogoSmall from '@assets/forky_logo_small.png';
@@ -10,6 +10,7 @@ import { ModeToggle } from '@components/ModeToggle';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [location] = useLocation();
 
   return (
     <div className="bg-stone-900">
@@ -22,10 +23,17 @@ export default function Header() {
             </Link>
           </div>
           <div className="flex gap-5">
+            <Link
+              href={`${location}${location.endsWith('/') ? '' : '/'}events`}
+              className="inline-flex items-center justify-center rounded-md pl-2 pr-2 text-stone-700 dark:text-stone-300 transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+            >
+              <span className="sr-only">Open menu</span>
+              <CalendarDaysIcon className="h-6 w-6" aria-hidden="true" />
+            </Link>
             <ModeToggle />
             <button
               type="button"
-              className=" inline-flex items-center justify-center rounded-md pl-2 pr-2 text-stone-400 transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+              className=" inline-flex items-center justify-center rounded-md pl-2 pr-2 text-stone-700 dark:text-stone-300 transition hover:bg-stone-900/5 dark:hover:bg-white/5"
               onClick={() => setMenuOpen(true)}
             >
               <span className="sr-only">Open menu</span>
@@ -44,7 +52,7 @@ export default function Header() {
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+              <div className="fixed inset-0 bg-stone-300 bg-opacity-75 transition-opacity z-30" />
             </Transition.Child>
             <div className="fixed inset-0 overflow-hidden z-30">
               <div className="absolute inset-0 overflow-hidden">

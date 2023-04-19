@@ -46,7 +46,7 @@ function AggregatedNode({
         'text-red-600',
         'text-red-800',
         'border-red-500 dark:border-red-900',
-        `${seen - valid} INVALID`,
+        `${seen - valid} NOT VALID`,
       ];
     }
 

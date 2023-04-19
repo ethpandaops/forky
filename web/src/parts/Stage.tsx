@@ -7,16 +7,23 @@ export default function Stage() {
   const { ids } = useActive();
   const results = useFrameQueries(ids, ids.length > 0);
 
-  const isLoading = results.some((result) => result.isLoading);
+  const isLoading = results.every((result) => result.isLoading);
 
-  let frames: ProcessedData[] = [];
+  let data: { frames: ProcessedData[]; loadedIds: string[] } = {
+    frames: [],
+    loadedIds: [],
+  };
   if (!isLoading) {
-    frames = results.reduce<ProcessedData[]>((acc, result) => {
-      if (result.data) {
-        acc.push(result.data);
-      }
-      return acc;
-    }, []);
+    data = results.reduce<{ frames: ProcessedData[]; loadedIds: string[] }>(
+      (acc, result) => {
+        if (result.data) {
+          acc.frames.push(result.data);
+          acc.loadedIds.push(result.data.frame.metadata.id);
+        }
+        return acc;
+      },
+      { frames: [], loadedIds: [] },
+    );
   }
 
   return (
@@ -24,7 +31,7 @@ export default function Stage() {
       className="w-full bg-stone-100 dark:bg-stone-900"
       style={{ height: 'calc(100vh - 148px)' }}
     >
-      {!isLoading && <Graph data={frames} ids={ids} unique={ids.join('_')} />}
+      {!isLoading && <Graph data={data.frames} ids={ids} unique={data.loadedIds.join('_')} />}
     </div>
   );
 }

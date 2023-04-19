@@ -3,20 +3,6 @@ export interface Checkpoint {
   root: string;
 }
 
-export interface ExtraData {
-  state_root?: string;
-  justified_root?: string;
-  unrealised_justified_epoch?: string;
-  unrealized_justified_epoch?: string;
-  unrealized_justified_root?: string;
-  unrealised_finalized_epoch?: string;
-  unrealized_finalized_epoch?: string;
-  unrealized_finalized_root?: string;
-  balance?: string;
-  execution_optimistic?: boolean;
-  timestamp?: string;
-}
-
 export interface ForkChoiceNode {
   slot: string;
   block_root: string;
@@ -26,8 +12,7 @@ export interface ForkChoiceNode {
   weight: string;
   validity: string;
   execution_block_hash: string;
-  // TODO: should this just be optional unknown?
-  extra_data: ExtraData;
+  extra_data?: Record<string, unknown>;
 }
 
 export interface ForkChoiceData {
