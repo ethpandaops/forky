@@ -294,7 +294,7 @@ func (x *XatuHTTP) handleForkChoiceReorgEvent(ctx context.Context, event *xatu.D
 		if err != nil {
 			x.log.WithError(err).Error("failed to convert fork_choice_reorg.after to fork choice")
 		} else {
-			err = x.createFrameFromSnapshotAndData(ctx, event, data, additionalData.After)
+			err = x.createFrameFromSnapshotAndData(ctx, event, data, additionalData.After, "after")
 			if err != nil {
 				x.log.WithError(err).Error("failed to create frame from fork_choice_reorg.after")
 			}
@@ -306,7 +306,7 @@ func (x *XatuHTTP) handleForkChoiceReorgEvent(ctx context.Context, event *xatu.D
 		if err != nil {
 			x.log.WithError(err).Error("failed to convert fork_choice_reorg.before to fork choice")
 		} else {
-			err = x.createFrameFromSnapshotAndData(ctx, event, data, additionalData.Before)
+			err = x.createFrameFromSnapshotAndData(ctx, event, data, additionalData.Before, "before")
 			if err != nil {
 				x.log.WithError(err).Error("failed to create frame from fork_choice_reorg.before")
 			}
@@ -320,6 +320,7 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 	event *xatu.DecoratedEvent,
 	data *eth2v1.ForkChoice,
 	snapshot *xatu.ClientMeta_ForkChoiceSnapshot,
+	timing string,
 ) error {
 	frame := &types.Frame{
 		Metadata: types.FrameMetadata{
@@ -359,6 +360,8 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 			prefix+"new_head_block="+data.GetEvent().GetNewHeadBlock(),
 			prefix+"new_head_state="+data.GetEvent().GetNewHeadState(),
 			fmt.Sprintf(prefix+"depth=%d", +data.GetEvent().GetDepth()),
+
+			"xatu_reorg_frame_timing="+timing,
 		)
 	}
 
