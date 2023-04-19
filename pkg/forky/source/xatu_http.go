@@ -16,6 +16,7 @@ import (
 	"github.com/ethpandaops/xatu/pkg/proto/xatu"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 var XatuHTTPType = "xatu_http"
@@ -209,19 +210,36 @@ func (x *XatuHTTP) handleJSONRequest(ctx context.Context, body []byte) error {
 func (x *XatuHTTP) handleXatuEvents(ctx context.Context, events []*xatu.DecoratedEvent) {
 	for _, event := range events {
 		if err := x.handleXatuEvent(ctx, event); err != nil {
-			x.log.WithError(err).Warn("Failed to handle event")
+			logCtx := x.log.
+				WithField("event_id", event.GetMeta().GetClient().GetId()).
+				WithError(err)
+
+			eventJSON, err := protojson.Marshal(event)
+			if err != nil {
+				logCtx = logCtx.WithField("marshal_error", err)
+			} else {
+				logCtx = logCtx.WithField("event_json", string(eventJSON))
+			}
+
+			logCtx.Error("Failed to handle event")
 		}
 	}
 }
 
 func (x *XatuHTTP) handleXatuEvent(ctx context.Context, event *xatu.DecoratedEvent) error {
+	logCtx := x.log.WithField("event_id", event.GetMeta().GetClient().GetId())
+
 	shouldBeFiltered, err := x.filter.ShouldBeDropped(event)
 	if err != nil {
+		logCtx.WithError(err).Error("Failed to check if event should be dropped")
+
 		return err
 	}
 
 	if shouldBeFiltered {
 		// TODO(sam.calder-mason): Add metrics
+		logCtx.WithField("event", event).Warn("Dropping xatu event as it was filtered out")
+
 		return nil
 	}
 
@@ -239,6 +257,11 @@ func (x *XatuHTTP) handleXatuEvent(ctx context.Context, event *xatu.DecoratedEve
 	}
 
 	if !found {
+		logCtx.
+			WithField("network", name).
+			WithField("allowed_networks", x.opts.AllowedEthereumNetworks).
+			Warn("Dropping xatu event as it is from a network we don't care about")
+
 		return nil
 	}
 
@@ -273,6 +296,11 @@ func (x *XatuHTTP) handleForkChoiceEvent(ctx context.Context, event *xatu.Decora
 }
 
 func (x *XatuHTTP) handleForkChoiceReorgEvent(ctx context.Context, event *xatu.DecoratedEvent) error {
+	x.log.
+		WithField("event_id", event.GetMeta().GetClient().GetId()).
+		WithField("client_name", event.GetMeta().GetClient().GetName()).
+		Info("Handling fork choice reorg event")
+
 	// Create 2 new frames based on the event (one for `before` the reorg and one for `after` the reorg)
 	// Note: `before` can be nil if the reorg happened before the xatu sentry started
 	fcr := event.GetEthV1ForkChoiceReorg()
@@ -340,7 +368,6 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 				"consensus_client_version=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetVersion(),
 				fmt.Sprintf("ethereum_network_id=%d", event.GetMeta().GetClient().GetEthereum().GetNetwork().GetId()),
 				"ethereum_network_name=" + event.GetMeta().GetClient().GetEthereum().GetNetwork().GetName(),
-				"reorg_depth=" + snapshot.GetTimestamp().String(),
 				fmt.Sprintf("fetch_request_duration_ms=%d", snapshot.GetRequestDurationMs()),
 			},
 		},
