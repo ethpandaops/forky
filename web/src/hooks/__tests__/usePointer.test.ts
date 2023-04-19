@@ -1,13 +1,8 @@
 import { renderHook, act } from '@testing-library/react';
-import { vi } from 'vitest';
 
 import usePointer, { PointerProps } from '@hooks/usePointer';
 
 describe('usePointer', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   const pointerProps: PointerProps = {
     listen: true,
   };

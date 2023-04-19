@@ -14,7 +14,7 @@ describe('useQuery', () => {
   describe('useNowQuery', () => {
     it('should return current slot and epoch', async () => {
       const { result } = renderHook(() => useNowQuery(), {
-        wrapper: ProviderWrapper,
+        wrapper: ProviderWrapper(),
       });
 
       const now = getNow();
@@ -28,7 +28,7 @@ describe('useQuery', () => {
   describe('useNowQuery', () => {
     it('should return metadata', async () => {
       const { result } = renderHook(() => useSpecQuery(), {
-        wrapper: ProviderWrapper,
+        wrapper: ProviderWrapper(),
       });
 
       await waitFor(() => result.current.isSuccess);
@@ -40,7 +40,7 @@ describe('useQuery', () => {
   describe('useMetadataQuery', () => {
     it('should return metadata', async () => {
       const { result } = renderHook(() => useMetadataQuery({}), {
-        wrapper: ProviderWrapper,
+        wrapper: ProviderWrapper(),
       });
 
       await waitFor(() => result.current.isSuccess);
@@ -51,7 +51,7 @@ describe('useQuery', () => {
   describe('useNodeQuery', () => {
     it('should return nodes', async () => {
       const { result } = renderHook(() => useNodesQuery({}), {
-        wrapper: ProviderWrapper,
+        wrapper: ProviderWrapper(),
       });
 
       await waitFor(() => result.current.isSuccess);
@@ -62,7 +62,7 @@ describe('useQuery', () => {
   describe('useFrameQuery', () => {
     it('should return the frame metadata id', async () => {
       const { result } = renderHook(() => useFrameQuery('123'), {
-        wrapper: ProviderWrapper,
+        wrapper: ProviderWrapper(),
       });
 
       await waitFor(() => result.current.isSuccess);

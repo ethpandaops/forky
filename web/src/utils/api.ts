@@ -1,4 +1,4 @@
-import { ForkChoiceData, ForkChoiceNode, ExtraData } from '@app/types/api';
+import { ForkChoiceData, ForkChoiceNode } from '@app/types/api';
 import { randomHex, randomBigInt, randomInt } from '@utils/functions';
 
 export function equalForkChoiceNode(a?: ForkChoiceNode, b?: ForkChoiceNode) {
@@ -114,7 +114,7 @@ export function generateRandomForkChoiceData({
 
     // const isFork = Math.random() < forkChance;
 
-    const extraData: ExtraData = {
+    const extraData = {
       state_root: randomHex(64),
       justified_root: randomHex(64),
       unrealised_justified_epoch: justifiedCheckpoint.epoch,

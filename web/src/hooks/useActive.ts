@@ -2,14 +2,14 @@ import { useMemo } from 'react';
 
 import { FrameMetaData } from '@app/types/api';
 import useFocus from '@contexts/focus';
-import { useMetadataQuery, useFrameQuery } from '@hooks/useQuery';
+import { useMetadataQuery } from '@hooks/useQuery';
 
 interface State {
   nodes: string[];
   ids: string[];
 }
 
-function findLatestFrameIdPerNode(
+export function findLatestFrameIdPerNode(
   focusedTime: number,
   metadata: FrameMetaData[] = [],
   focusedNode?: string,

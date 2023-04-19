@@ -26,6 +26,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       <QueryClientProvider client={queryClient}>
         <Switch>
           <Route path="/node/:node">{({ node }) => <App node={node} />}</Route>
+          <Route path="/node/:node/events">{({ node }) => <App node={node} />}</Route>
           <Route path="/snapshot/:id">{({ id }) => <App frameId={id} />}</Route>
           <Route>
             <App />

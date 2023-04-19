@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useRef } from 'react';
 
 import {
   ArrowUturnRightIcon,
@@ -10,8 +10,16 @@ import {
 import EditableInput from '@components/EditableInput';
 import useEthereum from '@contexts/ethereum';
 import useFocus from '@contexts/focus';
+import useOutsideInteraction from '@hooks/useOutsideInteraction';
 
 function TimelineControl() {
+  const controlRef = useRef<HTMLDivElement>(null);
+  const blurAllInputs = () => {
+    const inputs = controlRef.current?.querySelectorAll('input');
+    inputs?.forEach((input) => input.blur());
+  };
+  useOutsideInteraction(controlRef, blurAllInputs);
+
   const {
     setTime: setFocusedTime,
     setSlot: setCurrentSlot,
@@ -51,7 +59,7 @@ function TimelineControl() {
   };
 
   return (
-    <div className="flex justify-center">
+    <div ref={controlRef} className="flex justify-center">
       <div className="flex gap-x-8 w-full h-12 xl:h-16 xl:w-fit bg-stone-200 dark:bg-stone-700 px-3 xl:py-3 xl:rounded-t-xl justify-center items-center">
         <div className="relative hidden md:block">
           <label
