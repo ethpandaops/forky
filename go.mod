@@ -13,7 +13,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.0
 	github.com/creasty/defaults v1.7.0
 	github.com/ethpandaops/ethwallclock v0.3.0
-	github.com/ethpandaops/xatu v0.0.53
+	github.com/ethpandaops/xatu v0.0.54
 	github.com/go-co-op/gocron v1.18.1
 	github.com/google/uuid v1.3.0
 	github.com/jellydator/ttlcache/v3 v3.0.1

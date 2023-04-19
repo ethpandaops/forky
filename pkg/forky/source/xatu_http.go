@@ -345,6 +345,22 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 		Data: data,
 	}
 
+	if event.GetEvent().GetName() == xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG {
+		data := event.GetEthV1ForkChoiceReorg()
+
+		prefix := "xatu_reorg_event_"
+
+		frame.Metadata.Labels = append(frame.Metadata.Labels,
+			fmt.Sprintf(prefix+"slot=%d", data.GetEvent().GetSlot()),
+			fmt.Sprintf(prefix+"epoch=%d", data.GetEvent().GetEpoch()),
+			prefix+"old_head_block="+data.GetEvent().GetOldHeadBlock(),
+			prefix+"old_head_state="+data.GetEvent().GetOldHeadState(),
+			prefix+"new_head_block="+data.GetEvent().GetNewHeadBlock(),
+			prefix+"new_head_state="+data.GetEvent().GetNewHeadState(),
+			fmt.Sprintf(prefix+"depth=%d", +data.GetEvent().GetDepth()),
+		)
+	}
+
 	for _, fn := range x.onFrameCallbacks {
 		fn(ctx, frame)
 	}
