@@ -150,7 +150,7 @@ export default function useGraph({
       attributes: graph.getAttributes(),
       type,
     };
-  }, [dataId, spacingY, spacingY]);
+  }, [dataId, spacingX, spacingY]);
 
   return { ...attributes, ...offset, edges, nodes, type };
 }

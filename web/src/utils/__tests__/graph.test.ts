@@ -519,7 +519,13 @@ describe('graph', () => {
             justified_checkpoint: { epoch: '6', root: '0x' },
             fork_choice_nodes: [{ slot: 'abc' }],
           },
-          metadata: {},
+          metadata: {
+            id: '1',
+            node: 'node1',
+            fetched_at: new Date().toISOString(),
+            wall_clock_slot: 0,
+            wall_clock_epoch: 0,
+          },
         } as Required<Frame>),
       ).toThrowError(GraphError);
     });
@@ -576,8 +582,14 @@ describe('graph', () => {
             },
           ],
         },
-        metadata: {},
-      } as Required<Frame>);
+        metadata: {
+          id: '1',
+          node: 'node1',
+          fetched_at: new Date().toISOString(),
+          wall_clock_slot: 0,
+          wall_clock_epoch: 0,
+        },
+      });
       expect(
         graph.getNodeAttribute(
           generateNodeId({
@@ -906,7 +918,16 @@ describe('graph', () => {
         ],
       };
 
-      const { graph } = processForkChoiceData({ data, metadata: {} } as Required<Frame>);
+      const { graph } = processForkChoiceData({
+        data,
+        metadata: {
+          id: '1',
+          node: 'node1',
+          fetched_at: new Date().toISOString(),
+          wall_clock_slot: 0,
+          wall_clock_epoch: 0,
+        },
+      });
 
       expect(graph.getAttribute('slotStart')).to.equal(10);
       expect(graph.getAttribute('slotEnd')).to.equal(16);

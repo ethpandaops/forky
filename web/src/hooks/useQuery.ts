@@ -41,7 +41,7 @@ export function useNodesQuery(filter: FrameFilter, enabled = true) {
 export function useMetadataQuery(filter: FrameFilter, enabled = true) {
   return useQuery<FrameMetaData[], unknown, FrameMetaData[], [string, FrameFilter]>({
     queryKey: ['metadata', filter],
-    queryFn: () => fetchMetadataList({ pagination: { limit: 100 }, filter }),
+    queryFn: () => fetchMetadataList({ pagination: { limit: 1000 }, filter }),
     enabled,
     staleTime: 6_000,
   });

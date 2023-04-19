@@ -40,7 +40,7 @@ export default function Selection() {
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-30" />
             </Transition.Child>
             <div className="fixed inset-0 overflow-hidden z-30">
               <div className="absolute inset-0 overflow-hidden">

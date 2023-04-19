@@ -388,8 +388,7 @@ export function processForkChoiceData(frame: Required<Frame>): ProcessedData {
       try {
         const parentNodeId = blockRootNodeIds[forkChoiceNode.parent_root];
         const parentForkChoiceNode = forkChoiceNodes[parentNodeId];
-        graph.addDirectedEdge(parentNodeId, nodeId, {
-          directed: true,
+        graph.addEdge(parentNodeId, nodeId, {
           distance:
             Number.parseInt(forkChoiceNode.slot) - Number.parseInt(parentForkChoiceNode.slot),
         });
@@ -554,8 +553,7 @@ export function aggregateProcessedData(data: ProcessedData[]): AggregatedGraph {
       // check if parent exists to add edge
       if (node.parentRoot && nodeMap[node.parentRoot]) {
         if (!graph.hasEdge(nodeMap[node.parentRoot].id, nodeId)) {
-          graph.addDirectedEdge(nodeMap[node.parentRoot].id, nodeId, {
-            directed: true,
+          graph.addEdge(nodeMap[node.parentRoot].id, nodeId, {
             distance: node.slot - nodeMap[node.parentRoot].slot,
           });
         }

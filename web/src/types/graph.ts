@@ -35,7 +35,6 @@ export interface NodeAttributes {
 }
 
 export interface EdgeAttributes {
-  directed: boolean;
   distance: number;
 }
 
