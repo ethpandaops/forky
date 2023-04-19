@@ -117,7 +117,7 @@ func (i *Indexer) CountFrameMetadata(ctx context.Context, filter *FrameFilter) (
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -155,7 +155,7 @@ func (i *Indexer) ListFrameMetadata(ctx context.Context, filter *FrameFilter, pa
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -199,7 +199,7 @@ func (i *Indexer) CountNodesWithFrames(ctx context.Context, filter *FrameFilter)
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -237,7 +237,7 @@ func (i *Indexer) ListNodesWithFrames(ctx context.Context, filter *FrameFilter, 
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -279,7 +279,7 @@ func (i *Indexer) CountSlotsWithFrames(ctx context.Context, filter *FrameFilter)
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -317,7 +317,7 @@ func (i *Indexer) ListSlotsWithFrames(ctx context.Context, filter *FrameFilter, 
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -359,7 +359,7 @@ func (i *Indexer) CountEpochsWithFrames(ctx context.Context, filter *FrameFilter
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -397,7 +397,7 @@ func (i *Indexer) ListEpochsWithFrames(ctx context.Context, filter *FrameFilter,
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, page)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -524,10 +524,24 @@ func (i *Indexer) DeleteFrameMetadata(ctx context.Context, id string) error {
 	return nil
 }
 
-func (i *Indexer) getFrameIDsWithLabels(ctx context.Context, labels []string) ([]string, error) {
+func (i *Indexer) getFrameIDsWithLabels(ctx context.Context, labels []string, page *PaginationCursor) ([]string, error) {
 	frameLabels := []*FrameMetadataLabel{}
 
-	if err := i.db.Model(&FrameMetadataLabel{}).Where("name IN (?)", labels).Find(&frameLabels).Error; err != nil {
+	if page == nil {
+		page = &PaginationCursor{
+			Limit:  1000,
+			Offset: 0,
+		}
+	}
+
+	if err := i.db.
+		Model(&FrameMetadataLabel{}).
+		Where("name IN (?)", labels).
+		Limit(page.Limit).
+		Offset(page.Offset).
+		Order("created_at DESC").
+		Find(&frameLabels).
+		Error; err != nil {
 		return nil, err
 	}
 
