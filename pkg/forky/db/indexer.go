@@ -525,7 +525,7 @@ func (i *Indexer) DeleteFrameMetadata(ctx context.Context, id string) error {
 	return nil
 }
 
-func (i *Indexer) getFrameIDsWithLabels(ctx context.Context, labels []string, page *PaginationCursor, before *time.Time, after *time.Time) ([]string, error) {
+func (i *Indexer) getFrameIDsWithLabels(ctx context.Context, labels []string, page *PaginationCursor, before, after *time.Time) ([]string, error) {
 	frameLabels := []*FrameMetadataLabel{}
 
 	if page == nil {
