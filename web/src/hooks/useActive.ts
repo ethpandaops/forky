@@ -18,9 +18,6 @@ export function findLatestFrameIdPerNode(
   metadata = metadata.filter((frame) => {
     // only frames with fetched_at before focusedTime
     if (new Date(frame.fetched_at).getTime() >= focusedTime) return false;
-    // only frames that are not a reorg
-    if (frame.labels?.includes('xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG'))
-      return false;
 
     return true;
   });
