@@ -19,6 +19,10 @@ const eventMap: Record<string, string> = {
   BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG: 'Reorg',
 };
 
+const colorMap: Record<string, string> = {
+  Reorg: 'text-red-600 dark:text-red-400',
+};
+
 const formatTypeFromLabels = (labels?: string[] | null): string => {
   if (!labels) return 'unknown';
   for (const label of labels) {
@@ -31,10 +35,18 @@ const formatTypeFromLabels = (labels?: string[] | null): string => {
 const lableMap: Record<string, string> = {
   consensus_client_implementation: 'Client',
   consensus_client_version: 'Client Version',
+  fetch_request_duration_ms: 'Request Duration (ms)',
+  xatu_reorg_event_slot: 'Reorg Slot',
+  xatu_reorg_event_epoch: 'Reorg Epoch',
+  xatu_reorg_event_old_head_block: 'Old Head Block',
+  xatu_reorg_event_old_head_state: 'Old Head State',
+  xatu_reorg_event_new_head_block: 'New Head Block',
+  xatu_reorg_event_new_head_state: 'New Head State',
+  xatu_reorg_event_depth: 'Reorg Depth',
 };
 
-const formatExtraDataFromLabels = (labels?: string[] | null): [string, string][] => {
-  const extraData: [string, string][] = [];
+const formatExtraDataFromLabels = (labels?: string[] | null): [string, string, string][] => {
+  const extraData: [string, string, string][] = [];
   if (!labels) return extraData;
   for (const label of labels) {
     const [key, value] = label.split('=', 2);
@@ -49,7 +61,16 @@ const formatExtraDataFromLabels = (labels?: string[] | null): [string, string][]
       ].includes(key)
     )
       continue;
-    extraData.push([lableMap[key] ?? key, value]);
+    let color = '';
+
+    // hanlde special case
+    if (key === 'xatu_reorg_event_depth') {
+      const depth = Number.parseInt(value);
+      if (depth > 2) color = 'text-red-600 dark:text-red-400';
+      else color = 'text-yellow-600 dark:text-yellow-400';
+    }
+
+    extraData.push([lableMap[key] ?? key, value, color]);
   }
   return extraData;
 };
@@ -113,7 +134,7 @@ export default function Selection() {
   const events = useMemo<
     {
       snapshots: { id: string; key?: string }[];
-      extraData: [string, string][];
+      extraData: [string, string, string][];
       time: number;
       type: string;
       node: string;
@@ -126,7 +147,7 @@ export default function Selection() {
         string,
         {
           snapshots: { id: string; key?: string }[];
-          extraData: [string, string][];
+          extraData: [string, string, string][];
           time: number;
           type: string;
           node: string;
@@ -427,7 +448,13 @@ export default function Selection() {
                                         <ReactTimeAgo date={time} />
                                         <span className="pl-1">({time.toISOString()})</span>
                                       </td>
-                                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-semibold text-stone-900 dark:text-stone-100 sm:pl-0 uppercase">
+                                      <td
+                                        className={classNames(
+                                          'whitespace-nowrap py-4 pl-4 pr-3 text-sm font-semibold sm:pl-0 uppercase',
+                                          colorMap[event.type] ??
+                                            'text-stone-900 dark:text-stone-100',
+                                        )}
+                                      >
                                         {event.type}
                                       </td>
                                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-semibold underline text-stone-900 dark:text-stone-100 sm:pl-0">
@@ -435,7 +462,7 @@ export default function Selection() {
                                           href={`/node/${event.node}`}
                                           onClick={() => {
                                             stop();
-                                            setTime(time.getTime());
+                                            setTime(time.getTime() + 100);
                                           }}
                                         >
                                           {event.node}
@@ -444,15 +471,22 @@ export default function Selection() {
                                       </td>
                                       <td className="py-4 pl-4 pr-3 text-sm font-semibold text-stone-900 dark:text-stone-100 sm:pl-0">
                                         {event.snapshots.map(({ id, key }) => (
-                                          <span key={id} className="whitespace-nowrap">
+                                          <div key={id} className="whitespace-nowrap">
                                             {key && (
-                                              <span className="font-semibold pr-1">{key}:</span>
+                                              <span className="font-normal pr-1">{key}:</span>
                                             )}
-                                            <Link href={`/snapshot/${id}`} className="underline">
+                                            <Link
+                                              href={`/snapshot/${id}`}
+                                              className="underline"
+                                              onClick={() => {
+                                                stop();
+                                                setTime(time.getTime() + 100);
+                                              }}
+                                            >
                                               {id}
                                             </Link>
                                             <ArrowTopRightOnSquareIcon className="inline h-5 w-5 pl-1" />
-                                          </span>
+                                          </div>
                                         ))}
                                       </td>
                                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-semibold text-stone-900 dark:text-stone-100 sm:pl-0">
@@ -462,10 +496,10 @@ export default function Selection() {
                                         {epoch}
                                       </td>
                                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-semibold text-stone-900 dark:text-stone-100 sm:pl-0">
-                                        {event.extraData.map(([key, value]) => {
+                                        {event.extraData.map(([key, value, color]) => {
                                           return (
-                                            <div key={key}>
-                                              <span className="font-semibold">{key}</span>: {value}
+                                            <div key={key} className={color}>
+                                              {key}: {value}
                                             </div>
                                           );
                                         })}

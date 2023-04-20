@@ -56,6 +56,7 @@ export default function App({ node, frameId }: { node?: string; frameId?: string
     return (
       <div className="w-screen h-screen bg-stone-900">
         <Loading
+          textColor="text-stone-100"
           message={
             isLoading || isLoadingNow
               ? 'Loading...'
