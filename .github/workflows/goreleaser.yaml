@@ -7,7 +7,7 @@ on:
 
 jobs:
   goreleaser:
-    runs-on: ubuntu-20.04
+    runs-on: services-xlarge-cpu
     steps:
       - name: Checkout
         uses: actions/checkout@v3
