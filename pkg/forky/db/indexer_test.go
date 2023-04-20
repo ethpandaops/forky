@@ -449,7 +449,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 		}
 
 		// List frames with random filters
-		for i := 0; i < 100; i++ {
+		for i := 0; i < 500; i++ {
 			var filter FrameFilter
 
 			if testRandIntn(2) == 1 {

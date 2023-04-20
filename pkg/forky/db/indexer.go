@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/forky/pkg/forky/types"
@@ -117,7 +118,7 @@ func (i *Indexer) CountFrameMetadata(ctx context.Context, filter *FrameFilter) (
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil, filter.Before, filter.After)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -155,7 +156,7 @@ func (i *Indexer) ListFrameMetadata(ctx context.Context, filter *FrameFilter, pa
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil, filter.Before, filter.After)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -199,7 +200,7 @@ func (i *Indexer) CountNodesWithFrames(ctx context.Context, filter *FrameFilter)
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil, filter.Before, filter.After)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -237,7 +238,7 @@ func (i *Indexer) ListNodesWithFrames(ctx context.Context, filter *FrameFilter, 
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil, filter.Before, filter.After)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -279,7 +280,7 @@ func (i *Indexer) CountSlotsWithFrames(ctx context.Context, filter *FrameFilter)
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil, filter.Before, filter.After)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -317,7 +318,7 @@ func (i *Indexer) ListSlotsWithFrames(ctx context.Context, filter *FrameFilter, 
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil, filter.Before, filter.After)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -359,7 +360,7 @@ func (i *Indexer) CountEpochsWithFrames(ctx context.Context, filter *FrameFilter
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, nil, filter.Before, filter.After)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -397,7 +398,7 @@ func (i *Indexer) ListEpochsWithFrames(ctx context.Context, filter *FrameFilter,
 
 	// Fetch frames that have ALL labels provided.
 	if filter.Labels != nil {
-		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, page)
+		frameIDs, err := i.getFrameIDsWithLabels(ctx, *filter.Labels, page, filter.Before, filter.After)
 		if err != nil {
 			i.metrics.ObserveOperationError(operation)
 
@@ -524,22 +525,32 @@ func (i *Indexer) DeleteFrameMetadata(ctx context.Context, id string) error {
 	return nil
 }
 
-func (i *Indexer) getFrameIDsWithLabels(ctx context.Context, labels []string, page *PaginationCursor) ([]string, error) {
+func (i *Indexer) getFrameIDsWithLabels(ctx context.Context, labels []string, page *PaginationCursor, before *time.Time, after *time.Time) ([]string, error) {
 	frameLabels := []*FrameMetadataLabel{}
 
 	if page == nil {
 		page = &PaginationCursor{
-			Limit:  1000,
+			Limit:  30000,
 			Offset: 0,
 		}
 	}
 
-	if err := i.db.
+	query := i.db.
 		Model(&FrameMetadataLabel{}).
 		Where("name IN (?)", labels).
 		Limit(page.Limit).
 		Offset(page.Offset).
-		Order("created_at DESC").
+		Order("created_at DESC")
+
+	if before != nil {
+		query = query.Where("created_at < ?", before)
+	}
+
+	if after != nil {
+		query = query.Where("created_at > ?", after)
+	}
+
+	if err := query.
 		Find(&frameLabels).
 		Error; err != nil {
 		return nil, err
