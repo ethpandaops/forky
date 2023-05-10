@@ -7,10 +7,10 @@ import (
 
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/forky/pkg/forky/types"
+	"github.com/glebarez/sqlite"
 	perrors "github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/plugin/prometheus"
 )
