@@ -8,7 +8,7 @@ import (
 
 type FrameMetadataLabel struct {
 	gorm.Model
-	Name      string    `gorm:"primaryKey;index:idx_name_created_at_deleted_at,where:deleted_at IS NULL"`
+	Name      string    `gorm:"index:idx_name_created_at_deleted_at,where:deleted_at IS NULL"`
 	FrameID   string    `gorm:"index"`
 	CreatedAt time.Time `gorm:"index:idx_name_created_at_deleted_at,where:deleted_at IS NULL"`
 }
