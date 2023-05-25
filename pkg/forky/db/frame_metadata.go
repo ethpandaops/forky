@@ -15,7 +15,7 @@ type FrameMetadata struct {
 	// We have to use int64 here as SQLite doesn't support uint64. This sucks
 	// but slot 9223372036854775808 is probably around the heat death
 	// of the universe so we should be OK.
-	WallClockSlot  int64
+	WallClockSlot  int64 `gorm:"index:idx_wall_clock_slot,where:deleted_at IS NULL"`
 	WallClockEpoch int64
 	FetchedAt      time.Time            `gorm:"index"`
 	Labels         []FrameMetadataLabel `gorm:"foreignkey:FrameID;"`

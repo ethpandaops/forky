@@ -1,13 +1,16 @@
 package db
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 )
 
 type FrameMetadataLabel struct {
 	gorm.Model
-	Name    string `gorm:"primaryKey,index"`
-	FrameID string `gorm:"index"`
+	Name      string    `gorm:"primaryKey;index:idx_name_created_at_deleted_at,where:deleted_at IS NULL"`
+	FrameID   string    `gorm:"index"`
+	CreatedAt time.Time `gorm:"index:idx_name_created_at_deleted_at,where:deleted_at IS NULL"`
 }
 
 type FrameMetadataLabels []FrameMetadataLabel
