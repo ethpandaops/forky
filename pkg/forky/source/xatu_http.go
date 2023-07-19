@@ -194,6 +194,15 @@ func (x *XatuHTTP) handleNDJSONRequest(ctx context.Context, body []byte) error {
 }
 
 func (x *XatuHTTP) handleJSONRequest(ctx context.Context, body []byte) error {
+	// Strip the outer array.
+	if len(body) > 0 && body[0] == '[' {
+		body = body[1:]
+	}
+
+	if len(body) > 0 && body[len(body)-1] == ']' {
+		body = body[:len(body)-1]
+	}
+
 	event := xatu.DecoratedEvent{}
 
 	err := protojson.Unmarshal(body, &event)
