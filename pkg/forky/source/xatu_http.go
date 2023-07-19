@@ -194,7 +194,16 @@ func (x *XatuHTTP) handleNDJSONRequest(ctx context.Context, body []byte) error {
 }
 
 func (x *XatuHTTP) handleJSONRequest(ctx context.Context, body []byte) error {
-	return errors.New("JSON requests are not supported")
+	event := xatu.DecoratedEvent{}
+
+	err := protojson.Unmarshal(body, &event)
+	if err != nil {
+		return err
+	}
+
+	x.handleXatuEvents(ctx, []*xatu.DecoratedEvent{&event})
+
+	return nil
 }
 
 func (x *XatuHTTP) handleXatuEvents(ctx context.Context, events []*xatu.DecoratedEvent) {
