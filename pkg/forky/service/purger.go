@@ -26,6 +26,8 @@ func (f *ForkChoice) DeleteOldFrames(ctx context.Context) error {
 	}
 
 	for _, frame := range frames {
+		f.log.WithField("frame_id", frame.ID).WithField("age", time.Since(frame.FetchedAt)).Debug("Deleting old frame")
+
 		if err := f.DeleteFrame(ctx, frame.ID); err != nil {
 			f.log.WithError(err).WithField("frame_id", frame.ID).Error("Failed to delete old frame")
 		}
