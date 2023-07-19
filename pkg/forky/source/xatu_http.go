@@ -2,7 +2,6 @@ package source
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -182,7 +181,7 @@ func (x *XatuHTTP) handleNDJSONRequest(ctx context.Context, body []byte) error {
 		}
 
 		var v xatu.DecoratedEvent
-		if err := json.Unmarshal([]byte(line), &v); err != nil {
+		if err := protojson.Unmarshal([]byte(line), &v); err != nil {
 			return err
 		}
 
@@ -195,16 +194,7 @@ func (x *XatuHTTP) handleNDJSONRequest(ctx context.Context, body []byte) error {
 }
 
 func (x *XatuHTTP) handleJSONRequest(ctx context.Context, body []byte) error {
-	events := []*xatu.DecoratedEvent{}
-
-	err := json.Unmarshal(body, &events)
-	if err != nil {
-		return err
-	}
-
-	x.handleXatuEvents(ctx, events)
-
-	return nil
+	return errors.New("JSON requests are not supported")
 }
 
 func (x *XatuHTTP) handleXatuEvents(ctx context.Context, events []*xatu.DecoratedEvent) {
