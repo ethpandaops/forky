@@ -15,6 +15,7 @@ function AggregatedNode({
   justifiedCheckpoints,
   orphans,
   valid,
+  optimistic,
   total,
   x,
   y,
@@ -31,6 +32,7 @@ function AggregatedNode({
   justifiedCheckpoints: number;
   orphans: number;
   valid: number;
+  optimistic: number;
   total: number;
   x: number;
   y: number;
@@ -79,6 +81,14 @@ function AggregatedNode({
 
     switch (type) {
       case 'canonical':
+        if (optimistic > 0) {
+          return [
+            'text-yellow-600',
+            'text-yellow-800',
+            'border-yellow-500 dark:border-yellow-900',
+            `${optimistic}/${valid} OPTIMISTIC`,
+          ];
+        }
         return [
           'text-emerald-600',
           'text-emerald-800',
@@ -90,7 +100,7 @@ function AggregatedNode({
           'text-amber-600',
           'text-amber-800',
           'border-amber-500 dark:border-amber-900',
-          'VALID',
+          optimistic > 0 ? `${optimistic}/${valid} OPTIMISTIC` : 'VALID',
         ];
       default:
         return [
