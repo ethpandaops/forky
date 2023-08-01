@@ -32,11 +32,14 @@ function WeightedNode({
   const [isHighlighted, setIsHighlighted] = useState(false);
 
   const [color, backgroundColor, borderColor] = (() => {
-    if (validity.toLowerCase() !== 'valid') {
+    if (!['valid', 'optimistic'].includes(validity.toLowerCase())) {
       return ['text-red-600', 'text-red-800', 'border-red-500 dark:border-red-900'];
     }
     switch (type) {
       case 'canonical':
+        if (validity.toLowerCase() === 'optimistic') {
+          return ['text-yellow-600', 'text-yellow-800', 'border-yellow-500 dark:border-yellow-900'];
+        }
         return [
           'text-emerald-600',
           'text-emerald-800',

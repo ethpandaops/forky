@@ -199,7 +199,8 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
             finalizedCheckpoints={finalizedCheckpoints}
             justifiedCheckpoints={justifiedCheckpoints}
             orphans={orphaned.length}
-            valid={validities.filter((v) => v.validity === 'valid').length}
+            valid={validities.filter((v) => ['valid', 'optimistic'].includes(v.validity)).length}
+            optimistic={validities.filter((v) => v.validity === 'optimistic').length}
             total={data.length}
             type={type}
             hash={blockRoot}

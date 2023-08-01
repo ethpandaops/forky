@@ -13,6 +13,7 @@ const componentMeta: Meta<typeof Component> = {
     y: 0,
     radius: 200,
     weightPercentageComparedToHeaviestNeighbor: 100,
+    validity: 'valid',
   },
   tags: ['autodocs'],
   argTypes: {},
