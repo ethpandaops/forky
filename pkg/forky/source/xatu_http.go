@@ -363,8 +363,8 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 			ID:   uuid.New().String(),
 			Node: event.Meta.Client.Name,
 
-			WallClockSlot:  phase0.Slot(snapshot.GetRequestSlot().Number),
-			WallClockEpoch: phase0.Epoch(snapshot.GetRequestEpoch().Number),
+			WallClockSlot:  phase0.Slot(snapshot.GetRequestSlot().GetNumberV2().Value),
+			WallClockEpoch: phase0.Epoch(snapshot.GetRequestEpoch().GetNumberV2().Value),
 
 			FetchedAt: snapshot.GetTimestamp().AsTime(),
 
@@ -376,7 +376,7 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 				"consensus_client_version=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetVersion(),
 				fmt.Sprintf("ethereum_network_id=%d", event.GetMeta().GetClient().GetEthereum().GetNetwork().GetId()),
 				"ethereum_network_name=" + event.GetMeta().GetClient().GetEthereum().GetNetwork().GetName(),
-				fmt.Sprintf("fetch_request_duration_ms=%d", snapshot.GetRequestDurationMs()),
+				fmt.Sprintf("fetch_request_duration_ms=%d", snapshot.GetRequestDurationMsV2().Value),
 			},
 		},
 		Data: data,
@@ -388,13 +388,13 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 		prefix := "xatu_reorg_event_"
 
 		frame.Metadata.Labels = append(frame.Metadata.Labels,
-			fmt.Sprintf(prefix+"slot=%d", data.GetEvent().GetSlot()),
-			fmt.Sprintf(prefix+"epoch=%d", data.GetEvent().GetEpoch()),
+			fmt.Sprintf(prefix+"slot=%d", data.GetEvent().GetSlotV2().Value),
+			fmt.Sprintf(prefix+"epoch=%d", data.GetEvent().GetEpochV2().Value),
 			prefix+"old_head_block="+data.GetEvent().GetOldHeadBlock(),
 			prefix+"old_head_state="+data.GetEvent().GetOldHeadState(),
 			prefix+"new_head_block="+data.GetEvent().GetNewHeadBlock(),
 			prefix+"new_head_state="+data.GetEvent().GetNewHeadState(),
-			fmt.Sprintf(prefix+"depth=%d", +data.GetEvent().GetDepth()),
+			fmt.Sprintf(prefix+"depth=%d", +data.GetEvent().GetDepthV2().Value),
 
 			"xatu_reorg_frame_timing="+timing,
 		)
