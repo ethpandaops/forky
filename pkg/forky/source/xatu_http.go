@@ -48,7 +48,9 @@ func NewXatuHTTP(namespace, name string, log logrus.FieldLogger, config *XatuHTT
 	filter, err := xatu.NewEventFilter(&xatu.EventFilterConfig{
 		EventNames: []string{
 			xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE.String(),
+			xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_V2.String(),
 			xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG.String(),
+			xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2.String(),
 		},
 	})
 	if err != nil {
@@ -276,8 +278,12 @@ func (x *XatuHTTP) handleXatuEvent(ctx context.Context, event *xatu.DecoratedEve
 	switch event.Event.Name {
 	case xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE:
 		return x.handleForkChoiceEvent(ctx, event)
+	case xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_V2:
+		return x.handleForkChoiceV2Event(ctx, event)
 	case xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG:
 		return x.handleForkChoiceReorgEvent(ctx, event)
+	case xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2:
+		return x.handleForkChoiceReorgV2Event(ctx, event)
 	}
 
 	return errors.New("unknown event type") // Should never happen (touch wood (tm (c)))
@@ -301,6 +307,26 @@ func (x *XatuHTTP) handleForkChoiceEvent(ctx context.Context, event *xatu.Decora
 	}
 
 	return x.createFrameFromSnapshotAndData(ctx, event, data, additionalData.GetSnapshot(), "")
+}
+
+func (x *XatuHTTP) handleForkChoiceV2Event(ctx context.Context, event *xatu.DecoratedEvent) error {
+	// Create a new frame based on the event
+	fc := event.GetEthV1ForkChoiceV2()
+	if fc == nil {
+		return fmt.Errorf("event is not a fork choice event")
+	}
+
+	data, err := fc.AsGoEth2ClientV1ForkChoice()
+	if err != nil {
+		return fmt.Errorf("failed to convert event to fork choice: %w", err)
+	}
+
+	additionalData := event.GetMeta().GetClient().GetEthV1DebugForkChoiceV2()
+	if additionalData == nil {
+		return fmt.Errorf("event is missing additional data")
+	}
+
+	return x.createFrameFromSnapshotV2AndData(ctx, event, data, additionalData.GetSnapshot(), "")
 }
 
 func (x *XatuHTTP) handleForkChoiceReorgEvent(ctx context.Context, event *xatu.DecoratedEvent) error {
@@ -343,6 +369,55 @@ func (x *XatuHTTP) handleForkChoiceReorgEvent(ctx context.Context, event *xatu.D
 			x.log.WithError(err).Error("failed to convert fork_choice_reorg.before to fork choice")
 		} else {
 			err = x.createFrameFromSnapshotAndData(ctx, event, data, additionalData.Before, "before")
+			if err != nil {
+				x.log.WithError(err).Error("failed to create frame from fork_choice_reorg.before")
+			}
+		}
+	}
+
+	return nil
+}
+
+func (x *XatuHTTP) handleForkChoiceReorgV2Event(ctx context.Context, event *xatu.DecoratedEvent) error {
+	x.log.
+		WithField("event_id", event.GetMeta().GetClient().GetId()).
+		WithField("client_name", event.GetMeta().GetClient().GetName()).
+		Info("Handling fork choice reorg event")
+
+	// Create 2 new frames based on the event (one for `before` the reorg and one for `after` the reorg)
+	// Note: `before` can be nil if the reorg happened before the xatu sentry started
+	fcr := event.GetEthV1ForkChoiceReorgV2()
+	if fcr == nil {
+		return fmt.Errorf("event is not a fork choice reorg event")
+	}
+
+	additionalData := event.GetMeta().GetClient().GetEthV1DebugForkChoiceReorgV2()
+	if additionalData == nil {
+		return fmt.Errorf("event is missing additional data")
+	}
+
+	if fcr.After == nil && fcr.Before == nil {
+		return fmt.Errorf("event is missing both before and after data")
+	}
+
+	if fcr.After != nil && additionalData.After != nil {
+		data, err := fcr.After.AsGoEth2ClientV1ForkChoice()
+		if err != nil {
+			x.log.WithError(err).Error("failed to convert fork_choice_reorg.after to fork choice")
+		} else {
+			err = x.createFrameFromSnapshotV2AndData(ctx, event, data, additionalData.After, "after")
+			if err != nil {
+				x.log.WithError(err).Error("failed to create frame from fork_choice_reorg.after")
+			}
+		}
+	}
+
+	if fcr.Before != nil && additionalData.Before != nil {
+		data, err := fcr.Before.AsGoEth2ClientV1ForkChoice()
+		if err != nil {
+			x.log.WithError(err).Error("failed to convert fork_choice_reorg.before to fork choice")
+		} else {
+			err = x.createFrameFromSnapshotV2AndData(ctx, event, data, additionalData.Before, "before")
 			if err != nil {
 				x.log.WithError(err).Error("failed to create frame from fork_choice_reorg.before")
 			}
@@ -395,6 +470,61 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 			prefix+"new_head_block="+data.GetEvent().GetNewHeadBlock(),
 			prefix+"new_head_state="+data.GetEvent().GetNewHeadState(),
 			fmt.Sprintf(prefix+"depth=%d", +data.GetEvent().GetDepth()),
+
+			"xatu_reorg_frame_timing="+timing,
+		)
+	}
+
+	for _, fn := range x.onFrameCallbacks {
+		fn(ctx, frame)
+	}
+
+	return nil
+}
+
+func (x *XatuHTTP) createFrameFromSnapshotV2AndData(ctx context.Context,
+	event *xatu.DecoratedEvent,
+	data *eth2v1.ForkChoice,
+	snapshot *xatu.ClientMeta_ForkChoiceSnapshotV2,
+	timing string,
+) error {
+	frame := &types.Frame{
+		Metadata: types.FrameMetadata{
+			ID:   uuid.New().String(),
+			Node: event.Meta.Client.Name,
+
+			WallClockSlot:  phase0.Slot(snapshot.GetRequestSlot().GetNumber().GetValue()),
+			WallClockEpoch: phase0.Epoch(snapshot.GetRequestEpoch().GetNumber().GetValue()),
+
+			FetchedAt: snapshot.GetTimestamp().AsTime(),
+
+			Labels: []string{
+				"xatu_sentry=" + event.GetMeta().GetClient().GetName(),
+				"xatu_event_name=" + event.GetEvent().GetName().String(),
+				"xatu_event_id=" + event.GetEvent().GetId(),
+				"consensus_client_implementation=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetImplementation(),
+				"consensus_client_version=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetVersion(),
+				fmt.Sprintf("ethereum_network_id=%d", event.GetMeta().GetClient().GetEthereum().GetNetwork().GetId()),
+				"ethereum_network_name=" + event.GetMeta().GetClient().GetEthereum().GetNetwork().GetName(),
+				fmt.Sprintf("fetch_request_duration_ms=%d", snapshot.GetRequestDurationMs().GetValue()),
+			},
+		},
+		Data: data,
+	}
+
+	if event.GetEvent().GetName() == xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2 {
+		data := event.GetEthV1ForkChoiceReorgV2()
+
+		prefix := "xatu_reorg_event_"
+
+		frame.Metadata.Labels = append(frame.Metadata.Labels,
+			fmt.Sprintf(prefix+"slot=%d", data.GetEvent().GetSlot()),
+			fmt.Sprintf(prefix+"epoch=%d", data.GetEvent().GetEpoch()),
+			prefix+"old_head_block="+data.GetEvent().GetOldHeadBlock(),
+			prefix+"old_head_state="+data.GetEvent().GetOldHeadState(),
+			prefix+"new_head_block="+data.GetEvent().GetNewHeadBlock(),
+			prefix+"new_head_state="+data.GetEvent().GetNewHeadState(),
+			fmt.Sprintf(prefix+"depth=%d", +data.GetEvent().GetDepth().GetValue()),
 
 			"xatu_reorg_frame_timing="+timing,
 		)
