@@ -44,6 +44,11 @@ jobs:
           git config --global user.email "ethpandaops@ethereum.org"
           git config --global user.name "ethpandaops"
 
+          # Log the short commit SHA
+          SHORT_COMMIT=$(git rev-parse --short HEAD)
+          
+          echo "Git commit: $SHORT_COMMIT"
+
           git tag -a "$VERSION" -m "Release $VERSION"
 
           echo "RELEASE_SUFFIX=$RELEASE_SUFFIX" >> $GITHUB_ENV
@@ -77,7 +82,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release --rm-dist
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_SUFFIX: ${{ env.RELEASE_SUFFIX }}

@@ -36,8 +36,10 @@ changelog:
       - '^docs:'
       - '^test:'
 release:
-  prerelease: "{{ if .Env.RELEASE_SUFFIX }}true{{ else }}false{{ end }}"
-  make_latest: "{{ if .Env.RELEASE_SUFFIX }}false{{ else }}true{{ end }}"
+  # prerelease: "{{ if .Env.RELEASE_SUFFIX }}true{{ else }}false{{ end }}"
+  # make_latest: "{{ if .Env.RELEASE_SUFFIX }}false{{ else }}true{{ end }}"
+  prerelease: true
+  make_latest: false
 
 dockers:
   ## Scratch
