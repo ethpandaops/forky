@@ -2,6 +2,8 @@ name: goreleaser
 
 on:
   push:
+    branches:
+      - 'release/*'
     tags:
       - '*'
 
@@ -13,6 +15,29 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Get latest release version for this release branch
+        if: startsWith(github.ref, 'refs/heads/release/')
+        id: latest_version
+        run: |
+          # Extract suffix from branch name (e.g., 'dencun' from 'release/dencun')
+          RELEASE_SUFFIX=${GITHUB_REF#refs/heads/release/}
+
+          # Fetch all tags and get the latest that matches the pattern
+          LATEST_VERSION=$(curl --silent "https://api.github.com/repos/$GITHUB_REPOSITORY/releases" \
+                          | jq -r --arg suffix "$RELEASE_SUFFIX" '.[] | select(.tag_name | test("^[0-9]+\\.[0-9]+\\.[0-9]+-" + $suffix + "$")) | .tag_name' \
+                          | sort -V | tail -n 1)
+
+          # Default to 0.0.1 if no matching release was found
+          if [[ -z "$LATEST_VERSION" ]]; then
+            LATEST_VERSION="0.0.1"
+          fi
+
+          VERSION=${LATEST_VERSION%-$RELEASE_SUFFIX}
+
+          git tag -a "$VERSION" -m "Release $VERSION"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
