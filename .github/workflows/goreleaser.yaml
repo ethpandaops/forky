@@ -33,7 +33,7 @@ jobs:
             LATEST_VERSION="0.0.1"
           fi
 
-          VERSION=v${LATEST_VERSION%-$RELEASE_SUFFIX}
+          VERSION=v$LATEST_VERSION-$RELEASE_SUFFIX
 
           echo "Releasing version: $VERSION"
 
