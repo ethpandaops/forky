@@ -37,6 +37,9 @@ jobs:
 
           echo "Releasing version: $VERSION"
 
+          git config --global user.email "ethpandaops@ethereum.org"
+          git config --global user.name "ethpandaops"
+
           git tag -a "$VERSION" -m "Release $VERSION"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
