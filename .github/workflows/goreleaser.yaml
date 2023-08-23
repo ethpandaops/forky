@@ -29,10 +29,13 @@ jobs:
                       | sort -V | tail -n 1)
           echo "Found latest $RELEASE_SUFFIX version: $LATEST_VERSION"
 
-          # Default to 0.0.1 if no matching release was found
+          # Default to 0.0.0 if no matching release was found
           if [[ -z "$LATEST_VERSION" ]]; then
-            LATEST_VERSION="0.0.1"
+            LATEST_VERSION="0.0.0"
           fi
+
+          # Increment the patch version
+          LATEST_VERSION=$(semver bump patch $LATEST_VERSION)
 
           VERSION=v$LATEST_VERSION-$RELEASE_SUFFIX
 
