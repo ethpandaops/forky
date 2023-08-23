@@ -35,7 +35,6 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
-
 dockers:
   ## Scratch
   - use: buildx
