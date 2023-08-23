@@ -32,7 +32,7 @@ jobs:
             LATEST_VERSION="0.0.1"
           fi
 
-          VERSION=${LATEST_VERSION%-$RELEASE_SUFFIX}
+          VERSION=v${LATEST_VERSION%-$RELEASE_SUFFIX}
 
           git tag -a "$VERSION" -m "Release $VERSION"
         env:
