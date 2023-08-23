@@ -41,6 +41,8 @@ jobs:
           git config --global user.name "ethpandaops"
 
           git tag -a "$VERSION" -m "Release $VERSION"
+
+          echo "RELEASE_SUFFIX=$RELEASE_SUFFIX" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -74,3 +76,4 @@ jobs:
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_SUFFIX: ${{ env.RELEASE_SUFFIX }}
