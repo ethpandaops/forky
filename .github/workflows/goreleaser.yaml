@@ -37,7 +37,7 @@ jobs:
           # Increment the patch version using bash
           LATEST_VERSION=$(echo "$LATEST_VERSION" | awk -F. -v OFS=. '{$NF = $NF + 1;} 1')
 
-          VERSION=v$LATEST_VERSION-$RELEASE_SUFFIX
+          VERSION=$LATEST_VERSION-$RELEASE_SUFFIX
 
           echo "Releasing version: $VERSION"
 
