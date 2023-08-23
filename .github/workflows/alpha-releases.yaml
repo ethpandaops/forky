@@ -22,9 +22,10 @@ jobs:
           RELEASE_SUFFIX=${GITHUB_REF#refs/heads/release/}
 
           # Fetch all tags and get the latest that matches the pattern
-          LATEST_VERSION=$(curl --silent "https://api.github.com/repos/$GITHUB_REPOSITORY/releases" \
-                      | jq -r --arg suffix "$RELEASE_SUFFIX" '.[] | select(.tag_name | test("^v?[0-9]+\\.[0-9]+\\.[0-9]+-" + $suffix + "$")) | .tag_name' \
-                      | sort -V | tail -n 1)
+          # Using the refs/tags API
+          LATEST_VERSION=$(curl --silent "https://api.github.com/repos/$GITHUB_REPOSITORY/git/refs/tags" \
+                      | jq -r --arg suffix "$RELEASE_SUFFIX" '.[] | select(.ref | test("refs/tags/v?[0-9]+\\.[0-9]+\\.[0-9]+-" + $suffix + "$")) | .ref' \
+                      | sed 's|refs/tags/||' | sort -V | tail -n 1)
           echo "Found latest $RELEASE_SUFFIX version: $LATEST_VERSION"
 
           # Default to 0.0.0 if no matching release was found
@@ -44,7 +45,7 @@ jobs:
 
           # Log the short commit SHA
           SHORT_COMMIT=$(git rev-parse --short HEAD)
-          
+
           echo "Git commit: $SHORT_COMMIT"
 
           git tag -a "$VERSION" -m "Release $VERSION"
