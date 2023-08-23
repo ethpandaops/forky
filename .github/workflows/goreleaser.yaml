@@ -26,6 +26,7 @@ jobs:
           LATEST_VERSION=$(curl --silent "https://api.github.com/repos/$GITHUB_REPOSITORY/releases" \
                           | jq -r --arg suffix "$RELEASE_SUFFIX" '.[] | select(.tag_name | test("^[0-9]+\\.[0-9]+\\.[0-9]+-" + $suffix + "$")) | .tag_name' \
                           | sort -V | tail -n 1)
+          echo "Found latest $RELEASE_SUFFIX version: $LATEST_VERSION"
 
           # Default to 0.0.1 if no matching release was found
           if [[ -z "$LATEST_VERSION" ]]; then
@@ -33,6 +34,8 @@ jobs:
           fi
 
           VERSION=v${LATEST_VERSION%-$RELEASE_SUFFIX}
+
+          echo "Releasing version: $VERSION"
 
           git tag -a "$VERSION" -m "Release $VERSION"
         env:
