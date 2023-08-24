@@ -16,11 +16,11 @@ jobs:
           ref: ${{ github.ref }}
       - name: Derive release suffix from tag (if it exists)
         run: |
-          # Extract suffix from tag name (e.g., 'dencun' from 'v1.0.0-dencun')
-          RELEASE_SUFFIX=${GITHUB_REF#refs/tags/v*}
+          # Extract suffix from tag name after the last '-' (e.g., 'dencun' from 'v1.0.0-dencun')
+          RELEASE_SUFFIX=${GITHUB_REF##*-}
 
-          # Default to empty string if no suffix was found
-          if [[ -z "$RELEASE_SUFFIX" ]]; then
+          # Check if we are dealing with a pure version (no suffix)
+          if [[ $RELEASE_SUFFIX == v* ]]; then
             RELEASE_SUFFIX=""
           fi
 
