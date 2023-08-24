@@ -14,6 +14,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.ref }}
+          token: ${{ secrets.EPOBOT_TOKEN }}
       - name: Get latest release version for this release branch
         if: startsWith(github.ref, 'refs/heads/release/')
         id: latest_version
