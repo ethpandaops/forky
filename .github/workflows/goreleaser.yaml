@@ -16,11 +16,11 @@ jobs:
           ref: ${{ github.ref }}
       - name: Derive release suffix from tag (if it exists)
         run: |
-          # Extract suffix from tag name (e.g., 'dencun' from 'v1.0.0-dencun')
-          RELEASE_SUFFIX=${GITHUB_REF#refs/tags/v*}
+          # Extract suffix from tag name after the last '-' (e.g., 'dencun' from 'v1.0.0-dencun')
+          RELEASE_SUFFIX=${GITHUB_REF##*-}
 
-          # Default to empty string if no suffix was found
-          if [[ -z "$RELEASE_SUFFIX" ]]; then
+          # Check if we are dealing with a pure version (no suffix)
+          if [[ $RELEASE_SUFFIX == v* ]]; then
             RELEASE_SUFFIX=""
           fi
 
@@ -53,9 +53,9 @@ jobs:
         run: |
           cp .goreleaser.yaml ../.goreleaser.yaml.new
 
-          # If RELEASE_SUFFIX includes a `-`, update the goreleaser config to not set
+          # If we have a RELEASE_SUFFIX, update the goreleaser config to not set
           # the release as the latest
-          if [[ "$RELEASE_SUFFIX" == *-* ]]; then          
+          if [[ -n "$RELEASE_SUFFIX" ]]; then
             echo "release:" >> ../.goreleaser.yaml.new
             echo "  prerelease: true" >> ../.goreleaser.yaml.new
             echo "  make_latest: false" >> ../.goreleaser.yaml.new
