@@ -53,9 +53,9 @@ jobs:
         run: |
           cp .goreleaser.yaml ../.goreleaser.yaml.new
 
-          # If we have a valid RELEASE_SUFFIX, update the goreleaser config to not set
+          # If RELEASE_SUFFIX includes a `-`, update the goreleaser config to not set
           # the release as the latest
-          if [[ -n "$RELEASE_SUFFIX" ]]; then
+          if [[ "$RELEASE_SUFFIX" == *-* ]]; then          
             echo "release:" >> ../.goreleaser.yaml.new
             echo "  prerelease: true" >> ../.goreleaser.yaml.new
             echo "  make_latest: false" >> ../.goreleaser.yaml.new
