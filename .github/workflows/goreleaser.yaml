@@ -51,22 +51,21 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Update GoReleaser config
         run: |
+          cp .goreleaser.yaml ../.goreleaser.yaml.new
+
           # If we have a valid RELEASE_SUFFIX, update the goreleaser config to not set
           # the release as the latest
           if [[ -n "$RELEASE_SUFFIX" ]]; then
-            echo "release:" >> .goreleaser.yaml
-            echo "  prerelease: true" >> .goreleaser.yaml
-            echo "  make_latest: false" >> .goreleaser.yaml
+            echo "release:" >> ../.goreleaser.yaml.new
+            echo "  prerelease: true" >> ../.goreleaser.yaml.new
+            echo "  make_latest: false" >> ../.goreleaser.yaml.new
           fi
-
-          # Add goreleaser config to gitignore so it doesnt complain about a dirty git state
-          echo ".goreleaser.yaml" >> .gitignore
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser
           version: latest
-          args: release --clean
+          args: release --clean --config ../.goreleaser.yaml.new
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_SUFFIX: ${{ env.RELEASE_SUFFIX }}
