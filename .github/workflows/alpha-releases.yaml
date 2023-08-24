@@ -40,8 +40,8 @@ jobs:
 
           echo "Releasing version: $VERSION"
 
-          git config --global user.email "ethpandaops@ethereum.org"
-          git config --global user.name "ethpandaops"
+          git config --global user.email "ethpandaopsbot@ethereum.org"
+          git config --global user.name "ethpandaopsbot"
 
           # Log the short commit SHA
           SHORT_COMMIT=$(git rev-parse --short HEAD)
@@ -55,4 +55,4 @@ jobs:
           # Push the tag
           git push origin "$VERSION" 
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.EPOBOT_TOKEN }}
