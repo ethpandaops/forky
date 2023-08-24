@@ -58,6 +58,9 @@ jobs:
             echo "  prerelease: true" >> .goreleaser.yml
             echo "  make_latest: false" >> .goreleaser.yml
           fi
+
+          # Add goreleaser config to gitignore so it doesnt complain about a dirty git state
+          echo ".goreleaser.yaml" >> .gitignore
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:
