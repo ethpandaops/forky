@@ -54,6 +54,6 @@ jobs:
           echo "RELEASE_SUFFIX=$RELEASE_SUFFIX" >> $GITHUB_ENV
 
           # Push the tag
-          git push origin "$VERSION"
+          git push origin "$VERSION" 
         env:
           GITHUB_TOKEN: ${{ secrets.EPOBOT_TOKEN }}
