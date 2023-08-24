@@ -54,9 +54,9 @@ jobs:
           # If we have a valid RELEASE_SUFFIX, update the goreleaser config to not set
           # the release as the latest
           if [[ -n "$RELEASE_SUFFIX" ]]; then
-            echo "release:" >> .goreleaser.yml
-            echo "  prerelease: true" >> .goreleaser.yml
-            echo "  make_latest: false" >> .goreleaser.yml
+            echo "release:" >> .goreleaser.yaml
+            echo "  prerelease: true" >> .goreleaser.yaml
+            echo "  make_latest: false" >> .goreleaser.yaml
           fi
 
           # Add goreleaser config to gitignore so it doesnt complain about a dirty git state
