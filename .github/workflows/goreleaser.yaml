@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3xx`
         with:
           fetch-depth: 0
           ref: ${{ github.ref }}
@@ -53,9 +53,9 @@ jobs:
         run: |
           cp .goreleaser.yaml ../.goreleaser.yaml.new
 
-          # If RELEASE_SUFFIX includes a `-`, update the goreleaser config to not set
+          # If we have a RELEASE_SUFFIX, update the goreleaser config to not set
           # the release as the latest
-          if [[ "$RELEASE_SUFFIX" == *-* ]]; then          
+          if [[ -n "$RELEASE_SUFFIX" ]]; then
             echo "release:" >> ../.goreleaser.yaml.new
             echo "  prerelease: true" >> ../.goreleaser.yaml.new
             echo "  make_latest: false" >> ../.goreleaser.yaml.new
