@@ -8,7 +8,7 @@ on:
 jobs:
   goreleaser:
     runs-on:
-      - environment=production
+      - environment=staging
       - size=medium
       - provider=ethpandaops
       - realm=platform
