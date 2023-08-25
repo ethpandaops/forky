@@ -7,7 +7,11 @@ on:
 
 jobs:
   goreleaser:
-    runs-on: ubuntu-20.04
+    runs-on:
+      - environment=production
+      - size=medium
+      - provider=ethpandaops
+      - realm=platform
     steps:
       - name: Checkout
         uses: actions/checkout@v3
