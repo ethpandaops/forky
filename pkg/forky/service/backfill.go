@@ -9,7 +9,6 @@ import (
 
 func (f *ForkChoice) BackfillConsensusClient(ctx context.Context) error {
 	// Get all frames that don't have a consensus client
-
 	empty := ""
 
 	filter := &FrameFilter{

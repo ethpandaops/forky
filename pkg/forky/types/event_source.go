@@ -28,6 +28,7 @@ func NewEventSourceFromString(s string) EventSource {
 }
 
 func RandomEventSource() EventSource {
+	//nolint:gosec // Not concerned about randomness here.
 	switch rand.Intn(3) {
 	case 0:
 		return BeaconNodeEventSource
