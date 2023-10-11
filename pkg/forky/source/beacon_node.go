@@ -11,6 +11,7 @@ import (
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/ethpandaops/ethwallclock"
+	"github.com/ethpandaops/forky/pkg/forky/ethereum"
 	"github.com/ethpandaops/forky/pkg/forky/store"
 	"github.com/ethpandaops/forky/pkg/forky/types"
 	"github.com/go-co-op/gocron"
@@ -230,6 +231,11 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 		return perrors.Wrap(err, "failed to get current wallclock")
 	}
 
+	nodeVersion, err := b.client.(eth2client.NodeVersionProvider).NodeVersion(ctx)
+	if err != nil {
+		return perrors.Wrap(err, "failed to get node version")
+	}
+
 	fetchedAt := time.Now()
 
 	if provider, isProvider := b.client.(eth2client.ForkChoiceProvider); isProvider {
@@ -242,12 +248,14 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 
 		frame := &types.Frame{
 			Metadata: types.FrameMetadata{
-				Node:           b.Name(),
-				FetchedAt:      fetchedAt,
-				WallClockSlot:  phase0.Slot(slot.Number()),
-				WallClockEpoch: phase0.Epoch(epoch.Number()),
-				ID:             uuid.New().String(),
-				Labels:         b.config.Labels,
+				Node:            b.Name(),
+				FetchedAt:       fetchedAt,
+				WallClockSlot:   phase0.Slot(slot.Number()),
+				WallClockEpoch:  phase0.Epoch(epoch.Number()),
+				ID:              uuid.New().String(),
+				Labels:          b.config.Labels,
+				EventSource:     types.BeaconNodeEventSource.String(),
+				ConsensusClient: string(ethereum.ClientFromString(nodeVersion)),
 			},
 			Data: dump,
 		}

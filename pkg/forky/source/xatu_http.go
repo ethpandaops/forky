@@ -248,7 +248,7 @@ func (x *XatuHTTP) handleXatuEvent(ctx context.Context, event *xatu.DecoratedEve
 
 	if shouldBeFiltered {
 		// TODO(sam.calder-mason): Add metrics
-		logCtx.WithField("event", event).Warn("Dropping xatu event as it was filtered out")
+		logCtx.WithField("event_name", event.GetEvent().GetName()).Warn("Dropping xatu event as it was filtered out")
 
 		return nil
 	}
@@ -443,15 +443,13 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 
 			FetchedAt: snapshot.GetTimestamp().AsTime(),
 
+			ConsensusClient: event.GetMeta().GetClient().GetEthereum().GetConsensus().GetImplementation(),
+
+			EventSource: types.XatuPollingEventSource.String(),
+
 			Labels: []string{
-				"xatu_sentry=" + event.GetMeta().GetClient().GetName(),
-				"xatu_event_name=" + event.GetEvent().GetName().String(),
-				"xatu_event_id=" + event.GetEvent().GetId(),
-				"consensus_client_implementation=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetImplementation(),
 				"consensus_client_version=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetVersion(),
 				fmt.Sprintf("ethereum_network_id=%d", event.GetMeta().GetClient().GetEthereum().GetNetwork().GetId()),
-				"ethereum_network_name=" + event.GetMeta().GetClient().GetEthereum().GetNetwork().GetName(),
-				fmt.Sprintf("fetch_request_duration_ms=%d", snapshot.GetRequestDurationMs()),
 			},
 		},
 		Data: data,
@@ -461,6 +459,8 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 		data := event.GetEthV1ForkChoiceReorg()
 
 		prefix := "xatu_reorg_event_"
+
+		frame.Metadata.EventSource = types.XatuReorgEventEventSource.String()
 
 		frame.Metadata.Labels = append(frame.Metadata.Labels,
 			fmt.Sprintf(prefix+"slot=%d", data.GetEvent().GetSlot()),
@@ -498,15 +498,13 @@ func (x *XatuHTTP) createFrameFromSnapshotV2AndData(ctx context.Context,
 
 			FetchedAt: snapshot.GetTimestamp().AsTime(),
 
+			// ConsensusClient: event.GetMeta().GetClient().GetEthereum().GetConsensus().GetImplementation(),
+
+			// EventSource: types.XatuPollingEventSource.String(),
+
 			Labels: []string{
-				"xatu_sentry=" + event.GetMeta().GetClient().GetName(),
-				"xatu_event_name=" + event.GetEvent().GetName().String(),
-				"xatu_event_id=" + event.GetEvent().GetId(),
-				"consensus_client_implementation=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetImplementation(),
 				"consensus_client_version=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetVersion(),
 				fmt.Sprintf("ethereum_network_id=%d", event.GetMeta().GetClient().GetEthereum().GetNetwork().GetId()),
-				"ethereum_network_name=" + event.GetMeta().GetClient().GetEthereum().GetNetwork().GetName(),
-				fmt.Sprintf("fetch_request_duration_ms=%d", snapshot.GetRequestDurationMs().GetValue()),
 			},
 		},
 		Data: data,
@@ -516,6 +514,8 @@ func (x *XatuHTTP) createFrameFromSnapshotV2AndData(ctx context.Context,
 		data := event.GetEthV1ForkChoiceReorgV2()
 
 		prefix := "xatu_reorg_event_"
+
+		frame.Metadata.EventSource = types.XatuReorgEventEventSource.String()
 
 		frame.Metadata.Labels = append(frame.Metadata.Labels,
 			fmt.Sprintf(prefix+"slot=%d", data.GetEvent().GetSlot()),

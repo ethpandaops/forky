@@ -29,6 +29,10 @@ type FrameMetadata struct {
 	WallClockEpoch phase0.Epoch `json:"wall_clock_epoch"`
 	// Labels are labels to apply to the frame.
 	Labels []string `json:"labels"`
+	// ConsensusClient is the consensus client that provided the frame.
+	ConsensusClient string `json:"consensus_client"`
+	// EventSource is the event source that provided the frame.
+	EventSource string `json:"event_source"`
 }
 
 func (f *FrameMetadata) Validate() error {
@@ -136,8 +140,10 @@ func GenerateFakeFrame() *Frame {
 			//nolint:gosec // This is a test function.
 			WallClockSlot: phase0.Slot(rand.Int63()),
 			//nolint:gosec // This is a test function.
-			WallClockEpoch: phase0.Epoch(rand.Int63()),
-			Labels:         []string{"test"},
+			WallClockEpoch:  phase0.Epoch(rand.Int63()),
+			Labels:          []string{"test"},
+			ConsensusClient: "lighthouse",
+			EventSource:     "beacon_node",
 		},
 	}
 }
