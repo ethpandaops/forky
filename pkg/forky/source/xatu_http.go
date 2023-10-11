@@ -448,7 +448,6 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 			EventSource: types.XatuPollingEventSource.String(),
 
 			Labels: []string{
-				"consensus_client_version=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetVersion(),
 				fmt.Sprintf("ethereum_network_id=%d", event.GetMeta().GetClient().GetEthereum().GetNetwork().GetId()),
 			},
 		},
@@ -503,14 +502,7 @@ func (x *XatuHTTP) createFrameFromSnapshotV2AndData(ctx context.Context,
 			EventSource: types.XatuPollingEventSource.String(),
 
 			Labels: []string{
-				"xatu_sentry=" + event.GetMeta().GetClient().GetName(),
-				"xatu_event_name=" + event.GetEvent().GetName().String(),
-				"xatu_event_id=" + event.GetEvent().GetId(),
-				"consensus_client_implementation=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetImplementation(),
-				"consensus_client_version=" + event.GetMeta().GetClient().GetEthereum().GetConsensus().GetVersion(),
 				fmt.Sprintf("ethereum_network_id=%d", event.GetMeta().GetClient().GetEthereum().GetNetwork().GetId()),
-				"ethereum_network_name=" + event.GetMeta().GetClient().GetEthereum().GetNetwork().GetName(),
-				fmt.Sprintf("fetch_request_duration_ms=%d", snapshot.GetRequestDurationMs().GetValue()),
 			},
 		},
 		Data: data,
