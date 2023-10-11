@@ -56,7 +56,7 @@ const metadataMock: FrameMetaData[] = [
     fetched_at: '9999-04-01T04:00:00Z',
     wall_clock_slot: 100,
     wall_clock_epoch: 10,
-    labels: ['xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG'],
+    labels: ['xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2'],
   },
 ];
 

@@ -23,9 +23,11 @@ function SnapshotMarker({
     const segments = [];
     for (let i = 0; i < numberOfSegments; i++) {
       const isActive = activeIds.includes(metadata[i].id);
-      const isReorg = metadata[i].labels?.includes(
-        'xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG',
-      );
+      const isReorg =
+        metadata[i].labels?.includes('xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG') ||
+        metadata[i].labels?.includes(
+          'xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2',
+        );
 
       let color = 'bg-sky-400 dark:bg-sky-700';
       if (isReorg) {

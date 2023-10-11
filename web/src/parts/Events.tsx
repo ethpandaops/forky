@@ -13,10 +13,11 @@ import useEthereum from '@contexts/ethereum';
 import useFocus from '@contexts/focus';
 import { useMetadataQuery } from '@hooks/useQuery';
 
-const targetLabels = ['xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG'];
+const targetLabels = ['xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2'];
 
 const eventMap: Record<string, string> = {
   BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG: 'Reorg',
+  BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2: 'Reorg',
 };
 
 const colorMap: Record<string, string> = {
@@ -158,7 +159,8 @@ export default function Selection() {
       const sharedEventId = event.labels?.find((label) => label.startsWith('xatu_event_id='));
       const time = new Date(event.fetched_at).getTime();
       if (
-        event.labels?.includes('xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG') &&
+        (event.labels?.includes('xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG') ||
+          event.labels?.includes('xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2')) &&
         sharedEventId
       ) {
         const isBefore = event.labels?.includes('xatu_reorg_frame_timing=before');
