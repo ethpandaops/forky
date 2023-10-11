@@ -104,6 +104,8 @@ func (f *ForkChoice) Start(ctx context.Context) error {
 	}
 
 	go f.pollForUnwantedFrames(ctx)
+	go f.pollForEmptyConsensusClientFrames(ctx)
+	go f.pollForEmptyEventSource(ctx)
 
 	return nil
 }
@@ -122,6 +124,34 @@ func (f *ForkChoice) pollForUnwantedFrames(ctx context.Context) {
 	for {
 		if err := f.DeleteOldFrames(ctx); err != nil {
 			f.log.WithError(err).Error("Failed to delete old frames")
+		}
+
+		select {
+		case <-time.After(1 * time.Minute):
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func (f *ForkChoice) pollForEmptyConsensusClientFrames(ctx context.Context) {
+	for {
+		if err := f.BackfillConsensusClient(ctx); err != nil {
+			f.log.WithError(err).Error("Failed to backfill consensus client")
+		}
+
+		select {
+		case <-time.After(1 * time.Minute):
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func (f *ForkChoice) pollForEmptyEventSource(ctx context.Context) {
+	for {
+		if err := f.BackfillEventSource(ctx); err != nil {
+			f.log.WithError(err).Error("Failed to backfill event source")
 		}
 
 		select {

@@ -7,6 +7,7 @@ const (
 	OperationDeleteFrameMetadata Operation = "delete_frame_metadata"
 	OperationCountFrameMetadata  Operation = "count_frame_metadata"
 	OperationListFrameMetadata   Operation = "list_frame_metadata"
+	OperationUpdateFrameMetadata Operation = "update_frame_metadata"
 
 	OperationCountNodesWithFrames Operation = "count_nodes_with_frames"
 	OperationsListNodesWithFrames Operation = "list_nodes_with_frames"
