@@ -17,7 +17,7 @@ func (f *ForkChoice) BackfillConsensusClient(ctx context.Context) error {
 	}
 
 	frames, err := f.indexer.ListFrameMetadata(ctx, filter.AsDBFilter(), &db.PaginationCursor{
-		Limit:   1,
+		Limit:   1000,
 		Offset:  0,
 		OrderBy: "fetched_at DESC",
 	})
