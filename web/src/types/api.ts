@@ -30,6 +30,8 @@ export interface FrameFilter {
   slot?: number;
   epoch?: number;
   labels?: string[];
+  consensus_client?: string;
+  event_source?: 'unknown' | 'beacon_node' | 'xatu_polling' | 'xatu_reorg_event';
 }
 
 export interface PaginationCursor {
