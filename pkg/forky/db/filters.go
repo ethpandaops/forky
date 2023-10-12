@@ -8,13 +8,15 @@ import (
 )
 
 type FrameFilter struct {
-	ID     *string
-	Node   *string
-	Before *time.Time
-	After  *time.Time
-	Slot   *uint64
-	Epoch  *uint64
-	Labels *[]string
+	ID              *string
+	Node            *string
+	Before          *time.Time
+	After           *time.Time
+	Slot            *uint64
+	Epoch           *uint64
+	Labels          *[]string
+	ConsensusClient *string
+	EventSource     *int
 }
 
 func (f *FrameFilter) AddID(id string) {
@@ -45,6 +47,14 @@ func (f *FrameFilter) AddLabels(labels []string) {
 	f.Labels = &labels
 }
 
+func (f *FrameFilter) AddConsensusClient(consensusClient string) {
+	f.ConsensusClient = &consensusClient
+}
+
+func (f *FrameFilter) AddEventSource(eventSource int) {
+	f.EventSource = &eventSource
+}
+
 func (f *FrameFilter) Validate() error {
 	if f.ID == nil &&
 		f.Node == nil &&
@@ -52,7 +62,9 @@ func (f *FrameFilter) Validate() error {
 		f.After == nil &&
 		f.Slot == nil &&
 		f.Epoch == nil &&
-		f.Labels == nil {
+		f.Labels == nil &&
+		f.ConsensusClient == nil &&
+		f.EventSource == nil {
 		return errors.New("no filter specified")
 	}
 
@@ -82,6 +94,14 @@ func (f *FrameFilter) ApplyToQuery(query *gorm.DB) (*gorm.DB, error) {
 
 	if f.Epoch != nil {
 		query = query.Where("wall_clock_epoch = ?", f.Epoch)
+	}
+
+	if f.EventSource != nil {
+		query = query.Where("event_source = ?", f.EventSource)
+	}
+
+	if f.ConsensusClient != nil {
+		query = query.Where("consensus_client = ?", f.ConsensusClient)
 	}
 
 	return query, nil
