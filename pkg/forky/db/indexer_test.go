@@ -55,12 +55,14 @@ func newMockIndexer() (*Indexer, sqlmock.Sqlmock, error) {
 func TestFrame_AsFrameMetadata(t *testing.T) {
 	t.Run("conversion", func(t *testing.T) {
 		frame := FrameMetadata{
-			ID:             "id",
-			Node:           "node",
-			WallClockSlot:  42,
-			WallClockEpoch: 21,
-			FetchedAt:      time.Now(),
-			Labels:         []FrameMetadataLabel{{Name: "a"}, {Name: "b"}, {Name: "c"}},
+			ID:              "id",
+			Node:            "node",
+			WallClockSlot:   42,
+			WallClockEpoch:  21,
+			FetchedAt:       time.Now(),
+			Labels:          []FrameMetadataLabel{{Name: "a"}, {Name: "b"}, {Name: "c"}},
+			ConsensusClient: "prysm",
+			EventSource:     BeaconNodeEventSource,
 		}
 
 		metadata := frame.AsFrameMetadata()
@@ -72,6 +74,8 @@ func TestFrame_AsFrameMetadata(t *testing.T) {
 		assert.Equal(t, frame.FetchedAt, metadata.FetchedAt)
 		l := FrameMetadataLabels(frame.Labels)
 		assert.Equal(t, l.AsStrings(), metadata.Labels)
+		assert.Equal(t, frame.ConsensusClient, metadata.ConsensusClient)
+		assert.Equal(t, frame.EventSource.String(), metadata.EventSource)
 	})
 }
 
@@ -85,12 +89,14 @@ func TestIndexer_AddFrame(t *testing.T) {
 		id := uuid.New()
 
 		frame := &types.FrameMetadata{
-			ID:             id.String(),
-			Node:           "node",
-			WallClockSlot:  phase0.Slot(42),
-			WallClockEpoch: phase0.Epoch(21),
-			FetchedAt:      time.Now(),
-			Labels:         []string{"a", "b", "c"},
+			ID:              id.String(),
+			Node:            "node",
+			WallClockSlot:   phase0.Slot(42),
+			WallClockEpoch:  phase0.Epoch(21),
+			FetchedAt:       time.Now(),
+			Labels:          []string{"a", "b", "c"},
+			ConsensusClient: "prysm",
+			EventSource:     BeaconNodeEventSource.String(),
 		}
 
 		err = indexer.InsertFrameMetadata(context.Background(), frame)
@@ -106,12 +112,14 @@ func TestIndexer_AddFrame(t *testing.T) {
 		id := uuid.New()
 
 		frame := &types.FrameMetadata{
-			ID:             id.String(),
-			Node:           "node",
-			WallClockSlot:  phase0.Slot(42),
-			WallClockEpoch: phase0.Epoch(21),
-			FetchedAt:      time.Now(),
-			Labels:         nil,
+			ID:              id.String(),
+			Node:            "node",
+			WallClockSlot:   phase0.Slot(42),
+			WallClockEpoch:  phase0.Epoch(21),
+			FetchedAt:       time.Now(),
+			Labels:          nil,
+			ConsensusClient: "prysm",
+			EventSource:     BeaconNodeEventSource.String(),
 		}
 
 		err = indexer.InsertFrameMetadata(context.Background(), frame)
@@ -422,7 +430,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// Add 100 random frames
+		// Add 1000 random frames
 		for i := 0; i < 1000; i++ {
 			id := uuid.New().String()
 			node := fmt.Sprintf("node-%d", i)
@@ -433,13 +441,19 @@ func TestIndexer_ListFrames(t *testing.T) {
 
 			labels := []string{fmt.Sprintf("label%d", testRandIntn(10)), fmt.Sprintf("label%d", testRandIntn(10))}
 
+			consensusClient := fmt.Sprintf("consensus_client%d", testRandIntn(10))
+
+			eventSource := types.RandomEventSource()
+
 			frame := &types.FrameMetadata{
-				ID:             id,
-				Node:           node,
-				WallClockSlot:  slot,
-				WallClockEpoch: epoch,
-				FetchedAt:      time.Now(),
-				Labels:         labels,
+				ID:              id,
+				Node:            node,
+				WallClockSlot:   slot,
+				WallClockEpoch:  epoch,
+				FetchedAt:       time.Now(),
+				Labels:          labels,
+				ConsensusClient: consensusClient,
+				EventSource:     eventSource.String(),
 			}
 
 			err = indexer.InsertFrameMetadata(context.Background(), frame)
@@ -483,6 +497,14 @@ func TestIndexer_ListFrames(t *testing.T) {
 				})
 			}
 
+			if testRandIntn(2) == 1 {
+				filter.AddConsensusClient(fmt.Sprintf("consensus_client%d", testRandIntn(10)))
+			}
+
+			if testRandIntn(2) == 1 {
+				filter.AddEventSource(testRandIntn(4))
+			}
+
 			frames, err := indexer.ListFrameMetadata(context.Background(), &filter, &PaginationCursor{})
 			if err != nil {
 				t.Fatal(err)
@@ -511,6 +533,14 @@ func TestIndexer_ListFrames(t *testing.T) {
 
 				if filter.Epoch != nil && *filter.Epoch != uint64(frame.WallClockEpoch) {
 					t.Fatalf("expected WallClockEpoch %d, got %d", *filter.Epoch, frame.WallClockEpoch)
+				}
+
+				if filter.ConsensusClient != nil && *filter.ConsensusClient != frame.ConsensusClient {
+					t.Fatalf("expected ConsensusClient %s, got %s", *filter.ConsensusClient, frame.ConsensusClient)
+				}
+
+				if filter.EventSource != nil && *filter.EventSource != int(frame.EventSource) {
+					t.Fatalf("expected EventSource %d, got %d", *filter.EventSource, frame.EventSource)
 				}
 
 				if filter.Labels != nil {
@@ -594,12 +624,14 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 			node := fmt.Sprintf("node%d", i)
 
 			frame := &types.FrameMetadata{
-				ID:             uuid.New().String(),
-				Node:           node,
-				WallClockSlot:  phase0.Slot(testRandIntn(1000)),
-				WallClockEpoch: phase0.Epoch(testRandIntn(100)),
-				FetchedAt:      time.Now(),
-				Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
+				ID:              uuid.New().String(),
+				Node:            node,
+				WallClockSlot:   phase0.Slot(testRandIntn(1000)),
+				WallClockEpoch:  phase0.Epoch(testRandIntn(100)),
+				FetchedAt:       time.Now(),
+				Labels:          []string{fmt.Sprintf("label%d", testRandIntn(10))},
+				ConsensusClient: "prysm",
+				EventSource:     BeaconNodeEventSource.String(),
 			}
 
 			err = indexer.InsertFrameMetadata(context.Background(), frame)

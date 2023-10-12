@@ -7,7 +7,8 @@ const (
 	OperationGetFrame    Operation = "get_frame"
 	OperationDeleteFrame Operation = "delete_frame"
 
-	OperationListMetadata Operation = "list_metadata"
+	OperationListMetadata   Operation = "list_metadata"
+	OperationUpdateMetadata Operation = "update_metadata"
 
 	OperationListNodes  Operation = "list_nodes"
 	OperationListSlots  Operation = "list_slots"

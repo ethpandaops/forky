@@ -7,6 +7,7 @@ const (
 	OperationDeleteFrameMetadata Operation = "delete_frame_metadata"
 	OperationCountFrameMetadata  Operation = "count_frame_metadata"
 	OperationListFrameMetadata   Operation = "list_frame_metadata"
+	OperationUpdateFrameMetadata Operation = "update_frame_metadata"
 
 	OperationCountNodesWithFrames Operation = "count_nodes_with_frames"
 	OperationsListNodesWithFrames Operation = "list_nodes_with_frames"
@@ -19,4 +20,7 @@ const (
 
 	OperationCountLabelsWithFrames Operation = "count_labels_with_frames"
 	OperationListLabelsWithFrames  Operation = "list_labels_with_frames"
+
+	OperationDeleteFrameMetadataLabelsByIDs  Operation = "delete_frame_metadata_labels_by_ids"
+	OperationDeleteFrameMetadataLabelsByName Operation = "delete_frame_metadata_labels_by_name"
 )

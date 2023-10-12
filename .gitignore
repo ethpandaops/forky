@@ -1,7 +1,7 @@
 bin
 config.yaml
 config2.yaml
-__debug_bin
+__debug_bin*
 dist/
 checkpointz
 store.db
