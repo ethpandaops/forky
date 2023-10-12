@@ -447,9 +447,7 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 
 			EventSource: types.XatuPollingEventSource.String(),
 
-			Labels: []string{
-				fmt.Sprintf("ethereum_network_id=%d", event.GetMeta().GetClient().GetEthereum().GetNetwork().GetId()),
-			},
+			Labels: []string{},
 		},
 		Data: data,
 	}
@@ -501,9 +499,7 @@ func (x *XatuHTTP) createFrameFromSnapshotV2AndData(ctx context.Context,
 
 			EventSource: types.XatuPollingEventSource.String(),
 
-			Labels: []string{
-				fmt.Sprintf("ethereum_network_id=%d", event.GetMeta().GetClient().GetEthereum().GetNetwork().GetId()),
-			},
+			Labels: []string{},
 		},
 		Data: data,
 	}

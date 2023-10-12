@@ -106,6 +106,7 @@ func (f *ForkChoice) Start(ctx context.Context) error {
 	go f.pollForUnwantedFrames(ctx)
 	go f.pollForEmptyConsensusClientFrames(ctx)
 	go f.pollForEmptyEventSource(ctx)
+	go f.pollForUselessLabelDeletion(ctx)
 
 	return nil
 }
@@ -152,6 +153,20 @@ func (f *ForkChoice) pollForEmptyEventSource(ctx context.Context) {
 	for {
 		if err := f.BackfillEventSource(ctx); err != nil {
 			f.log.WithError(err).Error("Failed to backfill event source")
+		}
+
+		select {
+		case <-time.After(1 * time.Minute):
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func (f *ForkChoice) pollForUselessLabelDeletion(ctx context.Context) {
+	for {
+		if err := f.DeleteUselessLabels(ctx); err != nil {
+			f.log.WithError(err).Error("Failed to delete useless labels")
 		}
 
 		select {

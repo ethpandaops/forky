@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/attestantio/go-eth2-client/spec/phase0"
@@ -523,6 +524,46 @@ func (i *Indexer) DeleteFrameMetadata(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func (i *Indexer) DeleteFrameMetadataLabels(ctx context.Context, ids []uint) error {
+	operation := OperationDeleteFrameMetadataLabelsByIDs
+
+	i.metrics.ObserveOperation(operation)
+
+	query := i.db.WithContext(ctx)
+
+	result := query.Delete(&FrameMetadataLabels{}, ids)
+	if result.Error != nil {
+		i.metrics.ObserveOperationError(operation)
+
+		return result.Error
+	}
+
+	if result.RowsAffected != int64(len(ids)) {
+		i.metrics.ObserveOperationError(operation)
+
+		return fmt.Errorf("not all frame_metadata_labels were found. Expected %v, found %v", len(ids), result.RowsAffected)
+	}
+
+	return nil
+}
+
+func (i *Indexer) DeleteFrameMetadataLabelsByName(ctx context.Context, name string) (uint64, error) {
+	operation := OperationDeleteFrameMetadataLabelsByName
+
+	i.metrics.ObserveOperation(operation)
+
+	query := i.db.WithContext(ctx)
+
+	result := query.Where("name LIKE ?", fmt.Sprintf("%s=%%", name)).Delete(&FrameMetadataLabels{})
+	if result.Error != nil {
+		i.metrics.ObserveOperationError(operation)
+
+		return 0, result.Error
+	}
+
+	return uint64(result.RowsAffected), nil
 }
 
 func (i *Indexer) UpdateFrameMetadata(ctx context.Context, metadata *FrameMetadata) error {

@@ -20,4 +20,7 @@ const (
 
 	OperationCountLabelsWithFrames Operation = "count_labels_with_frames"
 	OperationListLabelsWithFrames  Operation = "list_labels_with_frames"
+
+	OperationDeleteFrameMetadataLabelsByIDs  Operation = "delete_frame_metadata_labels_by_ids"
+	OperationDeleteFrameMetadataLabelsByName Operation = "delete_frame_metadata_labels_by_name"
 )
