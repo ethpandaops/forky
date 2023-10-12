@@ -13,8 +13,6 @@ import useEthereum from '@contexts/ethereum';
 import useFocus from '@contexts/focus';
 import { useMetadataQuery } from '@hooks/useQuery';
 
-const targetLabels = ['xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2'];
-
 const eventMap: Record<string, string> = {
   BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG: 'Reorg',
   BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2: 'Reorg',
@@ -127,7 +125,7 @@ export default function Selection() {
     {
       ...queryFilter,
       node,
-      labels: targetLabels,
+      event_source: 'xatu_reorg_event',
     },
     isEventRoute,
   );
