@@ -99,7 +99,7 @@ func (i *Indexer) RemoveFrameMetadata(ctx context.Context, id string) error {
 
 	i.metrics.ObserveOperation(operation)
 
-	result := i.db.WithContext(ctx).Where("id = ?", id).Delete(&FrameMetadata{})
+	result := i.db.WithContext(ctx).Unscoped().Where("id = ?", id).Delete(&FrameMetadata{})
 
 	if result.Error != nil {
 		i.metrics.ObserveOperationError(operation)
@@ -503,7 +503,7 @@ func (i *Indexer) DeleteFrameMetadata(ctx context.Context, id string) error {
 
 	query := i.db.WithContext(ctx)
 
-	result := query.Where("id = ?", id).Delete(&FrameMetadata{})
+	result := query.Unscoped().Where("id = ?", id).Delete(&FrameMetadata{})
 	if result.Error != nil {
 		i.metrics.ObserveOperationError(operation)
 
@@ -516,7 +516,7 @@ func (i *Indexer) DeleteFrameMetadata(ctx context.Context, id string) error {
 		return errors.New("frame_metadata not found")
 	}
 
-	result = query.Where("frame_id = ?", id).Delete(&FrameMetadataLabels{})
+	result = query.Unscoped().Where("frame_id = ?", id).Delete(&FrameMetadataLabels{})
 	if result.Error != nil {
 		i.metrics.ObserveOperationError(operation)
 
@@ -533,7 +533,7 @@ func (i *Indexer) DeleteFrameMetadataLabels(ctx context.Context, ids []uint) err
 
 	query := i.db.WithContext(ctx)
 
-	result := query.Delete(&FrameMetadataLabels{}, ids)
+	result := query.Unscoped().Delete(&FrameMetadataLabels{}, ids)
 	if result.Error != nil {
 		i.metrics.ObserveOperationError(operation)
 
@@ -556,7 +556,7 @@ func (i *Indexer) DeleteFrameMetadataLabelsByName(ctx context.Context, name stri
 
 	query := i.db.WithContext(ctx)
 
-	result := query.Where("name LIKE ?", fmt.Sprintf("%s=%%", name)).Delete(&FrameMetadataLabels{})
+	result := query.Unscoped().Where("name LIKE ?", fmt.Sprintf("%s=%%", name)).Delete(&FrameMetadataLabels{})
 	if result.Error != nil {
 		i.metrics.ObserveOperationError(operation)
 
