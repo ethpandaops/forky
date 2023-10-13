@@ -512,8 +512,8 @@ func (x *XatuHTTP) createFrameFromSnapshotV2AndData(ctx context.Context,
 		frame.Metadata.EventSource = types.XatuReorgEventEventSource.String()
 
 		frame.Metadata.Labels = append(frame.Metadata.Labels,
-			fmt.Sprintf(prefix+"slot=%d", data.GetEvent().GetSlot()),
-			fmt.Sprintf(prefix+"epoch=%d", data.GetEvent().GetEpoch()),
+			fmt.Sprintf(prefix+"slot=%d", data.GetEvent().GetSlot().GetValue()),
+			fmt.Sprintf(prefix+"epoch=%d", data.GetEvent().GetEpoch().GetValue()),
 			prefix+"old_head_block="+data.GetEvent().GetOldHeadBlock(),
 			prefix+"old_head_state="+data.GetEvent().GetOldHeadState(),
 			prefix+"new_head_block="+data.GetEvent().GetNewHeadBlock(),
