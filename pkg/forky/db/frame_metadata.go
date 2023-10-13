@@ -19,8 +19,8 @@ type FrameMetadata struct {
 	WallClockEpoch  int64
 	FetchedAt       time.Time            `gorm:"index"`
 	Labels          []FrameMetadataLabel `gorm:"foreignkey:FrameID;"`
-	ConsensusClient string
-	EventSource     EventSource
+	ConsensusClient string               `gorm:"not null;default:''"`
+	EventSource     EventSource          `gorm:"not null;default:0"`
 }
 
 type FrameMetadatas []*FrameMetadata
