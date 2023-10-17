@@ -45,7 +45,7 @@ Forky captures, stores and visualizes fork choice data from the Ethereum Beacon 
 
 ### Capturing
 
-* [x] Ethereum Beacon Node (only Teku has support currently)
+* [x] Ethereum Beacon Node
 * [x] [Xatu](https://github.com/ethpandaops/xatu)
 
 ### Storing
