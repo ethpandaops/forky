@@ -49,6 +49,7 @@ const metadataMock: FrameMetaData[] = [
     wall_clock_slot: 100,
     wall_clock_epoch: 10,
     labels: ['xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG'],
+    event_source: 'xatu_reorg_event',
   },
   {
     id: '6',
@@ -57,6 +58,7 @@ const metadataMock: FrameMetaData[] = [
     wall_clock_slot: 100,
     wall_clock_epoch: 10,
     labels: ['xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2'],
+    event_source: 'xatu_reorg_event',
   },
 ];
 
@@ -173,6 +175,7 @@ describe('useActive', () => {
         wall_clock_slot: 100,
         wall_clock_epoch: 10,
         labels: ['xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG'],
+        event_source: 'xatu_reorg_event',
       };
 
       (useMetadataQuery as Mock)

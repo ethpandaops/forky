@@ -82,6 +82,8 @@ export interface FrameMetaData {
   wall_clock_slot: number;
   wall_clock_epoch: number;
   labels?: string[] | null;
+  consensus_client?: string | null;
+  event_source?: string | null;
 }
 
 export interface EthereumSpec {

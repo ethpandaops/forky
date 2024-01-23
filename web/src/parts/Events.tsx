@@ -22,15 +22,6 @@ const colorMap: Record<string, string> = {
   Reorg: 'text-red-600 dark:text-red-400',
 };
 
-const formatTypeFromLabels = (labels?: string[] | null): string => {
-  if (!labels) return 'unknown';
-  for (const label of labels) {
-    const [key, value] = label.split('=', 2);
-    if (key === 'xatu_event_name') return eventMap[value] ?? value;
-  }
-  return 'unknown';
-};
-
 const lableMap: Record<string, string> = {
   consensus_client_implementation: 'Client',
   consensus_client_version: 'Client Version',
@@ -52,7 +43,6 @@ const formatExtraDataFromLabels = (labels?: string[] | null): [string, string, s
     if (
       [
         'xatu_sentry',
-        'xatu_event_name',
         'ethereum_network_id',
         'ethereum_network_name',
         'xatu_reorg_frame_timing',
@@ -156,11 +146,7 @@ export default function Selection() {
     >((acc, event) => {
       const sharedEventId = event.labels?.find((label) => label.startsWith('xatu_event_id='));
       const time = new Date(event.fetched_at).getTime();
-      if (
-        (event.labels?.includes('xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG') ||
-          event.labels?.includes('xatu_event_name=BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2')) &&
-        sharedEventId
-      ) {
+      if (event.event_source === 'xatu_reorg_event' && sharedEventId) {
         const isBefore = event.labels?.includes('xatu_reorg_frame_timing=before');
         if (!acc[sharedEventId]) {
           acc[sharedEventId] = {
@@ -169,7 +155,7 @@ export default function Selection() {
             snapshots: [{ id: event.id, key: isBefore ? 'before' : 'after' }],
             extraData: formatExtraDataFromLabels(event.labels),
             time,
-            type: formatTypeFromLabels(event.labels),
+            type: event.event_source ?? 'Unknown',
           };
         } else {
           acc[sharedEventId].snapshots.push({ id: event.id, key: isBefore ? 'before' : 'after' });
@@ -187,7 +173,7 @@ export default function Selection() {
           snapshots: [{ id: event.id }],
           extraData: formatExtraDataFromLabels(event.labels),
           time: new Date(event.fetched_at).getTime(),
-          type: formatTypeFromLabels(event.labels),
+          type: event.event_source ?? 'Unknown',
         };
       }
 
