@@ -6,6 +6,7 @@ import (
 	"time"
 
 	eth2client "github.com/attestantio/go-eth2-client"
+	api "github.com/attestantio/go-eth2-client/api"
 	v1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/http"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
@@ -178,18 +179,20 @@ func (b *BeaconNode) bootstrap(ctx context.Context) error {
 	b.client = client
 
 	// Fetch the genesis time and network parameters.
-	genesis, err := b.client.(eth2client.GenesisProvider).Genesis(ctx)
+	rsp, err := b.client.(eth2client.GenesisProvider).Genesis(ctx, &api.GenesisOpts{})
 	if err != nil {
 		return perrors.Wrap(err, "failed to fetch genesis time")
 	}
 
-	b.genesis = genesis
+	b.genesis = rsp.Data
 
 	// Fetch the network parameters.
-	spec, err := b.client.(eth2client.SpecProvider).Spec(ctx)
+	specRsp, err := b.client.(eth2client.SpecProvider).Spec(ctx, &api.SpecOpts{})
 	if err != nil {
 		return perrors.Wrap(err, "failed to fetch spec")
 	}
+
+	spec := specRsp.Data
 
 	secondsPerSlot, ok := spec["SECONDS_PER_SLOT"]
 	if !ok {
@@ -231,18 +234,22 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 		return perrors.Wrap(err, "failed to get current wallclock")
 	}
 
-	nodeVersion, err := b.client.(eth2client.NodeVersionProvider).NodeVersion(ctx)
+	rsp, err := b.client.(eth2client.NodeVersionProvider).NodeVersion(ctx, &api.NodeVersionOpts{})
 	if err != nil {
 		return perrors.Wrap(err, "failed to get node version")
 	}
 
+	nodeVersion := rsp.Data
+
 	fetchedAt := time.Now()
 
 	if provider, isProvider := b.client.(eth2client.ForkChoiceProvider); isProvider {
-		dump, err := provider.ForkChoice(ctx)
+		rsp, err := provider.ForkChoice(ctx, &api.ForkChoiceOpts{})
 		if err != nil {
 			return perrors.Wrap(err, "failed to get fork choice dump")
 		}
+
+		dump := rsp.Data
 
 		b.metrics.ObserveItemFetched(string(DataFrame))
 
