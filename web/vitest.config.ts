@@ -9,7 +9,6 @@ export default defineConfig({
       '@app': path.resolve(__dirname, './src'),
       '@api': path.resolve(__dirname, './src/api'),
       '@components': path.resolve(__dirname, './src/components'),
-      '@stories': path.resolve(__dirname, './src/stories'),
       '@hooks': path.resolve(__dirname, './src/hooks'),
       '@parts': path.resolve(__dirname, './src/parts'),
       '@public': path.resolve(__dirname, './public'),
@@ -18,13 +17,6 @@ export default defineConfig({
       '@utils': path.resolve(__dirname, './src/utils'),
       '@providers': path.resolve(__dirname, './src/providers'),
       '@contexts': path.resolve(__dirname, './src/contexts'),
-      /**
-       * Storybook (specifically the interactions addon) requires that we use their
-       *   instrumented version of jest-expect. So our storybook does so. To make
-       *   these interactions still work in vitest we have @storybook/jest aliased
-       *   to resolve to vitest which, critically, exports { expect } as well.
-       */
-      '@storybook/jest': 'vitest',
     },
   },
   test: {
@@ -32,8 +24,6 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: 'vitest.setup.ts',
     reporters: process.env.GITHUB_ACTIONS ? ['default', new GithubActionsReporter()] : 'default',
-    coverage: {
-      exclude: ['**/stories/**'],
-    },
+    coverage: {},
   },
 });

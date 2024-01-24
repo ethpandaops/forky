@@ -6,8 +6,8 @@ type ValueType = {
   [key in InputType]: key extends 'text'
     ? string
     : key extends 'number' | 'datetime-local'
-    ? number
-    : never;
+      ? number
+      : never;
 };
 
 interface Props<T extends InputType>

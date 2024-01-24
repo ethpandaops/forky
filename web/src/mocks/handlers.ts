@@ -1,4 +1,4 @@
-import { rest, RestHandler, MockedRequest, DefaultBodyType } from 'msw';
+import { http, RequestHandler, HttpResponse } from 'msw';
 
 import {
   Response,
@@ -35,17 +35,17 @@ export const nodes: Required<V1MetadataListNodesResponse> = {
   pagination: { total: 3 },
 };
 
-export const handlers: RestHandler<MockedRequest<DefaultBodyType>>[] = [
-  rest.get(`${BASE_URL}api/v1/ethereum/now`, async (_, res, ctx) => {
-    return res(ctx.json({ data: getNow() }));
+export const handlers: Array<RequestHandler> = [
+  http.get(`${BASE_URL}api/v1/ethereum/now`, async () => {
+    return HttpResponse.json({ data: getNow() });
   }),
-  rest.get(`${BASE_URL}api/v1/ethereum/spec`, (_, res, ctx) => {
-    return res(ctx.json({ data: { network_name: networkName, spec } }));
+  http.get(`${BASE_URL}api/v1/ethereum/spec`, () => {
+    return HttpResponse.json({ data: { network_name: networkName, spec } });
   }),
-  rest.post(`${BASE_URL}api/v1/metadata/nodes`, (_, res, ctx) => {
-    return res(ctx.json({ data: nodes }));
+  http.post(`${BASE_URL}api/v1/metadata/nodes`, () => {
+    return HttpResponse.json({ data: nodes });
   }),
-  rest.post(`${BASE_URL}api/v1/metadata`, async (req, res, ctx) => {
+  http.post(`${BASE_URL}api/v1/metadata`, async ({ request }) => {
     const { slot, epoch } = getNow();
     const data: Response<V1MetadataListResponse> = {
       data: {
@@ -64,10 +64,10 @@ export const handlers: RestHandler<MockedRequest<DefaultBodyType>>[] = [
         pagination: { total: 1 },
       },
     };
-    return res(ctx.json(data));
+    return HttpResponse.json(data);
   }),
-  rest.get(`${BASE_URL}api/v1/frames/:id`, (req, res, ctx) => {
-    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  http.get(`${BASE_URL}api/v1/frames/:id`, ({ request, params, cookies }) => {
+    const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const { slot, epoch } = getNow();
     const data: Response<V1GetFrameResponse> = {
       data: {
@@ -86,6 +86,6 @@ export const handlers: RestHandler<MockedRequest<DefaultBodyType>>[] = [
         },
       },
     };
-    return res(ctx.json(data));
+    return HttpResponse.json(data);
   }),
 ];
