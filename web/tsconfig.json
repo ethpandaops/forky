@@ -30,9 +30,6 @@
       "@styles/*": [
         "src/styles/*"
       ],
-      "@stories/*": [
-        "src/stories/*"
-      ],
       "@public/*": [
         "public/*"
       ],

@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 /* eslint-env node */
-// TODO: upgrade to ESM when storybook v7 vite handles it correctly
+// TODO: upgrade to ESM
 module.exports = {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {

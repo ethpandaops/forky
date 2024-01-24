@@ -96,29 +96,10 @@
           "vitest.setup.ts",
           "**/*.test.ts",
           "**/*.test.tsx",
-          "**/*.stories.ts",
-          "**/*.stories.tsx",
           "src/mocks/*.ts"
         ]
       }
     ]
   },
-  "overrides": [
-    {
-      "files": [
-        "*.mdx"
-      ],
-      "extends": "plugin:mdx/recommended",
-      "rules": {
-        "import/no-extraneous-dependencies": [
-          "error",
-          {
-            "devDependencies": [
-              "**/*.mdx"
-            ]
-          }
-        ]
-      }
-    }
-  ]
+  "overrides": []
 }

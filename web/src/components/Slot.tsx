@@ -60,8 +60,8 @@ function Slot({ subMarks, slot, shouldFetch = false, segments }: Props) {
         isLoading
           ? 'bg-stone-200 dark:bg-stone-800/95'
           : error
-          ? 'bg-rose-200 dark:bg-rose-950/95'
-          : 'bg-stone-300 dark:bg-stone-800',
+            ? 'bg-rose-200 dark:bg-rose-950/95'
+            : 'bg-stone-300 dark:bg-stone-800',
       )}
       marks={secondsPerSlot}
       subMarks={subMarks}

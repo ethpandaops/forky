@@ -16,29 +16,11 @@ npm run dev
 npm run build
 ```
 
-### Storybook
-
-```
-npm run storybook
-```
-
 ### Tests
 
 ```
 npm run tests
 ```
-
-## Upgrading
-
-### Storybook
-
-Currently running storybook 7.0 rc for vite first class support.
-
-```bash
-npx sb@next upgrade --prerelease
-```
-
-TODO: make sure to update to official release when it comes out.
 
 ## VSCode
 

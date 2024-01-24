@@ -1,6 +1,6 @@
 import Graphology from 'graphology';
 
-import { ForkChoiceData, Frame } from '@app/types/api';
+import { Frame } from '@app/types/api';
 import {
   NodeAttributes,
   WeightedNodeAttributes,
@@ -929,12 +929,12 @@ describe('graph', () => {
         },
       });
 
-      expect(graph.getAttribute('slotStart')).to.equal(10);
-      expect(graph.getAttribute('slotEnd')).to.equal(16);
-      expect(graph.getAttribute('forks')).to.equal(5);
+      expect(graph.getAttribute('slotStart')).toBe(10);
+      expect(graph.getAttribute('slotEnd')).toBe(16);
+      expect(graph.getAttribute('forks')).toBe(5);
 
-      expect(graph.nodes().length).to.equal(data.fork_choice_nodes.length - 1);
-      expect(graph.edges().length).to.equal(data.fork_choice_nodes.length - 2);
+      expect(graph.nodes().length).toBe(data.fork_choice_nodes.length - 1);
+      expect(graph.edges().length).toBe(data.fork_choice_nodes.length - 2);
     });
   });
 });
