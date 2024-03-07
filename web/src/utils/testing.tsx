@@ -26,6 +26,7 @@ export function ProviderWrapper({ ethereum, focus, selection }: Props | undefine
 
   const focusProps = focus || {
     playing: true,
+    byo: false,
     initialTime:
       ethereumProps.genesisTime +
       100 * (ethereumProps.secondsPerSlot * 1000) -

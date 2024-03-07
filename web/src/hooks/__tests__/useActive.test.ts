@@ -132,7 +132,7 @@ describe('useActive', () => {
 
       const { result } = renderHook(() => useActiveFrame(), {
         wrapper: ProviderWrapper({
-          focus: { frameId: '1234', initialTime: Date.now(), playing: true },
+          focus: { frameId: '1234', initialTime: Date.now(), playing: true, byo: false },
         }),
       });
 
@@ -154,6 +154,7 @@ describe('useActive', () => {
             initialTime: new Date('2000-01-01T02:10:00.000Z').getTime(),
             node: 'node1',
             playing: true,
+            byo: false,
           },
         }),
       });
@@ -189,6 +190,7 @@ describe('useActive', () => {
             initialTime: new Date('2000-01-01T02:20:00.000Z').getTime(),
             node: 'node1',
             playing: true,
+            byo: false,
           },
         }),
       });
@@ -213,6 +215,7 @@ describe('useActive', () => {
             initialTime: new Date('2000-01-01T01:10:00.000Z').getTime(),
             node: 'node1',
             playing: true,
+            byo: false,
           },
         }),
       });
@@ -241,6 +244,7 @@ describe('useActive', () => {
             initialTime: new Date('2000-01-01T01:10:00.000Z').getTime(),
             node: 'node1',
             playing: true,
+            byo: false,
           },
         }),
       });
