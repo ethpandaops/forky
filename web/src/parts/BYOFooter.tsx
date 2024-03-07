@@ -207,7 +207,7 @@ function BYOFooter() {
                 Upload beacon API{' '}
                 <a
                   href="https://ethereum.github.io/beacon-APIs/?urls.primaryName=dev#/Debug/getDebugForkChoice"
-                  className="font-bold text-white"
+                  className="font-bold text-stone-800 dark:text-stone-50"
                   onClick={(e) => e.stopPropagation()}
                   target="_blank"
                   rel="noreferrer"

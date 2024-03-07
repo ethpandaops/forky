@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 
 import { ProcessedData } from '@app/types/graph';
 import useFocus from '@contexts/focus';
@@ -14,6 +14,9 @@ export default function Stage() {
   useEffect(() => {
     if (byo) stop();
   }, [byo, stop]);
+  useEffect(() => {
+    if (byoData) stop();
+  }, [byoData]);
 
   const isLoading = !byo && results.every((result) => result.isLoading);
   let data: { frames: ProcessedData[]; loadedIds: string[] } = {
