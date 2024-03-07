@@ -1,19 +1,27 @@
+import { useEffect, useMemo } from 'react';
+
 import { ProcessedData } from '@app/types/graph';
+import useFocus from '@contexts/focus';
 import useActive from '@hooks/useActive';
 import { useFrameQueries } from '@hooks/useQuery';
 import Graph from '@parts/Graph';
 
 export default function Stage() {
   const { ids } = useActive();
-  const results = useFrameQueries(ids, ids.length > 0);
+  const { byo, stop, byoData } = useFocus();
+  const results = useFrameQueries(ids, !byo && ids.length > 0);
 
-  const isLoading = results.every((result) => result.isLoading);
+  useEffect(() => {
+    if (byo) stop();
+  }, [byo, stop]);
 
+  const isLoading = !byo && results.every((result) => result.isLoading);
   let data: { frames: ProcessedData[]; loadedIds: string[] } = {
-    frames: [],
-    loadedIds: [],
+    frames: byoData ? [byoData] : [],
+    loadedIds: byoData ? [byoData.frame.metadata.id] : [],
   };
-  if (!isLoading) {
+
+  if (!byo && !isLoading) {
     data = results.reduce<{ frames: ProcessedData[]; loadedIds: string[] }>(
       (acc, result) => {
         if (result.data) {

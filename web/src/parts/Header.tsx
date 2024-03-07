@@ -1,7 +1,12 @@
 import { Fragment, useState } from 'react';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon, CalendarDaysIcon } from '@heroicons/react/24/outline';
+import {
+  Bars3Icon,
+  XMarkIcon,
+  CalendarDaysIcon,
+  DocumentArrowUpIcon,
+} from '@heroicons/react/24/outline';
 import { Link, useLocation } from 'wouter';
 
 import Walker from '@app/components/Walker';
@@ -23,6 +28,13 @@ export default function Header() {
             </Link>
           </div>
           <div className="flex gap-5">
+            <Link
+              href={`${location}${location.endsWith('/') ? '' : '/'}byo`}
+              className="inline-flex items-center justify-center rounded-md pl-2 pr-2 text-stone-700 dark:text-stone-300 transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+            >
+              <span className="sr-only">Bring your own fork choice</span>
+              <DocumentArrowUpIcon className="h-6 w-6" aria-hidden="true" />
+            </Link>
             <Link
               href={`${location}${location.endsWith('/') ? '' : '/'}events`}
               className="inline-flex items-center justify-center rounded-md pl-2 pr-2 text-stone-700 dark:text-stone-300 transition hover:bg-stone-900/5 dark:hover:bg-white/5"

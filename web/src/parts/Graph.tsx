@@ -44,6 +44,8 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
     spacingY: SPACING_Y,
   });
 
+  const isBYO = location.startsWith('/byo');
+
   const [windowWidth, windowHeight] = useWindowSize();
   const [scaleMultiplier, setScaleMultiplier] = useState(
     calculateScaleMultiplier(windowWidth, windowHeight),
@@ -267,7 +269,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
           Aggregated view
         </button>
       )}
-      {type === 'weighted' && (
+      {!isBYO && type === 'weighted' && (
         <button
           className={classNames(
             'absolute text-stone-900 dark:text-stone-100 ml-5 lg:ml-8 z-20 flex text-xs 2xl:text-sm items-center p-1 2xl:p-2 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5',
@@ -281,7 +283,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
           Snapshot
         </button>
       )}
-      {type === 'aggregated' && formattedSummary.length && (
+      {!isBYO && type === 'aggregated' && formattedSummary.length && (
         <div className="absolute mt-24 ml-5 lg:ml-8 z-20 text-xs 2xl:text-sm">
           <button
             className="flex lg:hidden text-stone-900 dark:text-stone-100 items-center p-1 2xl:p-2 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5"
@@ -341,11 +343,14 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
         {() => {
           return (
             <div className="w-full h-full">
-              <Share />
+              {!isBYO && <Share />}
               <span
                 onClick={handleFocus}
                 title="Focus to the head of the canonical chain"
-                className="fixed z-10 right-6 lg:right-8 top-36 text-stone-700 dark:text-stone-300 cursor-pointer w-10 h-10 rounded-md transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+                className={classNames(
+                  isBYO ? 'top-20' : 'top-36',
+                  'fixed z-10 right-6 lg:right-8 top-36 text-stone-700 dark:text-stone-300 cursor-pointer w-10 h-10 rounded-md transition hover:bg-stone-900/5 dark:hover:bg-white/5',
+                )}
               >
                 <span className="sr-only">Focus to the head of the canonical chain</span>
                 {focused && (

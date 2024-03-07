@@ -7,6 +7,7 @@ import {
   useRef,
 } from 'react';
 
+import { ProcessedData } from '@app/types/graph';
 import useEthereum from '@contexts/ethereum';
 
 export const Context = createContext<State | undefined>(undefined);
@@ -34,6 +35,9 @@ export interface State {
   play: (offset?: number) => void;
   stop: () => void;
   playing: boolean;
+  byo: boolean;
+  byoData?: ProcessedData;
+  setBYOData: (data?: ProcessedData) => void;
 }
 
 export interface ValueProps {
@@ -41,12 +45,15 @@ export interface ValueProps {
   node?: string;
   frameId?: string;
   playing: boolean;
+  byo: boolean;
 }
 
 export function useValue(props: ValueProps): State {
   const [time, setTime] = useState(props.initialTime);
   const [node, setNode] = useState(props.node);
   const [frameId, setFrameId] = useState(props.frameId);
+  const [byo, setBYO] = useState(props.byo);
+  const [byoData, setBYODataInternal] = useState<ProcessedData | undefined>();
   const { secondsPerSlot, slotsPerEpoch, genesisTime } = useEthereum();
   const timer = useRef<number | null>(null);
   const initialPlayTime = useRef<number | undefined>(
@@ -57,6 +64,10 @@ export function useValue(props: ValueProps): State {
   useEffect(() => {
     if (props.node !== node) setNode(props.node);
   }, [props.node]);
+
+  useEffect(() => {
+    if (props.byo !== byo) setBYO(props.byo);
+  }, [props.byo]);
 
   useEffect(() => {
     if (props.frameId !== frameId) setFrameId(props.frameId);
@@ -137,6 +148,13 @@ export function useValue(props: ValueProps): State {
     [setTime, genesisTime, secondsPerSlot, slotsPerEpoch, playing],
   );
 
+  const setBYOData = useCallback(
+    (data?: ProcessedData) => {
+      setBYODataInternal(data);
+    },
+    [setBYODataInternal],
+  );
+
   useEffect(() => {
     if (playing) play();
     return () => {
@@ -167,5 +185,8 @@ export function useValue(props: ValueProps): State {
     play,
     stop,
     playing,
+    byo,
+    byoData,
+    setBYOData,
   };
 }

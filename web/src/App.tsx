@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import Loading from '@components/Loading';
 import { ValueProps } from '@contexts/ethereum';
 import { useSpecQuery, useNowQuery } from '@hooks/useQuery';
+import BYOFooter from '@parts/BYOFooter';
 import Events from '@parts/Events';
 import FrameFooter from '@parts/FrameFooter';
 import Header from '@parts/Header';
@@ -11,7 +12,15 @@ import Stage from '@parts/Stage';
 import Timeline from '@parts/Timeline';
 import ApplicationProvider from '@providers/application';
 
-export default function App({ node, frameId }: { node?: string; frameId?: string }) {
+export default function App({
+  node,
+  frameId,
+  byo = false,
+}: {
+  node?: string;
+  frameId?: string;
+  byo?: boolean;
+}) {
   const { data, isLoading, error } = useSpecQuery();
   const { data: dataNow, isLoading: isLoadingNow, error: errorNow } = useNowQuery();
 
@@ -66,8 +75,18 @@ export default function App({ node, frameId }: { node?: string; frameId?: string
       </div>
     );
 
+  let footer = <Timeline />;
+  if (byo) {
+    footer = <BYOFooter />;
+  } else if (frameId) {
+    footer = <FrameFooter />;
+  }
+
   return (
-    <ApplicationProvider ethereum={formattedData} focus={{ initialTime, node, frameId, playing }}>
+    <ApplicationProvider
+      ethereum={formattedData}
+      focus={{ initialTime, node, frameId, playing, byo }}
+    >
       <div className="relative w-screen h-screen">
         <div className="absolute top-0 left-0 w-full h-full">
           <Header />
@@ -76,7 +95,7 @@ export default function App({ node, frameId }: { node?: string; frameId?: string
           <main>
             <Stage />
           </main>
-          {frameId ? <FrameFooter /> : <Timeline />}
+          {footer}
         </div>
       </div>
     </ApplicationProvider>

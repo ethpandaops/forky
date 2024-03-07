@@ -7,6 +7,7 @@ import { useLocation } from 'wouter';
 
 import AggregatedBlockSummary from '@components/AggregatedBlockSummary';
 import AggregatedFramesSummary from '@components/AggregatedFramesSummary';
+import BYOFrameBlockSummary from '@components/BYOFrameBlockSummary';
 import FrameBlockSummary from '@components/FrameBlockSummary';
 import FrameSummary from '@components/FrameSummary';
 import useSelection from '@contexts/selection';
@@ -15,6 +16,7 @@ export default function Selection() {
   const { frameId, aggregatedFrameIds, frameBlock, aggregatedFramesBlock, clearAll } =
     useSelection();
   const [location] = useLocation();
+  const isBYO = location.startsWith('/byo');
 
   useEffect(clearAll, [location]);
 
@@ -83,7 +85,8 @@ export default function Selection() {
                         </div>
                         {frameId && <FrameSummary id={frameId} />}
                         {aggregatedFrameIds && <AggregatedFramesSummary ids={aggregatedFrameIds} />}
-                        {frameBlock && <FrameBlockSummary {...frameBlock} />}
+                        {frameBlock && !isBYO && <FrameBlockSummary {...frameBlock} />}
+                        {frameBlock && isBYO && <BYOFrameBlockSummary {...frameBlock} />}
                         {aggregatedFramesBlock && (
                           <AggregatedBlockSummary {...aggregatedFramesBlock} />
                         )}
