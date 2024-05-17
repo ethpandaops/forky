@@ -48,14 +48,6 @@ func (f *FrameMetadata) Validate() error {
 		return errors.New("invalid fetched_at")
 	}
 
-	if f.WallClockSlot == 0 {
-		return errors.New("invalid wall clock slot")
-	}
-
-	if f.WallClockEpoch == 0 {
-		return errors.New("invalid wall clock epoch")
-	}
-
 	return nil
 }
 
