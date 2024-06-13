@@ -13,7 +13,7 @@ Forky captures, stores and visualizes fork choice data from the Ethereum Beacon 
   <a href="https://forky.mainnet.ethpandaops.io" target="_blank">Mainnet</a>
 </p>
 <p align="center">
-  <a href="https://forky.goerli.ethpandaops.io" target="_blank">Goerli</a>
+  <a href="https://forky.sepolia.ethpandaops.io" target="_blank">Sepolia</a>
 </p>
 
 ----------
