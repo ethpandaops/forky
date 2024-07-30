@@ -42,7 +42,7 @@ jobs:
       - uses: actions/setup-node@v3
         name: Set up Node
         with:
-          node-version: 18
+          node-version: 22
       - name: Run apt-get update
         run: sudo apt-get update
       - name: Install cross-compiler for linux/arm64
