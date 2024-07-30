@@ -1,6 +1,6 @@
 import { Fragment, useEffect } from 'react';
 
-import { Dialog, Transition } from '@headlessui/react';
+import { Dialog, Transition, TransitionChild, DialogPanel, DialogTitle } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import classNames from 'classnames';
 import { useLocation } from 'wouter';
@@ -23,7 +23,7 @@ export default function Selection() {
   return (
     <div className="bg-stone-900">
       <header className="absolute inset-x-0 top-0 z-20">
-        <Transition.Root
+        <Transition
           show={
             Boolean(frameId) ||
             Boolean(aggregatedFrameIds) ||
@@ -33,7 +33,7 @@ export default function Selection() {
           as={Fragment}
         >
           <Dialog as="div" onClose={clearAll}>
-            <Transition.Child
+            <TransitionChild
               as={Fragment}
               enter="ease-in-out duration-100"
               enterFrom="opacity-0"
@@ -43,11 +43,11 @@ export default function Selection() {
               leaveTo="opacity-0"
             >
               <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-30" />
-            </Transition.Child>
+            </TransitionChild>
             <div className="fixed inset-0 overflow-hidden z-30">
               <div className="absolute inset-0 overflow-hidden">
                 <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
-                  <Transition.Child
+                  <TransitionChild
                     as={Fragment}
                     enter="transform transition ease-in-out duration-100 sm:duration-200"
                     enterFrom="translate-x-full"
@@ -56,7 +56,7 @@ export default function Selection() {
                     leaveFrom="translate-x-0"
                     leaveTo="translate-x-full"
                   >
-                    <Dialog.Panel
+                    <DialogPanel
                       className={classNames(
                         'fixed inset-y-0 overflow-x-hidden right-0 w-full overflow-y-auto bg-stone-100 dark:bg-stone-900 sm:ring-1 sm:ring-white/10',
                         aggregatedFrameIds ? 'sm:max-w-[95%]' : 'sm:max-w-screen-lg',
@@ -65,12 +65,12 @@ export default function Selection() {
                       <div className="flex h-full flex-col py-6 shadow-xl">
                         <div className="px-4 mb-6 mt-1 sm:px-6">
                           <div className="flex items-start justify-between">
-                            <Dialog.Title className="mt-1 flex items-center text-base font-semibold leading-6 text-stone-900 dark:text-stone-100">
+                            <DialogTitle className="mt-1 flex items-center text-base font-semibold leading-6 text-stone-900 dark:text-stone-100">
                               {frameId && 'Snapshot'}
                               {aggregatedFrameIds && 'Aggregated Snapshots'}
                               {frameBlock && 'Block'}
                               {aggregatedFramesBlock && 'Aggregated Block'}
-                            </Dialog.Title>
+                            </DialogTitle>
                             <div className="ml-3 flex h-7 items-center">
                               <button
                                 type="button"
@@ -91,13 +91,13 @@ export default function Selection() {
                           <AggregatedBlockSummary {...aggregatedFramesBlock} />
                         )}
                       </div>
-                    </Dialog.Panel>
-                  </Transition.Child>
+                    </DialogPanel>
+                  </TransitionChild>
                 </div>
               </div>
             </div>
           </Dialog>
-        </Transition.Root>
+        </Transition>
       </header>
     </div>
   );

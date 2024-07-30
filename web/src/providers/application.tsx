@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import { navigate } from 'wouter/use-location';
+import { navigate } from 'wouter/use-browser-location';
 
 import EthereumProvider, { Props as EthereumProps } from '@providers/ethereum';
 import FocusProvider, { Props as FocusProps } from '@providers/focus';

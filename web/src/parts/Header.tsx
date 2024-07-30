@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react';
 
-import { Dialog, Transition } from '@headlessui/react';
+import { Dialog, Transition, TransitionChild, DialogPanel } from '@headlessui/react';
 import {
   Bars3Icon,
   XMarkIcon,
@@ -53,9 +53,9 @@ export default function Header() {
             </button>
           </div>
         </nav>
-        <Transition.Root show={menuOpen} as={Fragment}>
+        <Transition show={menuOpen} as={Fragment}>
           <Dialog as="div" onClose={setMenuOpen}>
-            <Transition.Child
+            <TransitionChild
               as={Fragment}
               enter="ease-in-out duration-100"
               enterFrom="opacity-0"
@@ -65,11 +65,11 @@ export default function Header() {
               leaveTo="opacity-0"
             >
               <div className="fixed inset-0 bg-stone-300 bg-opacity-75 transition-opacity z-30" />
-            </Transition.Child>
+            </TransitionChild>
             <div className="fixed inset-0 overflow-hidden z-30">
               <div className="absolute inset-0 overflow-hidden">
                 <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
-                  <Transition.Child
+                  <TransitionChild
                     as={Fragment}
                     enter="transform transition ease-in-out duration-100 sm:duration-200"
                     enterFrom="translate-x-full"
@@ -78,7 +78,7 @@ export default function Header() {
                     leaveFrom="translate-x-0"
                     leaveTo="translate-x-full"
                   >
-                    <Dialog.Panel className="fixed inset-y-0 overflow-x-hidden right-0 w-full overflow-y-auto bg-stone-100 dark:bg-stone-900 sm:max-w-screen-lg sm:ring-1 sm:ring-white/10">
+                    <DialogPanel className="fixed inset-y-0 overflow-x-hidden right-0 w-full overflow-y-auto bg-stone-100 dark:bg-stone-900 sm:max-w-screen-lg sm:ring-1 sm:ring-white/10">
                       <div className="fixed opacity-10 pointer-events-none">
                         <Walker width={window.innerWidth < 1024 ? window.innerWidth : 1024} />
                       </div>
@@ -130,13 +130,13 @@ export default function Header() {
                           </div>
                         </div>
                       </div>
-                    </Dialog.Panel>
-                  </Transition.Child>
+                    </DialogPanel>
+                  </TransitionChild>
                 </div>
               </div>
             </div>
           </Dialog>
-        </Transition.Root>
+        </Transition>
       </header>
     </div>
   );

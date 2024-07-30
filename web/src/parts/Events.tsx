@@ -1,6 +1,19 @@
 import { Fragment, useEffect, useRef, useState, useMemo } from 'react';
 
-import { Dialog, Transition, RadioGroup, Listbox } from '@headlessui/react';
+import {
+  Dialog,
+  Transition,
+  RadioGroup,
+  Listbox,
+  TransitionChild,
+  DialogPanel,
+  DialogTitle,
+  Label,
+  Radio,
+  ListboxOptions,
+  ListboxOption,
+  ListboxButton,
+} from '@headlessui/react';
 import { ArrowTopRightOnSquareIcon, CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import classNames from 'classnames';
@@ -194,9 +207,9 @@ export default function Selection() {
   return (
     <div className="bg-stone-900">
       <header className="absolute inset-x-0 top-0 z-20">
-        <Transition.Root show={isEventRoute} as={Fragment}>
+        <Transition show={isEventRoute} as={Fragment}>
           <Dialog as="div" onClose={() => setLocation(previousLocation.current)}>
-            <Transition.Child
+            <TransitionChild
               as={Fragment}
               enter="ease-in-out duration-100"
               enterFrom="opacity-0"
@@ -206,11 +219,11 @@ export default function Selection() {
               leaveTo="opacity-0"
             >
               <div className="fixed inset-0 bg-stone-500 bg-opacity-75 transition-opacity z-30" />
-            </Transition.Child>
+            </TransitionChild>
             <div className="fixed inset-0 overflow-hidden z-30">
               <div className="absolute inset-0 overflow-hidden">
                 <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
-                  <Transition.Child
+                  <TransitionChild
                     as={Fragment}
                     enter="transform transition ease-in-out duration-100 sm:duration-200"
                     enterFrom="translate-x-full"
@@ -219,11 +232,11 @@ export default function Selection() {
                     leaveFrom="translate-x-0"
                     leaveTo="translate-x-full"
                   >
-                    <Dialog.Panel className="fixed inset-y-0 overflow-x-hidden right-0 w-full overflow-y-auto bg-stone-100 dark:bg-stone-900 sm:ring-1 sm:ring-white/10 sm:max-w-[95%]">
+                    <DialogPanel className="fixed inset-y-0 overflow-x-hidden right-0 w-full overflow-y-auto bg-stone-100 dark:bg-stone-900 sm:ring-1 sm:ring-white/10 sm:max-w-[95%]">
                       <div className="flex h-full flex-col py-6 shadow-xl">
                         <div className="px-4 mb-6 mt-1 sm:px-6">
                           <div className="flex items-start justify-between">
-                            <Dialog.Title className="mt-1 flex items-center text-base  leading-6 text-stone-900 dark:text-stone-100">
+                            <DialogTitle className="mt-1 flex items-center text-base  leading-6 text-stone-900 dark:text-stone-100">
                               <span className="font-semibold">Events</span>
                               {node && (
                                 <span>
@@ -238,7 +251,7 @@ export default function Selection() {
                                   </Link>
                                 </span>
                               )}
-                            </Dialog.Title>
+                            </DialogTitle>
                             <div className="ml-3 flex h-7 items-center">
                               <button
                                 type="button"
@@ -255,13 +268,13 @@ export default function Selection() {
                           <RadioGroup value={queryType} onChange={setQueryType}>
                             <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
                               {queryOptions.map((option) => (
-                                <RadioGroup.Option
+                                <Radio
                                   key={option.name}
                                   value={option}
-                                  className={({ active, checked }) =>
+                                  className={({ focus, checked }) =>
                                     classNames(
                                       'cursor-pointer focus:outline-none',
-                                      active
+                                      focus
                                         ? 'ring-2 ring-stone-600 dark:ring-stone-400 ring-offset-2'
                                         : '',
                                       checked
@@ -271,8 +284,8 @@ export default function Selection() {
                                     )
                                   }
                                 >
-                                  <RadioGroup.Label as="span">{option.name}</RadioGroup.Label>
-                                </RadioGroup.Option>
+                                  <Label as="span">{option.name}</Label>
+                                </Radio>
                               ))}
                             </div>
                           </RadioGroup>
@@ -281,7 +294,7 @@ export default function Selection() {
                               {({ open }) => (
                                 <>
                                   <div className="relative mt-4">
-                                    <Listbox.Button className="relative w-full cursor-default rounded-md bg-stone-100 dark:bg-stone-600 py-1 pl-2 pr-10 text-left text-stone-900 dark:text-stone-100 shadow-sm ring-1 ring-inset ring-stone-300 dark:ring-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-600 dark:focus:ring-stone-400 sm:text-sm sm:leading-6">
+                                    <ListboxButton className="relative w-full cursor-default rounded-md bg-stone-100 dark:bg-stone-600 py-1 pl-2 pr-10 text-left text-stone-900 dark:text-stone-100 shadow-sm ring-1 ring-inset ring-stone-300 dark:ring-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-600 dark:focus:ring-stone-400 sm:text-sm sm:leading-6">
                                       <span className="block truncate">{queryRelative.name}</span>
                                       <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                                         <ChevronUpDownIcon
@@ -289,7 +302,7 @@ export default function Selection() {
                                           aria-hidden="true"
                                         />
                                       </span>
-                                    </Listbox.Button>
+                                    </ListboxButton>
 
                                     <Transition
                                       show={open}
@@ -298,13 +311,13 @@ export default function Selection() {
                                       leaveFrom="opacity-100"
                                       leaveTo="opacity-0"
                                     >
-                                      <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-stone-200 dark:bg-stone-800 py-1 text-base shadow-lg ring-1 ring-stone-900 dark:ring-stone-100 ring-opacity-5 focus:outline-none sm:text-sm">
+                                      <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-stone-200 dark:bg-stone-800 py-1 text-base shadow-lg ring-1 ring-stone-900 dark:ring-stone-100 ring-opacity-5 focus:outline-none sm:text-sm">
                                         {queryRelativeOptions.map((option) => (
-                                          <Listbox.Option
+                                          <ListboxOption
                                             key={option.id}
-                                            className={({ active }) =>
+                                            className={({ focus }) =>
                                               classNames(
-                                                active
+                                                focus
                                                   ? 'bg-stone-600 dark:bg-stone-400 text-stone-100 dark:text-stone-900'
                                                   : 'text-stone-900 dark:text-stone-100',
                                                 'relative cursor-default select-none py-2 pl-8 pr-4',
@@ -312,7 +325,7 @@ export default function Selection() {
                                             }
                                             value={option}
                                           >
-                                            {({ selected, active }) => (
+                                            {({ selected, focus }) => (
                                               <>
                                                 <span
                                                   className={classNames(
@@ -326,7 +339,7 @@ export default function Selection() {
                                                 {selected ? (
                                                   <span
                                                     className={classNames(
-                                                      active
+                                                      focus
                                                         ? 'text-stone-100 dark:text-stone-900'
                                                         : 'text-stone-600 dark:text-stone-400',
                                                       'absolute inset-y-0 left-0 flex items-center pl-1.5',
@@ -340,9 +353,9 @@ export default function Selection() {
                                                 ) : null}
                                               </>
                                             )}
-                                          </Listbox.Option>
+                                          </ListboxOption>
                                         ))}
-                                      </Listbox.Options>
+                                      </ListboxOptions>
                                     </Transition>
                                   </div>
                                 </>
@@ -506,13 +519,13 @@ export default function Selection() {
                           </div>
                         </div>
                       </div>
-                    </Dialog.Panel>
-                  </Transition.Child>
+                    </DialogPanel>
+                  </TransitionChild>
                 </div>
               </div>
             </div>
           </Dialog>
-        </Transition.Root>
+        </Transition>
       </header>
     </div>
   );

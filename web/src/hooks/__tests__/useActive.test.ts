@@ -2,7 +2,6 @@ import { renderHook } from '@testing-library/react';
 import { vi, Mock } from 'vitest';
 
 import { FrameMetaData } from '@app/types/api';
-import useFocus from '@contexts/focus';
 import useActiveFrame, { findLatestFrameIdPerNode } from '@hooks/useActive';
 import { useMetadataQuery } from '@hooks/useQuery';
 import { ProviderWrapper } from '@utils/testing';
