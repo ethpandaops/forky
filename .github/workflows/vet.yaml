@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go_version: [ 1.19.x ]
+        go_version: [ 1.22.x ]
     steps:
       - name: Set up Go ${{ matrix.go_version }}
         uses: actions/setup-go@v3
@@ -24,7 +24,7 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
-          version: v1.51.2
+          version: v1.59
 
           # Optional: working directory, useful for monorepos
           # working-directory: somedir
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go_version: [ 1.19.x ]
+        go_version: [ 1.22.x ]
     steps:
       - name: Set up Go ${{ matrix.go_version }}
         uses: actions/setup-go@v3
