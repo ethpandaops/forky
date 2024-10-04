@@ -218,6 +218,7 @@ func TestForkChoiceServer(t *testing.T) {
 		}
 
 		time.Sleep(5 * time.Second)
+
 		err = s.svc.DeleteOldFrames(context.Background())
 		assert.NoError(t, err)
 

@@ -649,6 +649,7 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 		// Check that all nodes are returned
 		expectedNodes := []string{"node0", "node1", "node2", "node3", "node4"}
 		assert.Len(t, nodes, len(expectedNodes))
+
 		for _, node := range expectedNodes {
 			assert.Contains(t, nodes, node)
 		}
@@ -682,6 +683,7 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 		filter := &FrameFilter{
 			Labels: &[]string{"label5"},
 		}
+
 		nodes, err := indexer.ListNodesWithFrames(context.Background(), filter, &PaginationCursor{})
 		if err != nil {
 			t.Fatal(err)
@@ -690,7 +692,6 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 		// Check that only nodes with frames with the "label5" label are returned
 		for _, node := range nodes {
 			frames, err := indexer.ListFrameMetadata(context.Background(), &FrameFilter{
-				//nolint:gosec // don't care in this test
 				Node: &node,
 			}, &PaginationCursor{})
 			if err != nil {

@@ -18,8 +18,8 @@ type FrameMetadataLabels []FrameMetadataLabel
 func (f *FrameMetadataLabels) AsStrings() []string {
 	labels := make([]string, len(*f))
 
-	for i, label := range *f {
-		labels[i] = label.Name
+	for i := range *f {
+		labels[i] = (*f)[i].Name
 	}
 
 	return labels
