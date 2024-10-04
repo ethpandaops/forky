@@ -291,7 +291,7 @@ func (x *XatuHTTP) handleXatuEvent(ctx context.Context, event *xatu.DecoratedEve
 
 func (x *XatuHTTP) handleForkChoiceEvent(ctx context.Context, event *xatu.DecoratedEvent) error {
 	// Create a new frame based on the event
-	fc := event.GetEthV1ForkChoice()
+	fc := event.GetEthV1ForkChoiceV2()
 	if fc == nil {
 		return fmt.Errorf("event is not a fork choice event")
 	}
@@ -337,7 +337,7 @@ func (x *XatuHTTP) handleForkChoiceReorgEvent(ctx context.Context, event *xatu.D
 
 	// Create 2 new frames based on the event (one for `before` the reorg and one for `after` the reorg)
 	// Note: `before` can be nil if the reorg happened before the xatu sentry started
-	fcr := event.GetEthV1ForkChoiceReorg()
+	fcr := event.GetEthV1ForkChoiceReorgV2()
 	if fcr == nil {
 		return fmt.Errorf("event is not a fork choice reorg event")
 	}
@@ -453,7 +453,7 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 	}
 
 	if event.GetEvent().GetName() == xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG {
-		data := event.GetEthV1ForkChoiceReorg()
+		data := event.GetEthV1ForkChoiceReorgV2()
 
 		prefix := "xatu_reorg_event_"
 
@@ -466,7 +466,7 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 			prefix+"old_head_state="+data.GetEvent().GetOldHeadState(),
 			prefix+"new_head_block="+data.GetEvent().GetNewHeadBlock(),
 			prefix+"new_head_state="+data.GetEvent().GetNewHeadState(),
-			fmt.Sprintf(prefix+"depth=%d", +data.GetEvent().GetDepth()),
+			fmt.Sprintf(prefix+"depth=%d", +data.GetEvent().GetDepth().GetValue()),
 
 			"xatu_reorg_frame_timing="+timing,
 		)
