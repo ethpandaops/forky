@@ -256,7 +256,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
     }
 
     return { formattedNodes: newNodes, formattedEdges: newEdges };
-  }, [unique]);
+  }, [unique]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
