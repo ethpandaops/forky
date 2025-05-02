@@ -45,7 +45,7 @@ export const handlers: Array<RequestHandler> = [
   http.post(`${BASE_URL}api/v1/metadata/nodes`, () => {
     return HttpResponse.json({ data: nodes });
   }),
-  http.post(`${BASE_URL}api/v1/metadata`, async ({ request }) => {
+  http.post(`${BASE_URL}api/v1/metadata`, async () => {
     const { slot, epoch } = getNow();
     const data: Response<V1MetadataListResponse> = {
       data: {
@@ -66,7 +66,7 @@ export const handlers: Array<RequestHandler> = [
     };
     return HttpResponse.json(data);
   }),
-  http.get(`${BASE_URL}api/v1/frames/:id`, ({ request, params, cookies }) => {
+  http.get(`${BASE_URL}api/v1/frames/:id`, ({ params }) => {
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const { slot, epoch } = getNow();
     const data: Response<V1GetFrameResponse> = {

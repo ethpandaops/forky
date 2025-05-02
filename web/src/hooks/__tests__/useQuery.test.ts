@@ -25,7 +25,7 @@ describe('useQuery', () => {
     });
   });
 
-  describe('useNowQuery', () => {
+  describe('useSpecQuery', () => {
     it('should return metadata', async () => {
       const { result } = renderHook(() => useSpecQuery(), {
         wrapper: ProviderWrapper(),

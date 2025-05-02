@@ -1,19 +1,7 @@
 import { useEffect } from 'react';
 
 import { MoonIcon, SunIcon } from '@heroicons/react/20/solid';
-
-export function hasDarkPreference() {
-  if (window.matchMedia) {
-    const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    return darkModeMediaQuery.matches;
-  }
-  return false;
-}
-
-export function hasDarkLocalStorage() {
-  if (!window.localStorage) return false;
-  return window.localStorage.isDarkMode === 'true';
-}
+import { hasDarkLocalStorage, hasDarkPreference } from '@utils/darkmode';
 
 export function ModeToggle() {
   useEffect(() => {

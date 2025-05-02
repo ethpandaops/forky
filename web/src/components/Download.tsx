@@ -1,5 +1,5 @@
 import { ArrowDownTrayIcon } from '@heroicons/react/20/solid';
-import classNames from 'classnames';
+import classNames from 'clsx';
 
 export default function Download({
   data,

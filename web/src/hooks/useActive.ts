@@ -15,7 +15,7 @@ export function findLatestFrameIdPerNode(
   focusedNode?: string,
 ): State {
   // Filter metadata
-  metadata = metadata.filter((frame) => {
+  metadata = metadata.filter(frame => {
     // only frames with fetched_at before focusedTime
     if (new Date(frame.fetched_at).getTime() >= focusedTime) return false;
 

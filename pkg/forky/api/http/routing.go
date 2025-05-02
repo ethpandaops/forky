@@ -54,6 +54,26 @@ func WrappedHandler(log logrus.FieldLogger, metrics *Metrics, handler func(ctx c
 			return
 		}
 
+		// Set headers before any potential content processing
+		for header, value := range response.Headers {
+			w.Header().Set(header, value)
+		}
+
+		// Special case: Check for raw multipart content (stored as _raw_content in ExtraData)
+		if rawContent, ok := response.ExtraData["_raw_content"]; ok {
+			if rawBytes, ok := rawContent.([]byte); ok {
+				// Raw content handling - write directly to response
+				w.WriteHeader(response.StatusCode)
+
+				if _, err := w.Write(rawBytes); err != nil {
+					log.WithError(err).Error("Failed to write raw content")
+				}
+
+				return
+			}
+		}
+
+		// Standard flow - marshal response based on content type
 		data, err := response.MarshalAs(contentType)
 		if err != nil {
 			if writeErr := WriteErrorResponse(w, err.Error(), http.StatusInternalServerError); writeErr != nil {
@@ -61,10 +81,6 @@ func WrappedHandler(log logrus.FieldLogger, metrics *Metrics, handler func(ctx c
 			}
 
 			return
-		}
-
-		for header, value := range response.Headers {
-			w.Header().Set(header, value)
 		}
 
 		if err := WriteContentAwareResponse(w, data, contentType); err != nil {

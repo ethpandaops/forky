@@ -1,7 +1,7 @@
 import { memo } from 'react';
 
 import { RectangleGroupIcon, RectangleStackIcon } from '@heroicons/react/24/solid';
-import { useLocation, Link } from 'wouter';
+import { Link } from 'wouter';
 
 import Download from '@components/Download';
 import useAction from '@hooks/useActive';
@@ -9,8 +9,7 @@ import { useFrameQuery } from '@hooks/useQuery';
 
 function FrameFooter() {
   const { ids } = useAction();
-  const [location, setLocation] = useLocation();
-  const { data, isLoading } = useFrameQuery(ids[0], ids.length > 0);
+  const { data } = useFrameQuery(ids[0], ids.length > 0);
 
   return (
     <div

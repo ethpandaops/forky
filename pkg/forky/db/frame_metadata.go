@@ -39,9 +39,11 @@ func (f *FrameMetadata) AsFrameMetadata() *types.FrameMetadata {
 	l := FrameMetadataLabels(f.Labels)
 
 	return &types.FrameMetadata{
-		ID:              f.ID,
-		Node:            f.Node,
-		WallClockSlot:   phase0.Slot(f.WallClockSlot),
+		ID:   f.ID,
+		Node: f.Node,
+		//nolint:gosec // ignore integer overflow conversion uint64 -> int64
+		WallClockSlot: phase0.Slot(f.WallClockSlot),
+		//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 		WallClockEpoch:  phase0.Epoch(f.WallClockEpoch),
 		FetchedAt:       f.FetchedAt,
 		Labels:          l.AsStrings(),
@@ -53,7 +55,9 @@ func (f *FrameMetadata) AsFrameMetadata() *types.FrameMetadata {
 func (f *FrameMetadata) FromFrameMetadata(metadata *types.FrameMetadata) *FrameMetadata {
 	f.ID = metadata.ID
 	f.Node = metadata.Node
+	//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 	f.WallClockSlot = int64(metadata.WallClockSlot)
+	//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 	f.WallClockEpoch = int64(metadata.WallClockEpoch)
 	f.FetchedAt = metadata.FetchedAt
 

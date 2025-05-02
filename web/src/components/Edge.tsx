@@ -1,6 +1,6 @@
 import { memo } from 'react';
 
-import classNames from 'classnames';
+import classNames from 'clsx';
 
 function Edge({
   x1,

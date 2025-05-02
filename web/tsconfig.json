@@ -1,70 +1,8 @@
 {
-  "compilerOptions": {
-    "baseUrl": ".",
-    "target": "ESNext",
-    "useDefineForClassFields": true,
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
-    ],
-    "allowJs": false,
-    "skipLibCheck": true,
-    "esModuleInterop": false,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "paths": {
-      "@app/*": [
-        "src/*"
-      ],
-      "@api/*": [
-        "src/api/*"
-      ],
-      "@styles/*": [
-        "src/styles/*"
-      ],
-      "@public/*": [
-        "public/*"
-      ],
-      "@parts/*": [
-        "src/parts/*"
-      ],
-      "@components/*": [
-        "src/components/*"
-      ],
-      "@hooks/*": [
-        "src/hooks/*"
-      ],
-      "@assets/*": [
-        "src/assets/*"
-      ],
-      "@utils/*": [
-        "src/utils/*"
-      ],
-      "@providers/*": [
-        "src/providers/*"
-      ],
-      "@contexts/*": [
-        "src/contexts/*"
-      ]
-    }
-  },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "**/__tests__/**"
-  ],
+  "files": [],
   "references": [
-    {
-      "path": "./tsconfig.node.json"
-    }
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.vitest.json" }
   ]
 }

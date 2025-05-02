@@ -16,7 +16,7 @@ import {
 } from '@headlessui/react';
 import { ArrowTopRightOnSquareIcon, CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import classNames from 'classnames';
+import classNames from 'clsx';
 import ReactTimeAgo from 'react-time-ago';
 import { useLocation, Link } from 'wouter';
 
@@ -25,11 +25,6 @@ import Loading from '@components/Loading';
 import useEthereum from '@contexts/ethereum';
 import useFocus from '@contexts/focus';
 import { useMetadataQuery } from '@hooks/useQuery';
-
-const eventMap: Record<string, string> = {
-  BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG: 'Reorg',
-  BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2: 'Reorg',
-};
 
 const colorMap: Record<string, string> = {
   Reorg: 'text-red-600 dark:text-red-400',
@@ -104,7 +99,7 @@ export default function Selection() {
   const previousLocation = useRef(isEventRoute ? '/' : location);
   useEffect(() => {
     if (!isEventRoute) previousLocation.current = location;
-  }, [location]);
+  }, [location, isEventRoute]);
 
   useEffect(() => {
     if (queryType.name === 'Relative') {
@@ -157,7 +152,7 @@ export default function Selection() {
         }
       >
     >((acc, event) => {
-      const sharedEventId = event.labels?.find((label) => label.startsWith('xatu_event_id='));
+      const sharedEventId = event.labels?.find(label => label.startsWith('xatu_event_id='));
       const time = new Date(event.fetched_at).getTime();
       if (event.event_source === 'xatu_reorg_event' && sharedEventId) {
         const isBefore = event.labels?.includes('xatu_reorg_frame_timing=before');
@@ -202,7 +197,7 @@ export default function Selection() {
       }
       return b.time - a.time;
     });
-  }, [isEventRoute, data?.length]);
+  }, [isEventRoute, data]);
 
   return (
     <div className="bg-stone-900">
@@ -267,7 +262,7 @@ export default function Selection() {
                         <div className="bg-stone-50 dark:bg-stone-800 shadow dark:shadow-inner mb-2 px-4 py-2">
                           <RadioGroup value={queryType} onChange={setQueryType}>
                             <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-                              {queryOptions.map((option) => (
+                              {queryOptions.map(option => (
                                 <Radio
                                   key={option.name}
                                   value={option}
@@ -312,7 +307,7 @@ export default function Selection() {
                                       leaveTo="opacity-0"
                                     >
                                       <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-stone-200 dark:bg-stone-800 py-1 text-base shadow-lg ring-1 ring-stone-900 dark:ring-stone-100 ring-opacity-5 focus:outline-none sm:text-sm">
-                                        {queryRelativeOptions.map((option) => (
+                                        {queryRelativeOptions.map(option => (
                                           <ListboxOption
                                             key={option.id}
                                             className={({ focus }) =>
@@ -368,7 +363,7 @@ export default function Selection() {
                               <EditableInput
                                 id="time"
                                 value={querySlot}
-                                onChange={(value) => setQuerySlot(value)}
+                                onChange={value => setQuerySlot(value)}
                                 type="text"
                               />
                             </div>
@@ -379,7 +374,7 @@ export default function Selection() {
                               <EditableInput
                                 id="time"
                                 value={queryEpoch}
-                                onChange={(value) => setQueryEpoch(value)}
+                                onChange={value => setQueryEpoch(value)}
                                 type="text"
                               />
                             </div>
@@ -435,7 +430,7 @@ export default function Selection() {
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-stone-800">
-                                {events.map((event) => {
+                                {events.map(event => {
                                   if (!event) return null;
                                   const time = new Date(event.time);
                                   const timeDiff = (time.getTime() - genesisTime) / 1000;

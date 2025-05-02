@@ -79,7 +79,7 @@ function EditableInput<T extends InputType>({ value, onChange, type, id }: Props
           type={type}
           className="pl-2 bg-stone-100 dark:bg-stone-500 block w-full rounded-md border-0 py-1 text-stone-900 dark:text-stone-100 shadow-sm ring-1 ring-inset ring-stone-300 dark:ring-stone-700 placeholder:text-stone-400 focus:ring-2 focus:ring-inset focus:ring-stone-600 text-sm leading-6"
           value={formattedValue(inputValue)}
-          onChange={(e) => setInputValue(e.target.value as unknown as ValueType[T])}
+          onChange={e => setInputValue(e.target.value as unknown as ValueType[T])}
           onBlur={handleSave}
           step="1"
           onKeyDownCapture={handleKeyPress}

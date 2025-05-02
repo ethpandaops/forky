@@ -1,4 +1,4 @@
-import classNames from 'classnames';
+import classNames from 'clsx';
 
 import Logo from '@assets/forky_logo.png';
 

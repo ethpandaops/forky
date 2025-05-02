@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /* fix for safari https://github.com/mdn/browser-compat-data/issues/17726 */
 .drop-shadow-sm,

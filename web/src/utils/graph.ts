@@ -42,7 +42,7 @@ export function getLastSlotFromNode(graph: Graph, node: string): number {
   if (children.length === 0) {
     return graph.getNodeAttribute(node, 'slot');
   }
-  return Math.max(...children.map((child) => getLastSlotFromNode(graph, child)));
+  return Math.max(...children.map(child => getLastSlotFromNode(graph, child)));
 }
 
 export function countForksFromNode(graph: Graph, node: string): number {
@@ -51,7 +51,7 @@ export function countForksFromNode(graph: Graph, node: string): number {
     return 0;
   }
   return (
-    children.map((child) => countForksFromNode(graph, child)).reduce((a, b) => a + b, 0) +
+    children.map(child => countForksFromNode(graph, child)).reduce((a, b) => a + b, 0) +
     children.length -
     1
   );
@@ -104,7 +104,7 @@ export function applyNodeAttributeToAllChildren<T extends Attributes>(
 ): void {
   const neighbors = graph.outNeighbors(id);
 
-  neighbors.forEach((childId) => {
+  neighbors.forEach(childId => {
     graph.updateNodeAttribute(childId, key, () => value);
     applyNodeAttributeToAllChildren<T>(graph, childId, key, value);
   });
@@ -121,7 +121,7 @@ export function applyNodeOffsetToAllChildren(
   if (children.length === 0) return;
 
   if (children.length === 1) {
-    graph.updateNodeAttributes(children[0], (attributes) => ({
+    graph.updateNodeAttributes(children[0], attributes => ({
       ...attributes,
       canonical: false,
       offset: currentOffset,
@@ -131,7 +131,7 @@ export function applyNodeOffsetToAllChildren(
   }
 
   const ordered = children
-    .map((child) => ({
+    .map(child => ({
       blockRoot: child,
       height: 1 + countForksFromNode(graph, child),
       lastSlot: getLastSlotFromNode(graph, child),
@@ -148,7 +148,7 @@ export function applyNodeOffsetToAllChildren(
 
   ordered.reduce((acc, { blockRoot, height }) => {
     const offset = currentOffset + acc * direction;
-    graph.updateNodeAttributes(blockRoot, (attributes) => ({
+    graph.updateNodeAttributes(blockRoot, attributes => ({
       ...attributes,
       canonical: false,
       offset: offset,
@@ -208,7 +208,7 @@ export function applyForkNodeOffset(
     const previousOverlappingForks = forkReferences
       .slice(0, index)
       .reverse()
-      .filter((fork) => {
+      .filter(fork => {
         // find if there is a fork later than current
         if (fork.parentSlot <= lastSlot) {
           return true;
@@ -256,7 +256,7 @@ export function applyForkNodeOffset(
   forkReferences.forEach(({ nodeId, slot, lastSlot }) => {
     const offset = initialForkOffset[nodeId];
 
-    graph.updateNodeAttributes(nodeId, (attributes) => ({
+    graph.updateNodeAttributes(nodeId, attributes => ({
       ...attributes,
       offset,
     }));
@@ -288,7 +288,7 @@ export function processForkChoiceData(frame: Required<Frame>): ProcessedData {
   const { data, metadata } = frame;
   const graph = new Graphology<WeightedNodeAttributes, EdgeAttributes, WeightedGraphAttributes>();
 
-  graph.updateAttributes((current) => ({
+  graph.updateAttributes(current => ({
     ...current,
     slotStart: 0,
     slotEnd: 0,
@@ -379,7 +379,7 @@ export function processForkChoiceData(frame: Required<Frame>): ProcessedData {
   const orphanedNodes: OrphanReference[] = [];
 
   // iterate over nodes again and add edges
-  graph.forEachNode((nodeId) => {
+  graph.forEachNode(nodeId => {
     const forkChoiceNode = forkChoiceNodes[nodeId];
     if (
       forkChoiceNode.parent_root &&
@@ -409,12 +409,12 @@ export function processForkChoiceData(frame: Required<Frame>): ProcessedData {
 
   // find all forks along the canonical chain
   // sort by slot to move along the graph in order to know if a node is canonical
-  graph.nodes().forEach((nodeId) => {
+  graph.nodes().forEach(nodeId => {
     const forkChoiceNode = forkChoiceNodes[nodeId];
     const neighbors = graph.outNeighbors(nodeId);
     if (neighbors.length > 1) {
       const highestWeightedNeighor = highestWeightedNode(graph, neighbors);
-      neighbors.forEach((childNodeId) => {
+      neighbors.forEach(childNodeId => {
         if (graph.getNodeAttribute(nodeId, 'canonical')) {
           if (highestWeightedNeighor === childNodeId) return;
         }
@@ -456,7 +456,7 @@ export function processForkChoiceData(frame: Required<Frame>): ProcessedData {
           );
         }
 
-        graph.updateAttributes((attributes) => ({
+        graph.updateAttributes(attributes => ({
           ...attributes,
           forks: attributes.forks + 1,
         }));
@@ -486,12 +486,12 @@ export function aggregateProcessedData(data: ProcessedData[]): AggregatedGraph {
     AggregatedGraphAttributes
   >();
 
-  graph.updateAttributes((attributes) => ({
+  graph.updateAttributes(attributes => ({
     ...attributes,
     slotStart: 0,
     slotEnd: 0,
     nodes: [],
-    id: data.map((d) => d.frame.metadata.id).join('-'),
+    id: data.map(d => d.frame.metadata.id).join('-'),
     type: 'aggregated',
   }));
 
@@ -501,7 +501,7 @@ export function aggregateProcessedData(data: ProcessedData[]): AggregatedGraph {
   data.forEach(({ frame: { metadata, data: frameData }, graph: weightedGraph }) => {
     const nodeMap: Record<string, { id: string; slot: number }> = {};
     let head: WeightedNodeAttributes | undefined;
-    weightedGraph.nodes().forEach((blockRoot) => {
+    weightedGraph.nodes().forEach(blockRoot => {
       const node = weightedGraph.getNodeAttributes(blockRoot);
       if (node.slot > (head?.slot ?? 0) && node.canonical) {
         head = node;
@@ -512,7 +512,7 @@ export function aggregateProcessedData(data: ProcessedData[]): AggregatedGraph {
 
       // handle duplicate nodes
       if (graph.hasNode(nodeId)) {
-        graph.updateNodeAttributes(nodeId, (attributes) => ({
+        graph.updateNodeAttributes(nodeId, attributes => ({
           ...attributes,
           canonical: attributes.canonical || node.canonical,
           checkpoints: node.checkpoint
@@ -566,7 +566,7 @@ export function aggregateProcessedData(data: ProcessedData[]): AggregatedGraph {
         });
       }
     });
-    graph.updateAttribute('nodes', (attribute) => {
+    graph.updateAttribute('nodes', attribute => {
       return [
         ...(attribute ?? []),
         {
@@ -581,18 +581,18 @@ export function aggregateProcessedData(data: ProcessedData[]): AggregatedGraph {
   });
 
   // check if orphaned nodes are actually connected to the graph after iterating through all the nodes
-  orphanedNodes = orphanedNodes.filter((node) => graph.hasEdge(node.nodeId));
+  orphanedNodes = orphanedNodes.filter(node => graph.hasEdge(node.nodeId));
 
   const forks: ForkReference[] = [];
 
   graph
     .nodes()
     .sort((a, b) => graph.getNodeAttribute(a, 'slot') - graph.getNodeAttribute(b, 'slot'))
-    .forEach((node) => {
+    .forEach(node => {
       const neighbors = graph.outNeighbors(node);
       if (neighbors.length > 1) {
         const highestAggegatedNeighor = highestAggregatedNode(graph, neighbors);
-        neighbors.forEach((child) => {
+        neighbors.forEach(child => {
           if (graph.getNodeAttribute(node, 'canonical')) {
             if (highestAggegatedNeighor === child) return;
           }
@@ -623,7 +623,7 @@ export function aggregateProcessedData(data: ProcessedData[]): AggregatedGraph {
 
   // find canonical head
   const head = data
-    .map((d) => d.graph.getAttribute('head'))
+    .map(d => d.graph.getAttribute('head'))
     // head is prefixed by slot so reverse sort to get highest slot
     .sort((a, b) => {
       if (a === undefined) {

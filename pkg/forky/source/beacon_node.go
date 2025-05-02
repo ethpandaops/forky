@@ -178,29 +178,52 @@ func (b *BeaconNode) bootstrap(ctx context.Context) error {
 
 	b.client = client
 
+	genesisProvider, ok := b.client.(eth2client.GenesisProvider)
+	if !ok {
+		return errors.New("client does not support genesis provider")
+	}
+
 	// Fetch the genesis time and network parameters.
-	rsp, err := b.client.(eth2client.GenesisProvider).Genesis(ctx, &api.GenesisOpts{})
+	rsp, err := genesisProvider.Genesis(ctx, &api.GenesisOpts{})
 	if err != nil {
 		return perrors.Wrap(err, "failed to fetch genesis time")
+	}
+
+	if rsp == nil || rsp.Data == nil {
+		return errors.New("received nil response when fetching genesis time")
 	}
 
 	b.genesis = rsp.Data
 
 	// Fetch the network parameters.
-	specRsp, err := b.client.(eth2client.SpecProvider).Spec(ctx, &api.SpecOpts{})
+	specProvider, ok := b.client.(eth2client.SpecProvider)
+	if !ok {
+		return errors.New("client does not support spec provider")
+	}
+
+	specRsp, err := specProvider.Spec(ctx, &api.SpecOpts{})
 	if err != nil {
 		return perrors.Wrap(err, "failed to fetch spec")
 	}
 
+	if specRsp == nil || specRsp.Data == nil {
+		return errors.New("received nil response when fetching spec")
+	}
+
 	spec := specRsp.Data
 
-	secondsPerSlot, ok := spec["SECONDS_PER_SLOT"]
+	secondsPerSlotSpec, ok := spec["SECONDS_PER_SLOT"]
 	if !ok {
 		return errors.New("failed to fetch SECONDS_PER_SLOT")
 	}
 
+	secondsPerSlot, ok := secondsPerSlotSpec.(time.Duration)
+	if !ok {
+		return errors.New("failed to cast SECONDS_PER_SLOT to time.Duration")
+	}
+
 	//nolint:unconvert //incorrect
-	b.secondsPerSlot = time.Duration(secondsPerSlot.(time.Duration))
+	b.secondsPerSlot = time.Duration(secondsPerSlot)
 
 	slotsPerEpoch, ok := spec["SLOTS_PER_EPOCH"]
 	if !ok {
@@ -234,7 +257,12 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 		return perrors.Wrap(err, "failed to get current wallclock")
 	}
 
-	rsp, err := b.client.(eth2client.NodeVersionProvider).NodeVersion(ctx, &api.NodeVersionOpts{})
+	nodeVersionProvider, ok := b.client.(eth2client.NodeVersionProvider)
+	if !ok {
+		return errors.New("client does not support node version provider")
+	}
+
+	rsp, err := nodeVersionProvider.NodeVersion(ctx, &api.NodeVersionOpts{})
 	if err != nil {
 		return perrors.Wrap(err, "failed to get node version")
 	}

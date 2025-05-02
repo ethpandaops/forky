@@ -76,7 +76,7 @@ export default function FrameSummary({ id }: { id: string }) {
                 <div className="py-4 sm:py-5 sm:px-6 flex justify-center sm:justify-start sm:bg-stone-100 sm:dark:bg-stone-900">
                   <dt className="text-md text-stone-500 dark:text-stone-300 font-bold">Labels</dt>
                 </div>
-                {data.frame.metadata.labels?.map((label) => {
+                {data.frame.metadata.labels?.map(label => {
                   const [key, value] = parseLabel(label);
                   return (
                     <div key={key} className="py-4 sm:py-5 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">

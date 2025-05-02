@@ -1,7 +1,7 @@
 import { useState, memo } from 'react';
 
 import { EyeIcon, CheckIcon, FlagIcon } from '@heroicons/react/20/solid';
-import classNames from 'classnames';
+import classNames from 'clsx';
 
 import ProgressCircle from '@components/ProgressCircle';
 

@@ -4,7 +4,7 @@ import {
   XCircleIcon,
   ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/20/solid';
-import classNames from 'classnames';
+import classNames from 'clsx';
 import { Link } from 'wouter';
 
 import { ProcessedData, WeightedNodeAttributes } from '@app/types/graph';
@@ -19,7 +19,7 @@ export default function AggregatedBlockSummary({ frameIds, blockRoot }: Aggregat
   const { slotsPerEpoch } = useEthereum();
   const { clearAll, setFrameBlock } = useSelection();
   const results = useFrameQueries(frameIds);
-  if (results.some((r) => r.isLoading)) {
+  if (results.some(r => r.isLoading)) {
     return <Loading message="Loading..." />;
   }
 
@@ -29,7 +29,7 @@ export default function AggregatedBlockSummary({ frameIds, blockRoot }: Aggregat
       return acc;
     }, []),
   );
-  const nodeId = graph.nodes().find((id) => graph.getNodeAttribute(id, 'blockRoot') === blockRoot);
+  const nodeId = graph.nodes().find(id => graph.getNodeAttribute(id, 'blockRoot') === blockRoot);
   const node = nodeId ? graph.getNodeAttributes(nodeId) : undefined;
 
   if (!node) {

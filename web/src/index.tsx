@@ -1,4 +1,4 @@
-import '@styles/global.css';
+import './styles/global.css';
 import React from 'react';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -26,8 +26,14 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       <QueryClientProvider client={queryClient}>
         <Switch>
           <Route path="/byo">{() => <App byo />}</Route>
-          <Route path="/node/:node">{({ node }) => <App node={node} />}</Route>
-          <Route path="/node/:node/events">{({ node }) => <App node={node} />}</Route>
+          <Route path="/node/*">
+            {params => {
+              const pathParts = params['*'].split('/');
+              const hasEvents = pathParts[pathParts.length - 1] === 'events';
+              const nodePath = hasEvents ? pathParts.slice(0, -1).join('/') : params['*'];
+              return <App node={nodePath} />;
+            }}
+          </Route>
           <Route path="/snapshot/:id">{({ id }) => <App frameId={id} />}</Route>
           <Route>
             <App />

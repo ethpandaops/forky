@@ -21,7 +21,7 @@ export default function FrameBlockSummary({ frameId, blockRoot }: FrameBlock) {
     return <Loading message={`Error: ${error ?? 'failed to load snapshot'}`} />;
   }
 
-  const node = data.frame?.data?.fork_choice_nodes?.find((n) => n.block_root === blockRoot);
+  const node = data.frame?.data?.fork_choice_nodes?.find(n => n.block_root === blockRoot);
 
   if (!node) {
     return <Loading message="Error: failed to find block root in snapshot" />;

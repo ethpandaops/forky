@@ -1,0 +1,71 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@app/*": [
+        "src/*"
+      ],
+      "@api/*": [
+        "src/api/*"
+      ],
+      "@styles/*": [
+        "src/styles/*"
+      ],
+      "@public/*": [
+        "public/*"
+      ],
+      "@parts/*": [
+        "src/parts/*"
+      ],
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@hooks/*": [
+        "src/hooks/*"
+      ],
+      "@assets/*": [
+        "src/assets/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@providers/*": [
+        "src/providers/*"
+      ],
+      "@contexts/*": [
+        "src/contexts/*"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "vitest.setup.ts"
+  ],
+  "exclude": [
+    "src/**/__tests__/*"
+  ]
+}

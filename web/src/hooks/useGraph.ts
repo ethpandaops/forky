@@ -45,7 +45,7 @@ function generateNodeData({
   spacingX: number;
   spacingY: number;
 }): NodeData[] {
-  return graph.mapNodes((node) => {
+  return graph.mapNodes(node => {
     return {
       id: node,
       x:
@@ -66,7 +66,7 @@ function generateEdgeData({
   spacingX: number;
   spacingY: number;
 }): EdgeData[] {
-  return graph.mapEdges((edge) => {
+  return graph.mapEdges(edge => {
     return {
       id: edge,
       canonical: graph.getSourceAttribute(edge, 'canonical'),
@@ -91,11 +91,11 @@ function generateEdgeData({
 function generateOffsetData(graph: Graph): OffsetData {
   const minOffset =
     graph
-      .mapNodes((node) => graph.getNodeAttribute(node, 'offset'))
+      .mapNodes(node => graph.getNodeAttribute(node, 'offset'))
       .reduce((min, offset) => Math.min(min, offset), 0) ?? 0;
   const maxOffset =
     graph
-      .mapNodes((node) => graph.getNodeAttribute(node, 'offset'))
+      .mapNodes(node => graph.getNodeAttribute(node, 'offset'))
       .reduce((max, offset) => Math.max(max, offset), 0) ?? 0;
   return {
     minOffset,
@@ -112,17 +112,12 @@ export default function useGraph({
   spacingX: number;
   spacingY: number;
 }) {
-  const dataId = data
-    .map((d) => d.graph.getAttribute('id'))
-    .sort()
-    .join('_');
-
   const { edges, nodes, offset, attributes, type } = useMemo<{
     edges: EdgeData[];
     nodes: NodeData[];
     offset: OffsetData;
     attributes: GraphAttributes;
-    type: 'aggregated' | 'weighted' | 'empty';
+    type: 'aggregated' | 'weighted' | 'concat' | 'empty';
   }>(() => {
     let graph: Graph;
     let type: 'aggregated' | 'weighted' | 'empty' = 'empty';
@@ -150,7 +145,7 @@ export default function useGraph({
       attributes: graph.getAttributes(),
       type,
     };
-  }, [dataId, spacingX, spacingY]);
+  }, [spacingX, spacingY, data]);
 
   return { ...attributes, ...offset, edges, nodes, type };
 }

@@ -63,15 +63,15 @@ export function useValue(props: ValueProps): State {
 
   useEffect(() => {
     if (props.node !== node) setNode(props.node);
-  }, [props.node]);
+  }, [props.node, node]);
 
   useEffect(() => {
     if (props.byo !== byo) setBYO(props.byo);
-  }, [props.byo]);
+  }, [props.byo, byo]);
 
   useEffect(() => {
     if (props.frameId !== frameId) setFrameId(props.frameId);
-  }, [props.frameId]);
+  }, [props.frameId, frameId]);
 
   const setTimeWrapper = useCallback(
     (update: number) => {
@@ -88,13 +88,13 @@ export function useValue(props: ValueProps): State {
 
   const shiftTime = useCallback(
     (delta: number) => {
-      setTime((prevTime) => {
+      setTime(prevTime => {
         const newTime = prevTime + delta;
         if (newTime < genesisTime) return prevTime;
         return newTime;
       });
     },
-    [setTime],
+    [setTime, genesisTime],
   );
 
   const step = useCallback(() => {
@@ -145,7 +145,7 @@ export function useValue(props: ValueProps): State {
       setTime(genesisTime + targetEpoch * slotsPerEpoch * secondsPerSlot * 1000);
       if (playing) timer.current = requestAnimationFrame(step);
     },
-    [setTime, genesisTime, secondsPerSlot, slotsPerEpoch, playing],
+    [setTime, genesisTime, secondsPerSlot, slotsPerEpoch, step, playing],
   );
 
   const setBYOData = useCallback(
@@ -160,7 +160,7 @@ export function useValue(props: ValueProps): State {
     return () => {
       stop();
     };
-  }, [playing]);
+  }, [playing, play, stop]);
 
   useEffect(() => {
     return () => {

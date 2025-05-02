@@ -78,7 +78,7 @@ const TimeDrag = ({ multiplier, children }: { multiplier: number; children?: Rea
       lastTimes.current = [];
     }
     prevX.current = x;
-  }, [dragging, x, focusedTime, updateFocusedTime, playing]);
+  }, [dragging, x, focusedTime, updateFocusedTime, playing, multiplier, shiftFocusedTime]);
 
   const handlePointerDown = useCallback(() => {
     if (playing) stopTimer();
@@ -90,7 +90,7 @@ const TimeDrag = ({ multiplier, children }: { multiplier: number; children?: Rea
       requestIdRef.current = null;
     }
     setDragging(true);
-  }, [playing]);
+  }, [playing, stopTimer]);
 
   return (
     <div

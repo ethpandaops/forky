@@ -1,5 +1,3 @@
-import { vi } from 'vitest';
-
 import { randomHex, randomInt, randomBigInt } from '@utils/functions';
 
 describe('functions', () => {

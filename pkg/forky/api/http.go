@@ -1,9 +1,12 @@
 package api
 
 import (
-	"context"
+	// Added
+	"context" // Added
+	// Added
 	"net/http"
-
+	// Added
+	// Added
 	fhttp "github.com/ethpandaops/forky/pkg/forky/api/http"
 	"github.com/pkg/errors"
 
@@ -42,6 +45,7 @@ func (h *HTTP) BindToRouter(_ context.Context, router *httprouter.Router) error 
 
 	router.GET("/api/v1/frames/:id", h.wrappedHandler(h.handleV1GetFrame))
 
+	router.POST("/api/v1/frames/batch", h.wrappedHandler(h.handleV1GetFramesBatch))
 	router.POST("/api/v1/metadata", h.wrappedHandler(h.handleV1MetadataList))
 	router.POST("/api/v1/metadata/nodes", h.wrappedHandler(h.handleV1MetadataListNodes))
 	router.POST("/api/v1/metadata/slots", h.wrappedHandler(h.handleV1MetadataListSlots))

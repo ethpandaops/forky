@@ -1,11 +1,14 @@
-import { useEffect, RefObject } from 'react';
+import { useEffect, RefObject, useCallback } from 'react';
 
 const useOutsideInteraction = (ref: RefObject<HTMLElement>, callback: () => void): void => {
-  const handleInteractionOutside = (event: MouseEvent | TouchEvent) => {
-    if (ref.current && !ref.current.contains(event.target as Node)) {
-      callback();
-    }
-  };
+  const handleInteractionOutside = useCallback(
+    (event: MouseEvent | TouchEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        callback();
+      }
+    },
+    [ref, callback],
+  );
 
   useEffect(() => {
     document.addEventListener('mousedown', handleInteractionOutside);
@@ -15,7 +18,7 @@ const useOutsideInteraction = (ref: RefObject<HTMLElement>, callback: () => void
       document.removeEventListener('mousedown', handleInteractionOutside);
       document.removeEventListener('touchstart', handleInteractionOutside);
     };
-  }, [ref, callback]);
+  }, [handleInteractionOutside]);
 };
 
 export default useOutsideInteraction;

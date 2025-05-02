@@ -27,6 +27,7 @@ func NewBeaconChain(log logrus.FieldLogger, config *Config) (*BeaconChain, error
 		return nil, errors.Wrap(err, "failed to parse seconds per slot")
 	}
 
+	//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 	genesisTime := time.Unix(int64(config.Network.Spec.GenesisTime), 0)
 
 	wc := ethwallclock.NewEthereumBeaconChain(genesisTime, secondsPerSlot, config.Network.Spec.SlotsPerEpoch)
