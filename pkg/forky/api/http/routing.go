@@ -64,9 +64,11 @@ func WrappedHandler(log logrus.FieldLogger, metrics *Metrics, handler func(ctx c
 			if rawBytes, ok := rawContent.([]byte); ok {
 				// Raw content handling - write directly to response
 				w.WriteHeader(response.StatusCode)
+
 				if _, err := w.Write(rawBytes); err != nil {
 					log.WithError(err).Error("Failed to write raw content")
 				}
+
 				return
 			}
 		}

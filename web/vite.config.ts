@@ -10,6 +10,11 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      // '/api': {
+      //   target: 'https://forky.mainnet.ethpandaops.io',
+      //   changeOrigin: true,
+      //   secure: false,
+      // },
       '/api': {
         target: 'http://localhost:5555',
       },

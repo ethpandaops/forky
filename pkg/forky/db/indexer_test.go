@@ -69,7 +69,9 @@ func TestFrame_AsFrameMetadata(t *testing.T) {
 
 		assert.Equal(t, frame.ID, metadata.ID)
 		assert.Equal(t, frame.Node, metadata.Node)
+		//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 		assert.Equal(t, phase0.Slot(frame.WallClockSlot), metadata.WallClockSlot)
+		//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 		assert.Equal(t, phase0.Epoch(frame.WallClockEpoch), metadata.WallClockEpoch)
 		assert.Equal(t, frame.FetchedAt, metadata.FetchedAt)
 		l := FrameMetadataLabels(frame.Labels)
@@ -258,6 +260,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 		}
 
 		assert.Len(t, frames, 1)
+		//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 		assert.Equal(t, int64(frame.WallClockSlot), frames[0].WallClockSlot)
 	})
 
@@ -292,6 +295,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 		}
 
 		assert.Len(t, frames, 1)
+		//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 		assert.Equal(t, int64(frame.WallClockEpoch), frames[0].WallClockEpoch)
 	})
 
@@ -435,8 +439,10 @@ func TestIndexer_ListFrames(t *testing.T) {
 			id := uuid.New().String()
 			node := fmt.Sprintf("node-%d", i)
 
+			//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 			slot := phase0.Slot(testRandIntn(1000))
 
+			//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 			epoch := phase0.Epoch(testRandIntn(100))
 
 			labels := []string{fmt.Sprintf("label%d", testRandIntn(10)), fmt.Sprintf("label%d", testRandIntn(10))}
@@ -483,10 +489,12 @@ func TestIndexer_ListFrames(t *testing.T) {
 			}
 
 			if testRandIntn(2) == 1 {
+				//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 				filter.AddSlot(uint64(testRandIntn(1000)))
 			}
 
 			if testRandIntn(2) == 1 {
+				//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 				filter.AddEpoch(uint64(testRandIntn(100)))
 			}
 
@@ -527,10 +535,12 @@ func TestIndexer_ListFrames(t *testing.T) {
 					t.Fatalf("expected FetchedAt after %s, got %s", *filter.After, frame.FetchedAt)
 				}
 
+				//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 				if filter.Slot != nil && *filter.Slot != uint64(frame.WallClockSlot) {
 					t.Fatalf("expected WallClockSlot %d, got %d", *filter.Slot, frame.WallClockSlot)
 				}
 
+				//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 				if filter.Epoch != nil && *filter.Epoch != uint64(frame.WallClockEpoch) {
 					t.Fatalf("expected WallClockEpoch %d, got %d", *filter.Epoch, frame.WallClockEpoch)
 				}
@@ -577,9 +587,11 @@ func TestIndexer_ListFrames(t *testing.T) {
 		// Add a few random frames
 		for i := 0; i < 10; i++ {
 			frame := &types.FrameMetadata{
-				ID:             uuid.New().String(),
-				Node:           fmt.Sprintf("node%d", i),
-				WallClockSlot:  phase0.Slot(testRandIntn(1000)),
+				ID:   uuid.New().String(),
+				Node: fmt.Sprintf("node%d", i),
+				//nolint:gosec // ignore integer overflow conversion uint64 -> int64
+				WallClockSlot: phase0.Slot(testRandIntn(1000)),
+				//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 				WallClockEpoch: phase0.Epoch(testRandIntn(100)),
 				FetchedAt:      time.Now(),
 				Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
@@ -624,9 +636,11 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 			node := fmt.Sprintf("node%d", i)
 
 			frame := &types.FrameMetadata{
-				ID:              uuid.New().String(),
-				Node:            node,
-				WallClockSlot:   phase0.Slot(testRandIntn(1000)),
+				ID:   uuid.New().String(),
+				Node: node,
+				//nolint:gosec // ignore integer overflow conversion uint64 -> int64
+				WallClockSlot: phase0.Slot(testRandIntn(1000)),
+				//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 				WallClockEpoch:  phase0.Epoch(testRandIntn(100)),
 				FetchedAt:       time.Now(),
 				Labels:          []string{fmt.Sprintf("label%d", testRandIntn(10))},
@@ -666,9 +680,11 @@ func TestIndexer_ListNodesWithFrames(t *testing.T) {
 			node := fmt.Sprintf("node%d", i)
 
 			frame := &types.FrameMetadata{
-				ID:             uuid.New().String(),
-				Node:           node,
-				WallClockSlot:  phase0.Slot(testRandIntn(1000)),
+				ID:   uuid.New().String(),
+				Node: node,
+				//nolint:gosec // ignore integer overflow conversion uint64 -> int64
+				WallClockSlot: phase0.Slot(testRandIntn(1000)),
+				//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 				WallClockEpoch: phase0.Epoch(testRandIntn(100)),
 				FetchedAt:      time.Now(),
 				Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
@@ -719,9 +735,11 @@ func TestIndexer_DeleteFrameMetadata(t *testing.T) {
 			node := fmt.Sprintf("node%d", i)
 
 			frame := &types.FrameMetadata{
-				ID:             uuid.New().String(),
-				Node:           node,
-				WallClockSlot:  phase0.Slot(testRandIntn(1000)),
+				ID:   uuid.New().String(),
+				Node: node,
+				//nolint:gosec // ignore integer overflow conversion uint64 -> int64
+				WallClockSlot: phase0.Slot(testRandIntn(1000)),
+				//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 				WallClockEpoch: phase0.Epoch(testRandIntn(100)),
 				FetchedAt:      time.Now(),
 				Labels:         []string{fmt.Sprintf("label%d", testRandIntn(10))},
@@ -765,9 +783,11 @@ func TestIndexer_DeleteFrameMetadata(t *testing.T) {
 			node := fmt.Sprintf("node%d", i)
 
 			frame := &types.FrameMetadata{
-				ID:             uuid.New().String(),
-				Node:           node,
-				WallClockSlot:  phase0.Slot(testRandIntn(1000)),
+				ID:   uuid.New().String(),
+				Node: node,
+				//nolint:gosec // ignore integer overflow conversion uint64 -> int64
+				WallClockSlot: phase0.Slot(testRandIntn(1000)),
+				//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 				WallClockEpoch: phase0.Epoch(testRandIntn(100)),
 				FetchedAt:      time.Now(),
 				Labels:         nil,

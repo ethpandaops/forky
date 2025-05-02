@@ -563,6 +563,7 @@ func (i *Indexer) DeleteFrameMetadataLabelsByName(ctx context.Context, name stri
 		return 0, result.Error
 	}
 
+	//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 	return uint64(result.RowsAffected), nil
 }
 

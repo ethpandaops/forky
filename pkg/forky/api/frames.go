@@ -59,10 +59,9 @@ func (h *HTTP) handleV1GetFrame(ctx context.Context, _ *http.Request, p httprout
 }
 func (h *HTTP) handleV1GetFramesBatch(ctx context.Context, r *http.Request, p httprouter.Params, contentType fhttp.ContentType) (*fhttp.Response, error) {
 	log := h.log.WithField("handler", "handleV1GetFramesBatch")
-	log.Info("Processing batch frame request")
+	log.Debug("Processing batch frame request")
 
 	if r.Body == nil {
-		log.Warn("Request body is empty")
 		return fhttp.NewBadRequestResponse(nil), errors.New("request body is empty")
 	}
 	defer r.Body.Close()
@@ -75,35 +74,35 @@ func (h *HTTP) handleV1GetFramesBatch(ctx context.Context, r *http.Request, p ht
 
 	var req GetFramesBatchRequest
 	if err := json.Unmarshal(bodyBytes, &req); err != nil {
-		log.WithError(err).Warn("Failed to decode JSON request body")
 		return fhttp.NewBadRequestResponse(nil), errors.Wrap(err, "invalid JSON request body")
 	}
 
 	if len(req.IDs) == 0 {
-		log.Warn("Request contains no frame IDs")
 		return fhttp.NewBadRequestResponse(nil), errors.New("no frame IDs provided in request")
 	}
 
-	log.WithField("num_ids", len(req.IDs)).Info("Parsed frame IDs from request")
+	log.WithField("num_ids", len(req.IDs)).Debug("Processing frame IDs")
 
 	var bodyBuf bytes.Buffer
 	mpWriter := multipart.NewWriter(&bodyBuf)
 
 	foundFrames := 0
+
 	for _, id := range req.IDs {
 		frame, err := h.svc.GetFrame(ctx, id)
 		if err != nil {
 			if errors.Is(err, service.ErrFrameNotFound) {
-				log.WithField("id", id).Warn("Frame not found, skipping")
+				log.WithField("id", id).Debug("Frame not found, skipping")
 				continue
 			}
-			log.WithField("id", id).WithError(err).Error("Failed to get frame, skipping")
+
+			log.WithField("id", id).WithError(err).Debug("Failed to get frame, skipping")
 			continue
 		}
 
 		frameContent, err := frame.AsGzipJSON()
 		if err != nil {
-			log.WithField("id", id).WithError(err).Error("Failed to serialize frame to gzipped JSON, skipping")
+			log.WithField("id", id).WithError(err).Debug("Failed to serialize frame to gzipped JSON, skipping")
 			continue
 		}
 
@@ -111,7 +110,7 @@ func (h *HTTP) handleV1GetFramesBatch(ctx context.Context, r *http.Request, p ht
 		frameContentType := "application/gzip"
 
 		partHeaders := make(textproto.MIMEHeader)
-		partHeaders.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, frameFileName))
+		partHeaders.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%q"`, frameFileName))
 		partHeaders.Set("Content-Type", frameContentType)
 		partHeaders.Set("Content-ID", fmt.Sprintf("<%s>", frame.Metadata.ID))
 		partHeaders.Set("Content-Encoding", "gzip")
@@ -128,6 +127,7 @@ func (h *HTTP) handleV1GetFramesBatch(ctx context.Context, r *http.Request, p ht
 			mpWriter.Close()
 			return fhttp.NewInternalServerErrorResponse(nil), errors.Wrap(err, "failed to write frame content to part")
 		}
+
 		foundFrames++
 		log.WithField("id", id).Debug("Added frame to multipart response")
 	}
@@ -138,11 +138,10 @@ func (h *HTTP) handleV1GetFramesBatch(ctx context.Context, r *http.Request, p ht
 	}
 
 	if foundFrames == 0 {
-		log.Warn("No frames found for the provided IDs")
 		return fhttp.NewNotFoundResponse(nil), errors.New("no frames found for the provided IDs")
 	}
 
-	log.WithField("found_frames", foundFrames).Info("Finished bundling frames")
+	log.WithField("found_frames", foundFrames).Debug("Finished bundling frames")
 
 	response := &fhttp.Response{
 		StatusCode: http.StatusOK,
