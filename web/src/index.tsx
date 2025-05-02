@@ -13,6 +13,7 @@ import ErrorBoundary from '@app/ErrorBoundary';
 const queryClient = new QueryClient();
 TimeAgo.addDefaultLocale(en);
 
+// @ts-expect-error ignore
 if (process.env.NODE_ENV === 'development' && import.meta.env.VITE_MOCK) {
   const { worker } = await import('@app/mocks/browser');
   worker.start({

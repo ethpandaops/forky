@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "tsc -b && vite build",
+    "build": "tsc -b tsconfig.app.json && vite build",
     "dev:mock": "VITE_MOCK=true vite",
     "dev": "vite",
     "generate": "NODE_OPTIONS=--experimental-strip-types NODE_NO_WARNINGS=1 node dataset-generate.ts",
