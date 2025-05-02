@@ -16,9 +16,9 @@ function TimelineControl() {
   const controlRef = useRef<HTMLDivElement>(null);
   const blurAllInputs = () => {
     const inputs = controlRef.current?.querySelectorAll('input');
-    inputs?.forEach((input) => input.blur());
+    inputs?.forEach(input => input.blur());
   };
-  useOutsideInteraction(controlRef, blurAllInputs);
+  useOutsideInteraction(controlRef as React.RefObject<HTMLElement>, blurAllInputs);
 
   const {
     setTime: setFocusedTime,
@@ -71,7 +71,7 @@ function TimelineControl() {
           <EditableInput
             id="slot"
             value={focusedSlot}
-            onChange={(value) => setCurrentSlot(value)}
+            onChange={value => setCurrentSlot(value)}
             type="number"
           />
         </div>
@@ -85,7 +85,7 @@ function TimelineControl() {
           <EditableInput
             id="epoch"
             value={focusedEpoch}
-            onChange={(value) => setCurrentEpoch(value)}
+            onChange={value => setCurrentEpoch(value)}
             type="number"
           />
         </div>
@@ -100,7 +100,7 @@ function TimelineControl() {
             <EditableInput
               id="time"
               value={Math.ceil(focusedTime / 1000) * 1000}
-              onChange={(value) => setFocusedTime(value)}
+              onChange={value => setFocusedTime(value)}
               type="datetime-local"
             />
           </div>

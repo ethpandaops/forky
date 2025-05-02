@@ -1,7 +1,7 @@
 import { memo } from 'react';
 
 import { Transition } from '@headlessui/react';
-import classNames from 'classnames';
+import classNames from 'clsx';
 
 function SlotBoundary({
   slot,

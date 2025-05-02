@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
-import classNames from 'classnames';
+import classNames from 'clsx';
 
 import { FrameMetaData } from '@app/types/api';
 import useSelection from '@contexts/selection';
@@ -54,7 +54,7 @@ function SnapshotMarker({
     }
 
     return segments;
-  }, [metadata]);
+  }, [metadata, activeIds]);
 
   if (!segments.length) return null;
 
@@ -88,7 +88,7 @@ function SnapshotMarker({
         <span className="relative flex flex-col rounded-full h-10 w-1">{segments}</span>
       </PopoverButton>
       <PopoverPanel className="fixed z-40 bottom-28 w-72 -ml-28 bg-stone-200 dark:bg-stone-800 shadow-lg rounded divide-y dark:divide-stone-700 cursor-pointer">
-        {metadata.map((meta) => (
+        {metadata.map(meta => (
           <div
             key={meta.id}
             className="p-2 hover:bg-stone-300 dark:hover:bg-stone-700"

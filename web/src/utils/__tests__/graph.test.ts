@@ -271,9 +271,13 @@ describe('graph', () => {
        *    |
        *    B
        *    | \
-       *    C  D
+       *    C  |
        *    |  |
-       *    E  F
+       *    |  D
+       *    |  |
+       *    E  |
+       *       |
+       *       F
        */
       graph.addEdge('A', 'B');
       graph.addEdge('B', 'C');
@@ -325,9 +329,15 @@ describe('graph', () => {
        *    |
        *    B ——
        *    |    \
-       *    D     C
+       *    |     C
+       *    |     |
+       *    D     |
        *    | \   |
-       *    G  F  E
+       *    |  |  E
+       *    |  |
+       *    |  F
+       *    |
+       *    G
        *    |
        *    H
        */
@@ -373,9 +383,15 @@ describe('graph', () => {
        *    |
        *    B ——
        *    | \  \
-       *    C  D  F
-       *    |  |
-       *    E  G
+       *    C  |  |
+       *    |  |  |
+       *    |  D  |
+       *    |  |  |
+       *    E  |  |
+       *       |  |
+       *       |  F
+       *       |
+       *       G
        */
       expect(graph.getNodeAttribute('A', 'offset')).toBe(currentOffset);
       expect(graph.getNodeAttribute('B', 'offset')).toBe(currentOffset);
@@ -416,7 +432,9 @@ describe('graph', () => {
        *    |
        *    B
        *    | \
-       *    C  D
+       *    C  \
+       *    |   \
+       *    |    D
        *    |
        *    E
        */
@@ -455,7 +473,9 @@ describe('graph', () => {
        *    |
        *    C
        *  / |
-       * D  E
+       * D  |
+       *    |
+       *    E
        */
       expect(graph.getNodeAttribute('A', 'offset')).toBe(currentOffset);
       expect(graph.getNodeAttribute('B', 'offset')).toBe(currentOffset);
@@ -494,7 +514,9 @@ describe('graph', () => {
        *    |
        *    C
        *  / |
-       * D  E
+       * D  |
+       *    |
+       *    E
        */
       expect(graph.getNodeAttribute('A', 'offset')).toBe(currentOffset);
       expect(graph.getNodeAttribute('B', 'offset')).toBe(currentOffset);

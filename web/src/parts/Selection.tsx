@@ -2,7 +2,7 @@ import { Fragment, useEffect } from 'react';
 
 import { Dialog, Transition, TransitionChild, DialogPanel, DialogTitle } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import classNames from 'classnames';
+import classNames from 'clsx';
 import { useLocation } from 'wouter';
 
 import AggregatedBlockSummary from '@components/AggregatedBlockSummary';
@@ -18,7 +18,7 @@ export default function Selection() {
   const [location] = useLocation();
   const isBYO = location.startsWith('/byo');
 
-  useEffect(clearAll, [location]);
+  useEffect(clearAll, [location, clearAll]);
 
   return (
     <div className="bg-stone-900">

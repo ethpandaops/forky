@@ -16,9 +16,9 @@ export default function Stage() {
   }, [byo, stop]);
   useEffect(() => {
     if (byoData) stop();
-  }, [byoData]);
+  }, [byoData, stop]);
 
-  const isLoading = !byo && results.every((result) => result.isLoading);
+  const isLoading = !byo && results.every(result => result.isLoading);
   let data: { frames: ProcessedData[]; loadedIds: string[] } = {
     frames: byoData ? [byoData] : [],
     loadedIds: byoData ? [byoData.frame.metadata.id] : [],

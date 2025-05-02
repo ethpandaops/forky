@@ -1,6 +1,6 @@
 import React, { useMemo, ReactNode } from 'react';
 
-import classNames from 'classnames';
+import classNames from 'clsx';
 
 import { FrameMetaData } from '@app/types/api';
 import Ruler from '@components/Ruler';
@@ -28,7 +28,7 @@ function Slot({ subMarks, slot, shouldFetch = false, segments }: Props) {
 
   const { data, isLoading, error } = useMetadataQuery({ slot }, shouldFetch);
   // prefetch framess
-  useFrameQueries(data?.map((frame) => frame.id) ?? [], Boolean(data) && shouldFetch);
+  useFrameQueries(data?.map(frame => frame.id) ?? [], Boolean(data) && shouldFetch);
 
   const groupedMarkers = useMemo<ReactNode[]>(() => {
     const groupSize = 100 / segments;
@@ -50,7 +50,7 @@ function Slot({ subMarks, slot, shouldFetch = false, segments }: Props) {
     return Object.entries(groups).map(([group, metadata]) => (
       <SnapshotMarker key={`${group}`} percentage={group} metadata={metadata} activeIds={ids} />
     ));
-  }, [data?.map(({ id }) => id).join('-') ?? '', node, JSON.stringify(ids)]);
+  }, [data, slotStart, secondsPerSlot, segments, node, ids]);
 
   return (
     <Ruler

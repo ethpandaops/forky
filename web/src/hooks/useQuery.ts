@@ -58,7 +58,7 @@ export function useFrameQuery(id: string, enabled = true) {
 
 export function useFrameQueries(ids: string[], enabled = true) {
   return useQueries({
-    queries: ids.map((id) => ({
+    queries: ids.map(id => ({
       queryKey: ['frame', id],
       queryFn: () => fetchFrame(id),
       enabled,

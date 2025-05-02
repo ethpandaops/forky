@@ -1,17 +1,13 @@
-import { ArrowTopRightOnSquareIcon } from '@heroicons/react/20/solid';
 import ReactTimeAgo from 'react-time-ago';
-import { Link } from 'wouter';
 
 import Download from '@components/Download';
 import Loading from '@components/Loading';
 import useEthereum from '@contexts/ethereum';
 import useFocus from '@contexts/focus';
-import useSelection, { FrameBlock } from '@contexts/selection';
-import { useFrameQuery } from '@hooks/useQuery';
+import { FrameBlock } from '@contexts/selection';
 import { truncateHash } from '@utils/strings';
 
-export default function BYOFrameBlockSummary({ frameId, blockRoot }: FrameBlock) {
-  const { clearAll } = useSelection();
+export default function BYOFrameBlockSummary({ blockRoot }: FrameBlock) {
   const { byoData: data } = useFocus();
   const { slotsPerEpoch } = useEthereum();
 
@@ -19,7 +15,7 @@ export default function BYOFrameBlockSummary({ frameId, blockRoot }: FrameBlock)
     return <Loading message="Error: failed to load graph data" />;
   }
 
-  const node = data.frame?.data?.fork_choice_nodes?.find((n) => n.block_root === blockRoot);
+  const node = data.frame?.data?.fork_choice_nodes?.find(n => n.block_root === blockRoot);
 
   if (!node) {
     return <Loading message="Error: failed to find block root in snapshot" />;

@@ -1,4 +1,4 @@
-import { memo, useRef, useState, useEffect } from 'react';
+import { memo, useRef, useState, useEffect, useCallback } from 'react';
 
 import { DocumentArrowUpIcon } from '@heroicons/react/24/solid';
 
@@ -96,43 +96,47 @@ function BYOFooter() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { setBYOData } = useFocus();
 
-  const readFile = (file: File) => {
-    const reader = new FileReader();
+  const readFile = useCallback(
+    (file: File) => {
+      const reader = new FileReader();
 
-    reader.onload = (e) => {
-      const text = e.target?.result;
-      try {
-        const jsonData = JSON.parse(text as string);
-        const validation = validateForkChoiceData(jsonData);
+      reader.onload = e => {
+        const text = e.target?.result;
+        try {
+          const jsonData = JSON.parse(text as string);
+          const validation = validateForkChoiceData(jsonData);
 
-        if (validation.isValid) {
-          const frame: Required<Frame> = {
-            metadata: {
-              id: `${Math.random()}`,
-              node: 'byo',
-              fetched_at: new Date().toISOString(),
-              wall_clock_slot: 0,
-              wall_clock_epoch: 0,
-            },
-            data: jsonData,
-          };
-          setBYOData(processForkChoiceData(frame));
-        } else {
-          setError(`Invalid fork choice json format: ${validation.message}`);
+          if (validation.isValid) {
+            const frame: Required<Frame> = {
+              metadata: {
+                id: `${Math.random()}`,
+                node: 'byo',
+                fetched_at: new Date().toISOString(),
+                wall_clock_slot: 0,
+                wall_clock_epoch: 0,
+              },
+              data: jsonData,
+            };
+            setBYOData(processForkChoiceData(frame));
+          } else {
+            setError(`Invalid fork choice json format: ${validation.message}`);
+          }
+        } catch (error) {
+          // Not valid JSON
+          setError('The file is not valid JSON.');
         }
-      } catch (error) {
-        // Not valid JSON
-        setError('The file is not valid JSON.');
-      }
-    };
+      };
 
-    reader.onerror = (e) => {
-      console.error('Error reading file:', e);
-      setError('Error reading file');
-    };
+      reader.onerror = e => {
+        console.error('Error reading file:', e);
+        setError('Error reading file');
+      };
 
-    reader.readAsText(file); // Read the file as text
-  };
+      reader.readAsText(file); // Read the file as text
+    },
+    [setBYOData],
+  );
+
   useEffect(() => {
     const handleDragOver = (event: DragEvent) => {
       event.preventDefault();
@@ -167,7 +171,7 @@ function BYOFooter() {
       document.removeEventListener('drop', handleDrop);
       document.removeEventListener('dragleave', handleDragLeave);
     };
-  }, []);
+  }, [readFile]);
 
   const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -208,7 +212,7 @@ function BYOFooter() {
                 <a
                   href="https://ethereum.github.io/beacon-APIs/?urls.primaryName=dev#/Debug/getDebugForkChoice"
                   className="font-bold text-stone-800 dark:text-stone-50"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={e => e.stopPropagation()}
                   target="_blank"
                   rel="noreferrer"
                 >

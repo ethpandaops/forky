@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import classNames from 'classnames';
+import classNames from 'clsx';
 
 export default function Icon({
   className,

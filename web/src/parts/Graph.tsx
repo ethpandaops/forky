@@ -6,7 +6,7 @@ import {
   ArrowLeftCircleIcon,
   InformationCircleIcon,
 } from '@heroicons/react/24/solid';
-import classNames from 'classnames';
+import classNames from 'clsx';
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch';
 import { useLocation, Link } from 'wouter';
 
@@ -38,7 +38,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
     useSelection();
   const { slotsPerEpoch } = useEthereum();
   const ref = useRef<ReactZoomPanPinchRef>(null);
-  const { nodes, edges, type, id, slotEnd, slotStart, head } = useGraph({
+  const { nodes, edges, type, slotEnd, slotStart, head } = useGraph({
     data,
     spacingX: SPACING_X,
     spacingY: SPACING_Y,
@@ -59,7 +59,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
 
   useEffect(() => {
     if (focused) ref.current?.zoomToElement('head', scaleMultiplier);
-  }, [nodes]);
+  }, [nodes, focused, scaleMultiplier]);
 
   const slotWidth = slotEnd - slotStart;
 
@@ -84,18 +84,18 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
         />
       );
     });
-  }, [slotEnd, slotStart]);
+  }, [slotStart, slotsPerEpoch, slotWidth]);
 
   const handleFocus = useCallback(() => {
     ref.current?.resetTransform();
     setScale(scaleMultiplier);
     ref.current?.zoomToElement('head', scaleMultiplier);
     setFocused(true);
-  }, [focused, ref.current, setFocused]);
+  }, [setFocused, scaleMultiplier]);
 
   const handleNavigateAggregatedView = useCallback(() => {
     navigate(`/`);
-  }, []);
+  }, [navigate]);
 
   const formattedSummary = useMemo(() => {
     return data
@@ -147,14 +147,14 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
           </tr>
         );
       });
-  }, [unique]);
+  }, [data, head]);
 
   const { formattedNodes, formattedEdges } = useMemo(() => {
     let newNodes: ReactNode[] = [];
 
-    const newEdges = edges.map((edge) => (
+    const newEdges = edges.map(edge => (
       <Edge
-        key={`${edge.source.id}-${edge.target.id}`}
+        key={`${edge.source.id}-${edge.target.id}-${edge.id}`}
         x1={edge.source.x + RADIUS}
         y1={edge.source.y + RADIUS}
         x2={edge.target.x + RADIUS}
@@ -165,7 +165,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
     ));
 
     if (type === 'aggregated') {
-      newNodes = nodes.map((node) => {
+      newNodes = nodes.map(node => {
         const {
           canonical,
           blockRoot,
@@ -201,8 +201,8 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
             finalizedCheckpoints={finalizedCheckpoints}
             justifiedCheckpoints={justifiedCheckpoints}
             orphans={orphaned.length}
-            valid={validities.filter((v) => ['valid', 'optimistic'].includes(v.validity)).length}
-            optimistic={validities.filter((v) => v.validity === 'optimistic').length}
+            valid={validities.filter(v => ['valid', 'optimistic'].includes(v.validity)).length}
+            optimistic={validities.filter(v => v.validity === 'optimistic').length}
             total={data.length}
             type={type}
             hash={blockRoot}
@@ -217,7 +217,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
         );
       });
     } else if (type === 'weighted') {
-      newNodes = nodes.map((node) => {
+      newNodes = nodes.map(node => {
         const {
           canonical,
           checkpoint,
@@ -256,7 +256,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
     }
 
     return { formattedNodes: newNodes, formattedEdges: newEdges };
-  }, [id, nodes, edges, slotEnd, type]);
+  }, [unique]);
 
   return (
     <>
@@ -331,7 +331,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
           1 * scaleMultiplier
         }
         minScale={0.1}
-        onZoom={(ref) => {
+        onZoom={ref => {
           if (focused) setFocused(false);
           setScale(ref.state.scale);
         }}

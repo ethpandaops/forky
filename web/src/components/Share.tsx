@@ -25,7 +25,7 @@ function Share() {
     if (open) {
       setOpen(false);
     }
-  }, [location]);
+  }, [location, open]);
 
   return (
     <>

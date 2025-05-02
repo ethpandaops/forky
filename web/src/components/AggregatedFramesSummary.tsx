@@ -1,10 +1,9 @@
 import { MagnifyingGlassIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/20/solid';
-import classNames from 'classnames';
+import classNames from 'clsx';
 import ReactTimeAgo from 'react-time-ago';
 import { Link } from 'wouter';
 
 import { ProcessedData, WeightedNodeAttributes } from '@app/types/graph';
-import { truncateHash } from '@app/utils/strings';
 import Download from '@components/Download';
 import Loading from '@components/Loading';
 import useSelection from '@contexts/selection';
@@ -14,7 +13,7 @@ import { aggregateProcessedData } from '@utils/graph';
 export default function AggregatedFramesSummary({ ids }: { ids: string[] }) {
   const { clearAll } = useSelection();
   const results = useFrameQueries(ids);
-  if (results.some((r) => r.isLoading)) {
+  if (results.some(r => r.isLoading)) {
     return <Loading message="Loading..." />;
   }
 
