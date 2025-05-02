@@ -260,6 +260,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 		}
 
 		assert.Len(t, frames, 1)
+
 		//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 		assert.Equal(t, int64(frame.WallClockSlot), frames[0].WallClockSlot)
 	})
@@ -295,6 +296,7 @@ func TestIndexer_ListFrames(t *testing.T) {
 		}
 
 		assert.Len(t, frames, 1)
+
 		//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 		assert.Equal(t, int64(frame.WallClockEpoch), frames[0].WallClockEpoch)
 	})
@@ -438,10 +440,8 @@ func TestIndexer_ListFrames(t *testing.T) {
 		for i := 0; i < 1000; i++ {
 			id := uuid.New().String()
 			node := fmt.Sprintf("node-%d", i)
-
 			//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 			slot := phase0.Slot(testRandIntn(1000))
-
 			//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 			epoch := phase0.Epoch(testRandIntn(100))
 

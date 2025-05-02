@@ -69,6 +69,7 @@ func (h *HTTP) handleV1GetFramesBatch(ctx context.Context, r *http.Request, p ht
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.WithError(err).Error("Failed to read request body")
+
 		return fhttp.NewInternalServerErrorResponse(nil), errors.Wrap(err, "failed to read request body")
 	}
 
@@ -93,16 +94,19 @@ func (h *HTTP) handleV1GetFramesBatch(ctx context.Context, r *http.Request, p ht
 		if err != nil {
 			if errors.Is(err, service.ErrFrameNotFound) {
 				log.WithField("id", id).Debug("Frame not found, skipping")
+
 				continue
 			}
 
 			log.WithField("id", id).WithError(err).Debug("Failed to get frame, skipping")
+
 			continue
 		}
 
 		frameContent, err := frame.AsGzipJSON()
 		if err != nil {
 			log.WithField("id", id).WithError(err).Debug("Failed to serialize frame to gzipped JSON, skipping")
+
 			continue
 		}
 
@@ -119,21 +123,25 @@ func (h *HTTP) handleV1GetFramesBatch(ctx context.Context, r *http.Request, p ht
 		if err != nil {
 			log.WithError(err).Error("Failed to create multipart part")
 			mpWriter.Close()
+
 			return fhttp.NewInternalServerErrorResponse(nil), errors.Wrap(err, "failed to create multipart part")
 		}
 
 		if _, err = partWriter.Write(frameContent); err != nil {
 			log.WithError(err).Error("Failed to write frame content to multipart part")
 			mpWriter.Close()
+
 			return fhttp.NewInternalServerErrorResponse(nil), errors.Wrap(err, "failed to write frame content to part")
 		}
 
 		foundFrames++
+
 		log.WithField("id", id).Debug("Added frame to multipart response")
 	}
 
 	if err := mpWriter.Close(); err != nil {
 		log.WithError(err).Error("Failed to close multipart writer")
+
 		return fhttp.NewInternalServerErrorResponse(nil), errors.Wrap(err, "failed to close multipart writer")
 	}
 
