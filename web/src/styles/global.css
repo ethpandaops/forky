@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* fix for safari https://github.com/mdn/browser-compat-data/issues/17726 */
 .drop-shadow-sm,
 .drop-shadow,
