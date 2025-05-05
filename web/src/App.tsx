@@ -51,8 +51,8 @@ export default function App({
       return [
         formattedData.genesisTime +
           dataNow.slot * (formattedData.secondsPerSlot * 1000) -
-          // offset minus 1 slot?
-          formattedData.secondsPerSlot * 1000,
+          // offset minus 2 slots
+          formattedData.secondsPerSlot * 1000 * 2,
         true,
       ];
     }
