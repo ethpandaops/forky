@@ -5,6 +5,8 @@ import {
   ViewfinderCircleIcon as ViewfinderCircleIconSolid,
   ArrowLeftCircleIcon,
   InformationCircleIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
 } from '@heroicons/react/24/solid';
 import classNames from 'clsx';
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch';
@@ -52,6 +54,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
   );
   const [scale, setScale] = useState(scaleMultiplier);
   const [focused, setFocused] = useState(true);
+  const [isSummaryCollapsed, setIsSummaryCollapsed] = useState(false);
 
   useEffect(() => {
     setScaleMultiplier(calculateScaleMultiplier(windowWidth, windowHeight));
@@ -113,25 +116,12 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
 
         return (
           <tr key={frame.metadata.id}>
-            <td className="whitespace-nowrap py-1 text-xs 2xl:text-sm">
+            <td className="whitespace-nowrap py-1 text-xs">
               <Link href={`/node/${frame.metadata.node}`} className="font-bold">
                 {frame.metadata.node}
               </Link>
             </td>
-            <td className="whitespace-nowrap py-1 pl-4 text-xs hidden 2xl:block 2xl:text-sm">
-              <Link
-                href={`/node/${frame.metadata.node}`}
-                className={classNames(
-                  'font-semibold',
-                  isAggregatedHead
-                    ? 'text-green-800 dark:text-green-300'
-                    : 'text-amber-500 dark:text-amber-300',
-                )}
-              >
-                {weightedHead?.slot}
-              </Link>
-            </td>
-            <td className="whitespace-nowrap py-1 pl-4 text-xs 2xl:text-sm">
+            <td className="whitespace-nowrap py-1 pl-2 text-xs">
               <Link
                 href={`/node/${frame.metadata.node}`}
                 className={classNames(
@@ -284,7 +274,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
         </button>
       )}
       {!isBYO && type === 'aggregated' && formattedSummary.length && (
-        <div className="absolute mt-24 ml-5 lg:ml-8 z-20 text-xs 2xl:text-sm">
+        <div className="absolute mt-24 ml-5 lg:ml-8 z-20 text-xs">
           <button
             className="flex lg:hidden text-stone-900 dark:text-stone-100 items-center p-1 2xl:p-2 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5"
             onClick={() => {
@@ -294,24 +284,42 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
             <InformationCircleIcon className="h-6 w-6 mr-1" />
             Sources
           </button>
-          <div className="hidden lg:flex flex-col px-2 2xl:px-4 pt-1 pb-1 2xl:pb-4 rounded bg-stone-200/90 dark:bg-stone-800/90 text-stone-900 dark:text-stone-100 overflow-y-auto">
-            <div className="flex items-center justify-between w-full">
-              <span className="font-bold">Sources</span>
-              <button
-                className="flex text-stone-900 dark:text-stone-100 text-xs 2xl:text-sm items-center p-2 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5"
-                onClick={() => {
-                  setAggregatedFrameIds(ids);
-                }}
-              >
-                <InformationCircleIcon className="w-4 h-4 2xl:w-5 2xl:h-5 mr-1" />
-                More
-              </button>
+          {isSummaryCollapsed ? (
+            <button
+              className="hidden lg:flex items-center px-3 py-2 rounded bg-stone-200/90 dark:bg-stone-800/90 text-stone-900 dark:text-stone-100 hover:bg-stone-300/90 dark:hover:bg-stone-700/90 transition-colors"
+              onClick={() => setIsSummaryCollapsed(false)}
+            >
+              <ChevronDownIcon className="w-4 h-4 mr-1" />
+              <span className="font-medium">Show Sources</span>
+            </button>
+          ) : (
+            <div className="hidden lg:flex flex-col px-2 pt-1 pb-1 rounded bg-stone-200/90 dark:bg-stone-800/90 text-stone-900 dark:text-stone-100">
+              <div className="flex items-center justify-between w-full">
+                <span className="font-bold">Sources</span>
+                <div className="flex">
+                  <button
+                    className="flex text-stone-900 dark:text-stone-100 text-xs items-center p-1 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5 mr-1"
+                    onClick={() => setIsSummaryCollapsed(true)}
+                  >
+                    <ChevronUpIcon className="w-4 h-4" />
+                  </button>
+                  <button
+                    className="flex text-stone-900 dark:text-stone-100 text-xs items-center p-1 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+                    onClick={() => {
+                      setAggregatedFrameIds(ids);
+                    }}
+                  >
+                    <InformationCircleIcon className="w-4 h-4 mr-1" />
+                    More
+                  </button>
+                </div>
+              </div>
+              <div className="mt-0 mb-1 border-t border-t-stone-900 dark:border-t-stone-100" />
+              <table className="min-w-full">
+                <tbody className="divide-y divide-gray-800">{formattedSummary}</tbody>
+              </table>
             </div>
-            <div className="mt-0 mb-1 2xl:mt-1 2xl:mb-3 border-t border-t-stone-900 dark:border-t-stone-100" />
-            <table className="min-w-full h-full">
-              <tbody className="divide-y divide-gray-800">{formattedSummary}</tbody>
-            </table>
-          </div>
+          )}
         </div>
       )}
       <TransformWrapper
