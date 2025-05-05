@@ -42,9 +42,6 @@ function SnapshotMarker({
             'w-1 h-full',
             color,
             `h-[${segmentHeight}%]`,
-            i < numberOfSegments - 1
-              ? 'border-b border-b-stone-200 dark:border-b-stone-600 border-b-opacity-25'
-              : '',
             i === 0 && 'rounded-t-full',
             i === numberOfSegments - 1 && 'rounded-b-full',
           )}

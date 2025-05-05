@@ -1,7 +1,5 @@
 import { ForkChoiceData, ForkChoiceNode } from '@app/types/api';
 import { randomHex, randomBigInt, randomInt } from '@utils/functions';
-import { Frame } from '@app/types/api';
-import pako from 'pako';
 
 export function equalForkChoiceNode(a?: ForkChoiceNode, b?: ForkChoiceNode) {
   if (a === b) return true;
@@ -210,67 +208,4 @@ export function generateRandomForkChoiceData({
       (a, b) => Number.parseInt(a.slot) - Number.parseInt(b.slot),
     ),
   };
-}
-
-export async function parseMultipartMixed(
-  buffer: ArrayBuffer,
-  boundary: string,
-): Promise<Record<string, Frame | null>> {
-  const data = new Uint8Array(buffer);
-  const result: Record<string, Frame | null> = {};
-  const boundaryString = `--${boundary}`;
-  const boundaryBytes = new TextEncoder().encode(boundaryString);
-
-  const boundaryPositions: number[] = [];
-  for (let i = 0; i < data.length - boundaryBytes.length; i++) {
-    let match = true;
-    for (let j = 0; j < boundaryBytes.length; j++) {
-      if (data[i + j] !== boundaryBytes[j]) {
-        match = false;
-        break;
-      }
-    }
-    if (match) {
-      boundaryPositions.push(i);
-    }
-  }
-
-  for (let i = 0; i < boundaryPositions.length - 1; i++) {
-    const start = boundaryPositions[i] + boundaryBytes.length;
-    const end = boundaryPositions[i + 1];
-    const partData = data.slice(start, end);
-    const partText = new TextDecoder().decode(partData);
-
-    const headerEndPos = partText.indexOf('\r\n\r\n');
-    if (headerEndPos === -1) continue;
-
-    const headersText = partText.substring(0, headerEndPos);
-    const headers: Record<string, string> = {};
-
-    headersText.split('\r\n').forEach(line => {
-      if (!line.includes(':')) return;
-      const [name, value] = line.split(':', 2);
-      headers[name.trim().toLowerCase()] = value.trim();
-    });
-
-    const contentId = headers['content-id'];
-    if (!contentId) continue;
-
-    const id = contentId.replace(/[<>]/g, '');
-    const contentStart = start + headerEndPos + 4;
-    const contentEnd = end - 2;
-    const contentData = data.slice(contentStart, contentEnd);
-
-    try {
-      const decompressed = pako.inflate(contentData);
-      const jsonString = new TextDecoder().decode(decompressed);
-      const frameData = JSON.parse(jsonString) as Frame;
-      result[id] = frameData;
-    } catch (error) {
-      console.error(`Failed to decompress/parse frame ${id}:`, error);
-      result[id] = null;
-    }
-  }
-
-  return result;
 }
