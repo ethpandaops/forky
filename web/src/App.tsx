@@ -36,6 +36,8 @@ export default function App({
     };
   }, [data]);
 
+  throw new Error('test');
+
   const [initialTime, playing] = useMemo<[number | undefined, boolean]>(() => {
     // use the time from the url if it exists
     const time = new URLSearchParams(window.location.search).get('t');
