@@ -38,7 +38,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
         with:
-          go-version: '1.23'
+          go-version: '1.24'
       - uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7 # v3.8.2
         name: Set up Node
         with:

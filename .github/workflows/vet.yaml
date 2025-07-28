@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go_version: [ 1.23.x ]
+        go_version: [ 1.24.x ]
     steps:
       - name: Set up Go ${{ matrix.go_version }}
         uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go_version: [ 1.23.x ]
+        go_version: [ 1.24.x ]
     steps:
       - name: Set up Go ${{ matrix.go_version }}
         uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
