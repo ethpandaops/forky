@@ -43,6 +43,10 @@ export interface GraphAttributes {
   slotEnd: number;
   id: string;
   head?: string;
+  // node ids of the (consensus, for aggregated) finalized/justified checkpoint
+  // blocks, used to keep them visible when the tail is truncated.
+  finalized?: string;
+  justified?: string;
   type: 'aggregated' | 'weighted' | 'empty';
 }
 
