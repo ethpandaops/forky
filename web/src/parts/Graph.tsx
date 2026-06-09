@@ -14,10 +14,12 @@ import { useLocation, Link } from 'wouter';
 
 import SlotBoundary from '@app/components/SlotBoundary';
 import { AggregatedNodeAttributes, ProcessedData, WeightedNodeAttributes } from '@app/types/graph';
+import { getFrameSlotsBehind } from '@app/utils/graph';
 import { truncateHash } from '@app/utils/strings';
 import AggregatedNode from '@components/AggregatedNode';
 import Edge from '@components/Edge';
 import Share from '@components/Share';
+import TruncationMarker from '@components/TruncationMarker';
 import WeightedNode from '@components/WeightedNode';
 import useEthereum from '@contexts/ethereum';
 import useSelection from '@contexts/selection';
@@ -34,13 +36,23 @@ function calculateScaleMultiplier(windowWidth: number, windowHeight: number) {
   return 1;
 }
 
-function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; unique: string }) {
+function Graph({
+  data,
+  behind = [],
+  ids,
+  unique,
+}: {
+  data: ProcessedData[];
+  behind?: ProcessedData[];
+  ids: string[];
+  unique: string;
+}) {
   const [location, navigate] = useLocation();
   const { setFrameId, setAggregatedFrameIds, setFrameBlock, setAggregatedFramesBlock } =
     useSelection();
   const { slotsPerEpoch } = useEthereum();
   const ref = useRef<ReactZoomPanPinchRef>(null);
-  const { nodes, edges, type, slotEnd, slotStart, head } = useGraph({
+  const { nodes, edges, type, slotEnd, slotStart, head, truncation } = useGraph({
     data,
     spacingX: SPACING_X,
     spacingY: SPACING_Y,
@@ -101,9 +113,13 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
   }, [navigate]);
 
   const formattedSummary = useMemo(() => {
-    return data
-      .sort(({ frame: a }, { frame: b }) => a.metadata.node.localeCompare(b.metadata.node))
-      .map(({ frame, graph }) => {
+    return [
+      ...data.map(frame => ({ frame, slotsBehind: 0 })),
+      ...behind.map(frame => ({ frame, slotsBehind: getFrameSlotsBehind(frame) })),
+    ]
+      .sort((a, b) => a.frame.frame.metadata.node.localeCompare(b.frame.frame.metadata.node))
+      .map(({ frame: { frame, graph }, slotsBehind }) => {
+        const isBehind = slotsBehind > 0;
         let weightedHead: WeightedNodeAttributes | undefined;
         let isAggregatedHead = false;
         try {
@@ -117,27 +133,42 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
         return (
           <tr key={frame.metadata.id}>
             <td className="whitespace-nowrap py-1 text-xs">
-              <Link href={`/node/${frame.metadata.node}`} className="font-bold">
+              <Link
+                href={`/node/${frame.metadata.node}`}
+                className={classNames(
+                  'font-bold',
+                  isBehind && 'line-through text-red-600 dark:text-red-400',
+                )}
+              >
                 {frame.metadata.node}
               </Link>
             </td>
             <td className="whitespace-nowrap py-1 pl-2 text-xs">
-              <Link
-                href={`/node/${frame.metadata.node}`}
-                className={classNames(
-                  'font-semibold',
-                  isAggregatedHead
-                    ? 'text-green-800 dark:text-green-300'
-                    : 'text-amber-500 dark:text-amber-300',
-                )}
-              >
-                {truncateHash(weightedHead?.blockRoot)}
-              </Link>
+              {isBehind ? (
+                <span
+                  className="font-bold text-red-600 dark:text-red-400"
+                  title={`${slotsBehind} slots behind`}
+                >
+                  {slotsBehind} slots behind
+                </span>
+              ) : (
+                <Link
+                  href={`/node/${frame.metadata.node}`}
+                  className={classNames(
+                    'font-semibold',
+                    isAggregatedHead
+                      ? 'text-green-800 dark:text-green-300'
+                      : 'text-amber-500 dark:text-amber-300',
+                  )}
+                >
+                  {truncateHash(weightedHead?.blockRoot)}
+                </Link>
+              )}
             </td>
           </tr>
         );
       });
-  }, [data, head]);
+  }, [data, behind, head]);
 
   const { formattedNodes, formattedEdges } = useMemo(() => {
     let newNodes: ReactNode[] = [];
@@ -380,7 +411,57 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
                 }}
               >
                 {slotBoundaries}
+                {truncation?.markers.map(marker => (
+                  <SlotBoundary
+                    key={`truncation-line-${marker.x}`}
+                    width={8}
+                    height={1800}
+                    x={marker.x - RADIUS / 2}
+                    y={-SPACING_Y + RADIUS - 1800 / 2}
+                    textOffset={SPACING_Y / 2 - RADIUS / 1.5}
+                    className="bg-gradient-to-t from-stone-100 dark:from-stone-900 from-10% dark:from-10% via-stone-500 dark:via-stone-500 via-50% dark:via-50% to-stone-100 dark:to-stone-900 to-90% dark:to-90%"
+                  />
+                ))}
+                {truncation?.checkpoints.map(checkpoint => {
+                  const isEpoch = checkpoint.slot % slotsPerEpoch === 0;
+                  return (
+                    <SlotBoundary
+                      key={`checkpoint-${checkpoint.slot}`}
+                      slot={checkpoint.slot}
+                      epoch={isEpoch ? checkpoint.slot / slotsPerEpoch : undefined}
+                      width={8}
+                      height={1800}
+                      x={checkpoint.x - RADIUS / 2}
+                      y={-SPACING_Y + RADIUS - 1800 / 2}
+                      textOffset={SPACING_Y / 2 - RADIUS / 1.5}
+                      className="bg-gradient-to-t from-stone-100 dark:from-stone-900 from-10% dark:from-10% via-stone-500 dark:via-stone-500 via-50% dark:via-50% to-stone-100 dark:to-stone-900 to-90% dark:to-90%"
+                    />
+                  );
+                })}
                 {formattedEdges}
+                {truncation && (
+                  <>
+                    {truncation.rail && (
+                      <Edge
+                        x1={truncation.rail.x1 + RADIUS}
+                        y1={truncation.rail.y1 + RADIUS}
+                        x2={truncation.rail.x2 + RADIUS}
+                        y2={truncation.rail.y2 + RADIUS}
+                        className="dark:bg-stone-500 bg-stone-400"
+                        thickness={12}
+                      />
+                    )}
+                    {truncation.markers.map(marker => (
+                      <TruncationMarker
+                        key={`${marker.x}-${marker.y}`}
+                        x={marker.x}
+                        y={marker.y}
+                        radius={RADIUS}
+                        slots={marker.slots}
+                      />
+                    ))}
+                  </>
+                )}
                 {formattedNodes}
               </TransformComponent>
             </div>

@@ -29,7 +29,7 @@ export default function Header() {
           </div>
           <div className="flex gap-5">
             <Link
-              href={`${location}${location.endsWith('/') ? '' : '/'}byo`}
+              href="/byo"
               className="inline-flex items-center justify-center rounded-md pl-2 pr-2 text-stone-700 dark:text-stone-300 transition hover:bg-stone-900/5 dark:hover:bg-white/5"
             >
               <span className="sr-only">Bring your own fork choice</span>
