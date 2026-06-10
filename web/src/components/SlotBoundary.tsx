@@ -1,6 +1,5 @@
 import { memo } from 'react';
 
-import { Transition } from '@headlessui/react';
 import classNames from 'clsx';
 
 function SlotBoundary({
@@ -23,50 +22,39 @@ function SlotBoundary({
   textOffset: number;
 }) {
   return (
-    <Transition
-      appear={true}
-      show={true}
-      enter="transform transition duration-[300ms]"
-      enterFrom="opacity-0"
-      enterTo="opacity-100"
-      leave="transform duration-100 transition ease-in-out"
-      leaveFrom="opacity-100"
-      leaveTo="opacity-0"
-    >
-      <div>
-        <div
-          className={classNames('absolute px-0 py-0 m-0 leading-none', className)}
+    <div className="transition-opacity duration-300 starting:opacity-0">
+      <div
+        className={classNames('absolute px-0 py-0 m-0 leading-none', className)}
+        style={{
+          left: `${x - width / 2}px`,
+          top: `${y}px`,
+          width,
+          height,
+        }}
+      ></div>
+      {epoch && (
+        <p
+          className="absolute m-0 whitespace-nowrap px-0 py-0 pl-5 font-mono text-2xl/none font-semibold tracking-widest tabular-nums text-foreground/60"
           style={{
             left: `${x - width / 2}px`,
-            top: `${y}px`,
-            width,
-            height,
+            top: `${y + height / 2 + textOffset + 30}px`,
           }}
-        ></div>
-        {epoch && (
-          <p
-            className="absolute px-0 py-0 m-0 leading-none text-stone-900 dark:text-white pl-5 whitespace-nowrap text-2xl font-bold text-opacity-75 dark:text-opacity-75 font-mono"
-            style={{
-              left: `${x - width / 2}px`,
-              top: `${y + height / 2 + textOffset + 30}px`,
-            }}
-          >
-            EPOCH {epoch}
-          </p>
-        )}
-        {slot && (
-          <p
-            className="absolute px-0 py-0 m-0 leading-none text-stone-900 dark:text-white pl-5 whitespace-nowrap text-2xl font-bold text-opacity-75 dark:text-opacity-75 font-mono"
-            style={{
-              left: `${x - width / 2}px`,
-              top: `${y + height / 2 + textOffset}px`,
-            }}
-          >
-            SLOT {slot}
-          </p>
-        )}
-      </div>
-    </Transition>
+        >
+          EPOCH {epoch}
+        </p>
+      )}
+      {slot && (
+        <p
+          className="absolute m-0 whitespace-nowrap px-0 py-0 pl-5 font-mono text-2xl/none font-semibold tracking-widest tabular-nums text-foreground/60"
+          style={{
+            left: `${x - width / 2}px`,
+            top: `${y + height / 2 + textOffset}px`,
+          }}
+        >
+          SLOT {slot}
+        </p>
+      )}
+    </div>
   );
 }
 

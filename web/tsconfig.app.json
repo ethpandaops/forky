@@ -1,17 +1,11 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
-    ],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": false,
     "skipLibCheck": true,
-    "esModuleInterop": false,
-    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
@@ -26,46 +20,20 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "paths": {
-      "@app/*": [
-        "src/*"
-      ],
-      "@api/*": [
-        "src/api/*"
-      ],
-      "@styles/*": [
-        "src/styles/*"
-      ],
-      "@public/*": [
-        "public/*"
-      ],
-      "@parts/*": [
-        "src/parts/*"
-      ],
-      "@components/*": [
-        "src/components/*"
-      ],
-      "@hooks/*": [
-        "src/hooks/*"
-      ],
-      "@assets/*": [
-        "src/assets/*"
-      ],
-      "@utils/*": [
-        "src/utils/*"
-      ],
-      "@providers/*": [
-        "src/providers/*"
-      ],
-      "@contexts/*": [
-        "src/contexts/*"
-      ]
+      "@app/*": ["./src/*"],
+      "@api": ["./src/api"],
+      "@api/*": ["./src/api/*"],
+      "@styles/*": ["./src/styles/*"],
+      "@public/*": ["./public/*"],
+      "@parts/*": ["./src/parts/*"],
+      "@components/*": ["./src/components/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@assets/*": ["./src/assets/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@providers/*": ["./src/providers/*"],
+      "@contexts/*": ["./src/contexts/*"]
     }
   },
-  "include": [
-    "src",
-    "vitest.setup.ts"
-  ],
-  "exclude": [
-    "src/**/__tests__/*"
-  ]
+  "include": ["src", "vitest.setup.ts"],
+  "exclude": ["./src/**/__tests__/*", "./src/**/*.stories.tsx"]
 }

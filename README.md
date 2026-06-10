@@ -121,19 +121,19 @@ helm install forky ethereum-helm-charts/forky -f your_values.yaml
 
 1. Clone the repo
    ```sh
-   go get github.com/ethpandaops/forky
+   git clone https://github.com/ethpandaops/forky.git
    ```
 2. Change directories
    ```sh
    cd ./forky
    ```
-3. Build the binary
-   ```sh  
-    go build -o forky .
+3. Build the binary (embeds the web frontend; requires `pnpm`)
+   ```sh
+   make build-web && make build
    ```
 4. Run the service
-   ```sh  
-    ./forky
+   ```sh
+   ./forky --config your_config.yaml
    ```
 
 ## Contributing
@@ -152,7 +152,7 @@ Contributions are greatly appreciated! Pull requests will be reviewed and merged
 ### Running locally
 #### Backend
 ```
-go run main.go --config your_config.yaml
+go run ./cmd/forky --config your_config.yaml
 ```
 
 #### Frontend
@@ -165,7 +165,9 @@ The frontend can be built with the following command;
 make build-web
 ```
 
-Building frontend requires `npm` and `NodeJS` to be installed.
+Building the frontend requires `pnpm` and `NodeJS` to be installed. For
+frontend development, `pnpm --dir web dev` starts a Vite dev server that
+proxies `/api` to a backend (see `web/vite.config.ts`).
 
 
 ## Contact

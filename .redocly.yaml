@@ -1,0 +1,13 @@
+extends:
+  - recommended
+
+rules:
+  info-license: error
+  no-server-example.com: error
+  tag-description: error
+  operation-4xx-response: error
+  no-unused-components: error
+  operation-2xx-response: off
+  # Forky's API is unauthenticated (read-only fork-choice data). Re-enable once
+  # an auth scheme is added.
+  security-defined: off

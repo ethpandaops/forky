@@ -1,4 +1,4 @@
-import { ForkChoiceData, ForkChoiceNode } from '@app/types/api';
+import type { ForkChoice, ForkChoiceNode } from '@api';
 import { randomHex, randomBigInt, randomInt } from '@utils/functions';
 
 export function equalForkChoiceNode(a?: ForkChoiceNode, b?: ForkChoiceNode) {
@@ -12,7 +12,7 @@ export function equalForkChoiceNode(a?: ForkChoiceNode, b?: ForkChoiceNode) {
   return true;
 }
 
-export function equalForkChoiceData(a?: ForkChoiceData, b?: ForkChoiceData) {
+export function equalForkChoiceData(a?: ForkChoice, b?: ForkChoice) {
   if (!a || !b) return false;
 
   // check if nodes length changed
@@ -75,7 +75,7 @@ export function generateRandomForkChoiceData({
       continueForkChance?: number;
       invalidChance?: number;
     }
-  | undefined = {}): ForkChoiceData {
+  | undefined = {}): ForkChoice {
   const totalSlots = randomInt(minSlots, maxSlots);
   const startSlot =
     totalSlots +
@@ -133,7 +133,7 @@ export function generateRandomForkChoiceData({
       justified_epoch: justifiedCheckpoint.epoch,
       finalized_epoch: finalizedCheckpoint.epoch,
       weight: currentWeight.toString(),
-      validity: invalidChance > Math.random() ? 'INVALID' : 'VALID',
+      validity: invalidChance > Math.random() ? 'invalid' : 'valid',
       execution_block_hash: randomHex(64),
       extra_data: extraData,
     };
@@ -152,14 +152,14 @@ export function generateRandomForkChoiceData({
       const canonicalWeight = BigInt(nextForkChoiceNode.weight);
       const nextWeight = randomBigInt(0n, canonicalWeight);
 
-      let forkedNode = {
+      let forkedNode: ForkChoiceNode = {
         slot: (Number.parseInt(forkChoiceNode.slot) + randomInt(1, 5)).toString(),
         block_root: randomHex(64),
         parent_root: forkChoiceNode.block_root,
         justified_epoch: justifiedCheckpoint.epoch,
         finalized_epoch: finalizedCheckpoint.epoch,
         weight: nextWeight.toString(),
-        validity: invalidChance > Math.random() ? 'INVALID' : 'VALID',
+        validity: invalidChance > Math.random() ? 'invalid' : 'valid',
         execution_block_hash: randomHex(64),
         extra_data: {
           state_root: randomHex(64),
@@ -184,7 +184,7 @@ export function generateRandomForkChoiceData({
           justified_epoch: justifiedCheckpoint.epoch,
           finalized_epoch: finalizedCheckpoint.epoch,
           weight: randomBigInt(0n, BigInt(forkedNode.weight)).toString(),
-          validity: invalidChance > Math.random() ? 'INVALID' : 'VALID',
+          validity: invalidChance > Math.random() ? 'invalid' : 'valid',
           execution_block_hash: randomHex(64),
           extra_data: {
             state_root: randomHex(64),

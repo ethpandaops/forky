@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { FrameMetaData } from '@app/types/api';
+import { FrameMetadata } from '@api';
 import useFocus from '@contexts/focus';
 import { useMetadataQuery } from '@hooks/useQuery';
 
@@ -11,7 +11,7 @@ interface State {
 
 export function findLatestFrameIdPerNode(
   focusedTime: number,
-  metadata: FrameMetaData[] = [],
+  metadata: FrameMetadata[] = [],
   focusedNode?: string,
 ): State {
   // Filter metadata
@@ -23,7 +23,7 @@ export function findLatestFrameIdPerNode(
   });
 
   // Group metadata by node
-  let groupedMetadata: { [key: string]: FrameMetaData[] } = {};
+  let groupedMetadata: { [key: string]: FrameMetadata[] } = {};
   for (const frame of metadata) {
     if (!groupedMetadata[frame.node]) {
       groupedMetadata[frame.node] = [];

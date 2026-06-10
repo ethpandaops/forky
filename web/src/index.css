@@ -1,0 +1,444 @@
+/**
+ * Main CSS Entry Point
+ *
+ * "Chain Console" design language: a dark-first, cool-neutral canvas where
+ * the six fork-choice status colors are the only loud thing on screen,
+ * framed by quiet glass chrome. Light mode is a faithful inversion.
+ *
+ * Two-Tier Token Architecture
+ *
+ * Tier 1: Primitive color values (plain CSS variables, not exposed as
+ *         Tailwind utilities): the "ink" cool-neutral ramp (hue 270), the
+ *         cyan accent family and the six status families. Status bands
+ *         share OKLCH lightness/chroma per role so every status holds the
+ *         same contrast against the surface ladder in both themes.
+ * Tier 2: Semantic tokens (@theme), named for intent. These are the ONLY
+ *         colors application code may use (enforced by the custom ESLint
+ *         rules in eslint-rules/). Light/dark theming happens here — app
+ *         code never writes `dark:` variants for colors.
+ */
+
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+@import 'tailwindcss';
+
+/* Enable class-based dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* ===== Typography ===== */
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ===== TIER 2: Semantic tokens ===== */
+
+  /* Surfaces (elevation = lighter surface in dark mode) */
+  --color-background: var(--background-value);
+  --color-surface: var(--surface-value);
+  --color-surface-raised: var(--surface-raised-value);
+  --color-overlay: var(--overlay-value);
+  --color-shell: var(--shell-value);
+
+  /* Borders and separators (alpha hairlines: they read identically over
+   * glass, gradients and surfaces) */
+  --color-border: var(--border-value);
+  --color-border-strong: var(--border-strong-value);
+
+  /* Text */
+  --color-foreground: var(--foreground-value);
+  --color-foreground-strong: var(--foreground-strong-value);
+  --color-foreground-inverted: var(--foreground-inverted-value);
+  --color-muted: var(--muted-value);
+  --color-faint: var(--faint-value);
+
+  /* Accent (electric cyan): focus rings, links, live playhead, brand.
+   * Sits in the largest hue gap between the status hues so it never
+   * collides with node semantics. */
+  --color-accent: var(--accent-value);
+  --color-accent-hover: var(--accent-hover-value);
+
+  /* Controls (sliders, toggles, scrubbers, interactive emphasis) */
+  --color-track: var(--track-value);
+  --color-active: var(--active-value);
+  --color-active-hover: var(--active-hover-value);
+  --color-surface-hover: var(--surface-hover-value);
+  --color-field: var(--field-value);
+  --color-control: var(--control-value);
+  --color-control-hover: var(--control-hover-value);
+  --color-toolbar: var(--toolbar-value);
+  --color-timeline: var(--timeline-value);
+  --color-timeline-edge: var(--timeline-edge-value);
+  --color-timeline-fg: var(--timeline-fg-value);
+  --color-dial: var(--dial-value);
+
+  /* Primary action (share/copy buttons) */
+  --color-primary: var(--primary-value);
+  --color-primary-hover: var(--primary-hover-value);
+  --color-on-primary: var(--on-primary-value);
+
+  /* Graph rendering */
+  --color-edge: var(--edge-value);
+  --color-live: var(--live-value);
+
+  /* Brand and links */
+  --color-brand: var(--brand-value);
+  --color-link: var(--link-value);
+  --color-link-hover: var(--link-hover-value);
+
+  /* Modal/drawer backdrop */
+  --color-scrim: var(--scrim-value);
+
+  /* State */
+  --color-success: var(--success-value);
+  --color-warning: var(--warning-value);
+  --color-caution: var(--caution-value);
+  --color-danger: var(--danger-value);
+  --color-danger-surface: var(--danger-surface-value);
+  --color-danger-accent: var(--danger-accent-value);
+
+  /* Fork-choice domain: block/node states in the graph visualization.
+   * Roles: base = status text (AA on surfaces), `-deep` = node core fill
+   * (dim in dark, tint in light), `-edge` = rim track under the progress
+   * arc, `-ring` = the bright progress-arc / rim shade. */
+  --color-canonical: var(--canonical-value);
+  --color-canonical-deep: var(--canonical-deep-value);
+  --color-canonical-edge: var(--canonical-edge-value);
+  --color-canonical-ring: var(--canonical-ring-value);
+  --color-fork: var(--fork-value);
+  --color-fork-deep: var(--fork-deep-value);
+  --color-fork-edge: var(--fork-edge-value);
+  --color-fork-ring: var(--fork-ring-value);
+  --color-finalized: var(--finalized-value);
+  --color-finalized-deep: var(--finalized-deep-value);
+  --color-finalized-edge: var(--finalized-edge-value);
+  --color-finalized-ring: var(--finalized-ring-value);
+  --color-justified: var(--justified-value);
+  --color-justified-deep: var(--justified-deep-value);
+  --color-justified-edge: var(--justified-edge-value);
+  --color-justified-ring: var(--justified-ring-value);
+  --color-invalid: var(--invalid-value);
+  --color-invalid-deep: var(--invalid-deep-value);
+  --color-invalid-edge: var(--invalid-edge-value);
+  --color-invalid-ring: var(--invalid-ring-value);
+  --color-optimistic: var(--optimistic-value);
+  --color-optimistic-deep: var(--optimistic-deep-value);
+  --color-optimistic-edge: var(--optimistic-edge-value);
+  --color-optimistic-ring: var(--optimistic-ring-value);
+
+  /* Timeline markers */
+  --color-marker: var(--marker-value);
+  --color-marker-active: var(--marker-active-value);
+  --color-marker-time: var(--marker-time-value);
+  --color-marker-time-active: var(--marker-time-active-value);
+
+  /* Playback scrubber */
+  --color-scrubber: var(--scrubber-value);
+  --color-scrubber-strong: var(--scrubber-strong-value);
+  --color-rec: var(--rec-value);
+  --color-rec-strong: var(--rec-strong-value);
+
+  /* Ruler ticks */
+  --color-tick: var(--tick-value);
+  --color-tick-label: var(--tick-label-value);
+
+  /* Text on the always-dark shell */
+  --color-on-shell: var(--ink-100);
+}
+
+/* Landing hero / wordmark gradient (canonical emerald → accent cyan). */
+.hero-gradient-text {
+  background-image: linear-gradient(
+    to right,
+    oklch(78% 0.155 163),
+    oklch(80% 0.13 195)
+  );
+  background-clip: text;
+  color: transparent;
+}
+
+html:not(.dark) .hero-gradient-text {
+  background-image: linear-gradient(to right, oklch(46% 0.11 163), oklch(52% 0.12 205));
+}
+
+/* Vertical fade behind slot columns in the graph (transparent → hairline →
+ * transparent). Kept in CSS so the gradient stops stay in the theme. */
+.column-fade {
+  background-image: linear-gradient(
+    to top,
+    transparent 5%,
+    var(--column-fade-mid) 50%,
+    transparent 95%
+  );
+}
+
+/* Infinite-canvas dot grid for the graph stage. */
+.stage-grid {
+  background-image: radial-gradient(var(--grid-dot-color) 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+}
+
+/* Glass chrome: the floating console dock + blurred header. Glass is for
+ * chrome only — content panels stay solid for readability. */
+.glass-chrome {
+  background-color: color-mix(in oklab, var(--toolbar-value) 82%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+}
+
+@layer base {
+  body {
+    background-color: var(--background-value);
+    color: var(--foreground-value);
+  }
+
+  :root {
+    /* ===== TIER 1: Primitive values ===== */
+
+    /* Ink: cool near-neutral ramp (hue 270) */
+    --ink-0: oklch(98.5% 0.002 270);
+    --ink-50: oklch(95.5% 0.004 270);
+    --ink-100: oklch(92% 0.005 270);
+    --ink-200: oklch(87% 0.006 270);
+    --ink-300: oklch(78% 0.008 270);
+    --ink-400: oklch(66% 0.01 270);
+    --ink-500: oklch(55% 0.01 270);
+    --ink-600: oklch(44% 0.011 270);
+    --ink-700: oklch(33% 0.011 270);
+    --ink-800: oklch(26.5% 0.011 270);
+    --ink-850: oklch(22.5% 0.01 270);
+    --ink-900: oklch(18.5% 0.009 270);
+    --ink-950: oklch(14.5% 0.008 270);
+
+    /* Accent: electric cyan */
+    --accent-bright: oklch(78% 0.13 200);
+    --accent-brighter: oklch(85% 0.12 198);
+    --accent-deep: oklch(55% 0.12 205);
+    --accent-deeper: oklch(48% 0.11 207);
+
+    /* Status families. Hues: canonical 163, fork 60, finalized 322,
+     * justified 277, invalid 25, optimistic 100. Bands (shared L/C per
+     * role): bright = dark-mode text/arc, dim = dark node fill, shade =
+     * dark rim track, strong = light-mode text, vivid = light arc,
+     * tint = light node fill, wash = light rim track. */
+    --status-canonical-bright: oklch(72% 0.155 163);
+    --status-canonical-dim: oklch(40% 0.09 163);
+    --status-canonical-shade: oklch(30% 0.055 163);
+    --status-canonical-strong: oklch(46% 0.11 163);
+    --status-canonical-vivid: oklch(58% 0.14 163);
+    --status-canonical-tint: oklch(93% 0.06 163);
+    --status-canonical-wash: oklch(86% 0.07 163);
+    --status-fork-bright: oklch(72% 0.155 60);
+    --status-fork-dim: oklch(40% 0.09 60);
+    --status-fork-shade: oklch(30% 0.055 60);
+    --status-fork-strong: oklch(46% 0.11 60);
+    --status-fork-vivid: oklch(58% 0.14 60);
+    --status-fork-tint: oklch(93% 0.06 60);
+    --status-fork-wash: oklch(86% 0.07 60);
+    --status-finalized-bright: oklch(72% 0.155 322);
+    --status-finalized-dim: oklch(40% 0.09 322);
+    --status-finalized-shade: oklch(30% 0.055 322);
+    --status-finalized-strong: oklch(46% 0.11 322);
+    --status-finalized-vivid: oklch(58% 0.14 322);
+    --status-finalized-tint: oklch(93% 0.06 322);
+    --status-finalized-wash: oklch(86% 0.07 322);
+    --status-justified-bright: oklch(72% 0.155 277);
+    --status-justified-dim: oklch(40% 0.09 277);
+    --status-justified-shade: oklch(30% 0.055 277);
+    --status-justified-strong: oklch(46% 0.11 277);
+    --status-justified-vivid: oklch(58% 0.14 277);
+    --status-justified-tint: oklch(93% 0.06 277);
+    --status-justified-wash: oklch(86% 0.07 277);
+    --status-invalid-bright: oklch(72% 0.155 25);
+    --status-invalid-dim: oklch(40% 0.09 25);
+    --status-invalid-shade: oklch(30% 0.055 25);
+    --status-invalid-strong: oklch(46% 0.11 25);
+    --status-invalid-vivid: oklch(58% 0.14 25);
+    --status-invalid-tint: oklch(93% 0.06 25);
+    --status-invalid-wash: oklch(86% 0.07 25);
+    --status-optimistic-bright: oklch(76% 0.155 100);
+    --status-optimistic-dim: oklch(40% 0.09 100);
+    --status-optimistic-shade: oklch(30% 0.055 100);
+    --status-optimistic-strong: oklch(46% 0.11 100);
+    --status-optimistic-vivid: oklch(58% 0.14 100);
+    --status-optimistic-tint: oklch(93% 0.06 100);
+    --status-optimistic-wash: oklch(86% 0.07 100);
+
+    /* Rose (REC / replay indicator) */
+    --rose-bright: oklch(71% 0.19 13);
+    --rose-mid: oklch(64.5% 0.246 16);
+    --rose-deep: oklch(59% 0.25 17);
+
+    /* Walker loading animation ramp (decorative; read from canvas code via
+     * getComputedStyle). Ink → accent cyan. */
+    --color-walker-1: oklch(25% 0.04 270);
+    --color-walker-2: oklch(35% 0.07 240);
+    --color-walker-3: oklch(50% 0.1 220);
+    --color-walker-4: oklch(65% 0.12 205);
+    --color-walker-5: oklch(80% 0.13 195);
+
+    /* ===== Semantic mappings: light mode ===== */
+    --background-value: var(--ink-0);
+    --surface-value: #fff;
+    --surface-raised-value: var(--ink-50);
+    --overlay-value: var(--ink-950);
+    --shell-value: var(--ink-950);
+    --border-value: oklch(0% 0 0 / 8%);
+    --border-strong-value: oklch(0% 0 0 / 15%);
+    --foreground-value: oklch(21% 0.01 270);
+    --foreground-strong-value: var(--ink-950);
+    --foreground-inverted-value: var(--ink-0);
+    --muted-value: var(--ink-500);
+    --faint-value: var(--ink-400);
+    --accent-value: var(--accent-deep);
+    --accent-hover-value: var(--accent-deeper);
+    --track-value: oklch(0% 0 0 / 5%);
+    --active-value: var(--accent-deep);
+    --active-hover-value: var(--accent-deeper);
+    --surface-hover-value: #fff;
+    --field-value: oklch(0% 0 0 / 4%);
+    --control-value: var(--accent-deep);
+    --control-hover-value: var(--accent-deeper);
+    --toolbar-value: #fff;
+    --timeline-value: var(--ink-0);
+    --timeline-edge-value: oklch(0% 0 0 / 8%);
+    --timeline-fg-value: oklch(21% 0.01 270);
+    --dial-value: var(--ink-50);
+    --primary-value: var(--accent-deep);
+    --primary-hover-value: var(--accent-deeper);
+    --on-primary-value: #fff;
+    --edge-value: oklch(0% 0 0 / 18%);
+    --live-value: var(--accent-deep);
+    --brand-value: var(--accent-deep);
+    --link-value: var(--accent-deep);
+    --link-hover-value: var(--accent-deeper);
+    --scrim-value: oklch(14.5% 0.008 270 / 40%);
+    --success-value: var(--status-canonical-strong);
+    --warning-value: var(--status-fork-strong);
+    --caution-value: var(--status-optimistic-strong);
+    --danger-value: oklch(52% 0.19 25);
+    --danger-surface-value: var(--status-invalid-tint);
+    /* danger-accent renders on the always-dark shell (error pages) */
+    --danger-accent-value: oklch(70% 0.19 20);
+    --canonical-value: var(--status-canonical-strong);
+    --canonical-deep-value: var(--status-canonical-tint);
+    --canonical-edge-value: var(--status-canonical-wash);
+    --canonical-ring-value: var(--status-canonical-vivid);
+    --fork-value: var(--status-fork-strong);
+    --fork-deep-value: var(--status-fork-tint);
+    --fork-edge-value: var(--status-fork-wash);
+    --fork-ring-value: var(--status-fork-vivid);
+    --finalized-value: var(--status-finalized-strong);
+    --finalized-deep-value: var(--status-finalized-tint);
+    --finalized-edge-value: var(--status-finalized-wash);
+    --finalized-ring-value: var(--status-finalized-vivid);
+    --justified-value: var(--status-justified-strong);
+    --justified-deep-value: var(--status-justified-tint);
+    --justified-edge-value: var(--status-justified-wash);
+    --justified-ring-value: var(--status-justified-vivid);
+    --invalid-value: var(--status-invalid-strong);
+    --invalid-deep-value: var(--status-invalid-tint);
+    --invalid-edge-value: var(--status-invalid-wash);
+    --invalid-ring-value: var(--status-invalid-vivid);
+    --optimistic-value: var(--status-optimistic-strong);
+    --optimistic-deep-value: var(--status-optimistic-tint);
+    --optimistic-edge-value: var(--status-optimistic-wash);
+    --optimistic-ring-value: var(--status-optimistic-vivid);
+    --marker-value: var(--status-fork-vivid);
+    --marker-active-value: var(--status-fork-strong);
+    --marker-time-value: oklch(65% 0.08 235);
+    --marker-time-active-value: var(--accent-deep);
+    --scrubber-value: var(--ink-500);
+    --scrubber-strong-value: var(--ink-600);
+    --rec-value: var(--rose-bright);
+    --rec-strong-value: var(--rose-mid);
+    --tick-value: oklch(0% 0 0 / 30%);
+    --tick-label-value: var(--ink-500);
+    --column-fade-mid: oklch(0% 0 0 / 12%);
+    --grid-dot-color: oklch(0% 0 0 / 7%);
+    --glass-highlight: oklch(100% 0 0 / 60%);
+  }
+
+  html.dark {
+    /* ===== Semantic mappings: dark mode ===== */
+    --background-value: var(--ink-950);
+    --surface-value: var(--ink-900);
+    --surface-raised-value: var(--ink-850);
+    --overlay-value: #fff;
+    --shell-value: var(--ink-950);
+    --border-value: oklch(100% 0 0 / 8%);
+    --border-strong-value: oklch(100% 0 0 / 15%);
+    --foreground-value: var(--ink-100);
+    --foreground-strong-value: var(--ink-0);
+    --foreground-inverted-value: var(--ink-950);
+    --muted-value: oklch(72% 0.01 270);
+    --faint-value: var(--ink-500);
+    --accent-value: var(--accent-bright);
+    --accent-hover-value: var(--accent-brighter);
+    --track-value: oklch(100% 0 0 / 6%);
+    --active-value: var(--accent-bright);
+    --active-hover-value: var(--accent-brighter);
+    --surface-hover-value: var(--ink-800);
+    --field-value: oklch(100% 0 0 / 5%);
+    --control-value: var(--accent-bright);
+    --control-hover-value: var(--accent-brighter);
+    --toolbar-value: var(--ink-900);
+    --timeline-value: var(--ink-950);
+    --timeline-edge-value: oklch(100% 0 0 / 8%);
+    --timeline-fg-value: var(--ink-100);
+    --dial-value: var(--ink-950);
+    --primary-value: var(--accent-bright);
+    --primary-hover-value: var(--accent-brighter);
+    --on-primary-value: var(--ink-950);
+    --edge-value: oklch(100% 0 0 / 20%);
+    --live-value: var(--accent-bright);
+    --brand-value: var(--accent-bright);
+    --link-value: var(--accent-bright);
+    --link-hover-value: var(--accent-brighter);
+    --scrim-value: oklch(10% 0.01 270 / 60%);
+    --success-value: var(--status-canonical-bright);
+    --warning-value: var(--status-fork-bright);
+    --caution-value: var(--status-optimistic-bright);
+    --danger-value: oklch(68% 0.19 25);
+    --danger-surface-value: oklch(28% 0.07 25);
+    --danger-accent-value: oklch(70% 0.19 20);
+    --canonical-value: var(--status-canonical-bright);
+    --canonical-deep-value: var(--status-canonical-dim);
+    --canonical-edge-value: var(--status-canonical-shade);
+    --canonical-ring-value: var(--status-canonical-bright);
+    --fork-value: var(--status-fork-bright);
+    --fork-deep-value: var(--status-fork-dim);
+    --fork-edge-value: var(--status-fork-shade);
+    --fork-ring-value: var(--status-fork-bright);
+    --finalized-value: var(--status-finalized-bright);
+    --finalized-deep-value: var(--status-finalized-dim);
+    --finalized-edge-value: var(--status-finalized-shade);
+    --finalized-ring-value: var(--status-finalized-bright);
+    --justified-value: var(--status-justified-bright);
+    --justified-deep-value: var(--status-justified-dim);
+    --justified-edge-value: var(--status-justified-shade);
+    --justified-ring-value: var(--status-justified-bright);
+    --invalid-value: var(--status-invalid-bright);
+    --invalid-deep-value: var(--status-invalid-dim);
+    --invalid-edge-value: var(--status-invalid-shade);
+    --invalid-ring-value: var(--status-invalid-bright);
+    --optimistic-value: var(--status-optimistic-bright);
+    --optimistic-deep-value: var(--status-optimistic-dim);
+    --optimistic-edge-value: var(--status-optimistic-shade);
+    --optimistic-ring-value: var(--status-optimistic-bright);
+    --marker-value: var(--status-fork-bright);
+    --marker-active-value: oklch(80% 0.16 70);
+    --marker-time-value: oklch(55% 0.09 235);
+    --marker-time-active-value: var(--accent-bright);
+    --scrubber-value: oklch(72% 0.01 270);
+    --scrubber-strong-value: var(--ink-200);
+    --rec-value: var(--rose-deep);
+    --rec-strong-value: var(--rose-mid);
+    --tick-value: oklch(100% 0 0 / 28%);
+    --tick-label-value: var(--ink-500);
+    --column-fade-mid: oklch(100% 0 0 / 12%);
+    --grid-dot-color: oklch(100% 0 0 / 6%);
+    --glass-highlight: oklch(100% 0 0 / 7%);
+  }
+}

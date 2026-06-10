@@ -1,8 +1,9 @@
 import { memo, useRef, useState, useEffect, useCallback } from 'react';
 
 import { DocumentArrowUpIcon } from '@heroicons/react/24/solid';
+import classNames from 'clsx';
 
-import { ForkChoiceData, Frame, Checkpoint, ForkChoiceNode } from '@app/types/api';
+import { ForkChoice, Frame, Checkpoint, ForkChoiceNode } from '@api';
 import useFocus from '@contexts/focus';
 import { processForkChoiceData } from '@utils/graph';
 
@@ -55,7 +56,7 @@ function validateForkChoiceData(data: unknown): { isValid: boolean; message?: st
     return { isValid: false, message: 'Data is not an object or is null.' };
   }
 
-  const castedData = data as ForkChoiceData;
+  const castedData = data as ForkChoice;
 
   if (!castedData.fork_choice_nodes) {
     return { isValid: false, message: 'fork_choice_nodes is missing.' };
@@ -114,6 +115,9 @@ function BYOFooter() {
                 fetched_at: new Date().toISOString(),
                 wall_clock_slot: 0,
                 wall_clock_epoch: 0,
+                labels: [],
+                consensus_client: '',
+                event_source: 'unknown',
               },
               data: jsonData,
             };
@@ -187,31 +191,41 @@ function BYOFooter() {
   };
 
   return (
-    <div
-      className="fixed left-0 w-full bottom-0 bg-stone-300 dark:bg-stone-800"
-      style={{ height: 148 }}
-    >
+    <div className="glass-chrome fixed bottom-0 left-0 h-24 w-full border-t border-border">
       <input
         type="file"
         ref={fileInputRef}
         style={{ display: 'none' }}
         onChange={handleFileInputChange}
       />
-      <div className="flex h-full items-center justify-center text-stone-900 dark:text-stone-100 gap-x-10">
-        <button className="flex flex-col items-center" onClick={handleButtonClick}>
-          <span className="flex items-center rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5 gap-2 text-lg p-4">
-            <DocumentArrowUpIcon className="h-10 w-10" />
-          </span>
-          {error && <div className="text-red-500">{error}</div>}
+      <div className="flex h-full items-center justify-center px-4 text-foreground">
+        <button
+          className={classNames(
+            'group flex w-full max-w-2xl flex-col items-center gap-0.5 rounded-xl border border-dashed px-4 py-2 text-sm transition-colors duration-150',
+            dragging
+              ? 'border-accent bg-overlay/5 text-foreground'
+              : 'border-border-strong text-muted hover:border-border-strong hover:bg-overlay/3 hover:text-foreground',
+          )}
+          onClick={handleButtonClick}
+        >
+          <DocumentArrowUpIcon
+            className={classNames(
+              'size-7 transition-colors duration-150',
+              dragging ? 'text-accent' : 'text-faint group-hover:text-foreground',
+            )}
+          />
+          {error && <div className="text-danger">{error}</div>}
           {!error &&
             (dragging ? (
-              'Drop to view'
+              <span className="font-mono text-xs uppercase tracking-widest text-accent">
+                Drop to view
+              </span>
             ) : (
               <span>
                 Upload beacon API{' '}
                 <a
                   href="https://ethereum.github.io/beacon-APIs/?urls.primaryName=dev#/Debug/getDebugForkChoice"
-                  className="font-bold text-stone-800 dark:text-stone-50"
+                  className="font-mono text-xs font-semibold text-link transition-colors duration-150 hover:text-link-hover"
                   onClick={e => e.stopPropagation()}
                   target="_blank"
                   rel="noreferrer"

@@ -1,65 +1,132 @@
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-  goconst:
-    min-len: 2
-    min-occurrences: 3
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-  govet:
-    shadow: true
-  nolintlint:
-    require-explanation: true
-    require-specific: true
-
-linters:
-  disable-all: true
-  enable:
-    - asasalint
-    - bidichk
-    - bodyclose
-    - containedctx
-    - decorder
-    - dogsled
-    - durationcheck
-    - errcheck
-    - errname
-    - copyloopvar
-    - gocritic
-    - gocyclo
-    - gofmt
-    - goheader
-    - goimports
-    - gosec
-    - gosimple
-    - govet
-    - ineffassign
-    - misspell
-    - nakedret
-    - nilerr
-    - nilerr
-    - nilnil
-    - nlreturn
-    - nolintlint
-    - nosprintfhostport
-    - prealloc
-    - predeclared
-    - promlinter
-    - reassign
-    - staticcheck
-    - stylecheck
-    - thelper
-    - tparallel
-    - typecheck
-    - unconvert
-    - unused
-    - whitespace
-    - wsl
+version: "2"
 
 run:
-  issues-exit-code: 1
+  timeout: 5m
+
+linters:
+  default: none
+  enable:
+    - bidichk
+    - bodyclose
+    - copyloopvar
+    - cyclop
+    - dupword
+    - errcheck
+    - errname
+    - errorlint
+    - exhaustive
+    - exptostd
+    - fatcontext
+    - funlen
+    - gocognit
+    - gocritic
+    - gosec
+    - govet
+    - ineffassign
+    - intrange
+    - misspell
+    - modernize
+    - nestif
+    - nilerr
+    - noctx
+    - nolintlint
+    - perfsprint
+    - predeclared
+    - revive
+    - sloglint
+    - staticcheck
+    - tagliatelle
+    - testifylint
+    - tparallel
+    - unconvert
+    - usetesting
+    - unparam
+    - unused
+    - usestdlibvars
+    - wastedassign
+    - whitespace
+
+  settings:
+    cyclop:
+      max-complexity: 30
+
+    funlen:
+      lines: 100
+      statements: 50
+
+    gocognit:
+      # Aligned with cyclop's max-complexity so the two complexity metrics agree.
+      min-complexity: 30
+
+    errcheck:
+      check-type-assertions: true
+
+    exhaustive:
+      # A `default` case counts as handling the remaining enum members. Avoids
+      # enumerating large generated enums (e.g. xatu.Event_Name) exhaustively.
+      default-signifies-exhaustive: true
+
+    tagliatelle:
+      case:
+        rules:
+          yaml: snake
+          json: snake
+
+    revive:
+      rules:
+        - name: unexported-return
+          disabled: true
+
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment
+      settings:
+        shadow:
+          # Non-strict: don't flag the idiomatic `if x, err := f(); err != nil`
+          # reuse of an outer err in nested scopes.
+          strict: false
+
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+
+    sloglint:
+      no-global: all
+      context: scope
+
+    staticcheck:
+      checks:
+        - all
+
+  exclusions:
+    paths:
+      # ogen-generated server/client code.
+      - api/rest
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      # Test files are allowed to be long/complex (table-driven tests) and to
+      # have unused helper parameters.
+      - path: _test\.go
+        linters:
+          - funlen
+          - gocognit
+          - cyclop
+          - unparam
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/ethpandaops/forky
+  exclusions:
+    paths:
+      # ogen-generated server/client code.
+      - api/rest

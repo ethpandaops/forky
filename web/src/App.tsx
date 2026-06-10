@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 
+import ClearTimeParam from '@components/ClearTimeParam';
 import Loading from '@components/Loading';
 import { ValueProps } from '@contexts/ethereum';
 import { useSpecQuery, useNowQuery } from '@hooks/useQuery';
@@ -16,13 +17,22 @@ export default function App({
   node,
   frameId,
   byo = false,
+  eventsOpen = false,
+  eventsCloseTo = '/',
 }: {
   node?: string;
   frameId?: string;
   byo?: boolean;
+  eventsOpen?: boolean;
+  eventsCloseTo?: string;
 }) {
   const { data, isLoading, error } = useSpecQuery();
-  const { data: dataNow, isLoading: isLoadingNow, error: errorNow } = useNowQuery();
+  const {
+    data: dataNow,
+    isLoading: isLoadingNow,
+    error: errorNow,
+    errorUpdatedAt: errorNowAt,
+  } = useNowQuery();
 
   const formattedData = useMemo<ValueProps | undefined>(() => {
     if (!data?.spec) return undefined;
@@ -57,15 +67,16 @@ export default function App({
       ];
     }
 
-    // worst case when failing to get server now, just use the current local time
-    return [errorNow ? Date.now() : undefined, true];
-  }, [formattedData, dataNow, errorNow]);
+    // worst case when failing to get server now, just use the local time at
+    // which the fetch failed (kept pure: no clock reads during render)
+    return [errorNow ? errorNowAt : undefined, true];
+  }, [formattedData, dataNow, errorNow, errorNowAt]);
 
   if (isLoading || error || !formattedData || !initialTime || isLoadingNow)
     return (
-      <div className="w-screen h-screen bg-stone-900">
+      <div className="h-dvh w-screen bg-shell">
         <Loading
-          textColor="text-stone-100"
+          textColor="text-on-shell"
           message={
             isLoading || isLoadingNow
               ? 'Loading...'
@@ -87,11 +98,12 @@ export default function App({
       ethereum={formattedData}
       focus={{ initialTime, node, frameId, playing, byo }}
     >
-      <div className="relative w-screen h-screen">
+      <ClearTimeParam />
+      <div className="relative h-dvh w-screen">
         <div className="absolute top-0 left-0 w-full h-full">
           <Header />
           <Selection />
-          <Events />
+          <Events open={eventsOpen} closeTo={eventsCloseTo} />
           <main>
             <Stage />
           </main>

@@ -34,7 +34,10 @@ const Walker: React.FC<WalkerProps> = ({
       const stepSize = 10;
       const walkerCount = 5;
       const angles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
-      const colors = ['#241e44', '#25315e', '#3a5c85', '#56a1bf', '#97dbd2'];
+      const rootStyles = getComputedStyle(document.documentElement);
+      const colors = [1, 2, 3, 4, 5].map(i =>
+        rootStyles.getPropertyValue(`--color-walker-${i}`).trim(),
+      );
 
       if (!walkerContext) return;
 

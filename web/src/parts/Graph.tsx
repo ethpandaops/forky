@@ -10,7 +10,8 @@ import {
 } from '@heroicons/react/24/solid';
 import classNames from 'clsx';
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch';
-import { useLocation, Link } from 'wouter';
+import Link from '@components/Link';
+import { useAppNavigate, usePathname } from '@hooks/useAppNavigation';
 
 import SlotBoundary from '@app/components/SlotBoundary';
 import { AggregatedNodeAttributes, ProcessedData, WeightedNodeAttributes } from '@app/types/graph';
@@ -47,7 +48,8 @@ function Graph({
   ids: string[];
   unique: string;
 }) {
-  const [location, navigate] = useLocation();
+  const location = usePathname();
+  const navigate = useAppNavigate();
   const { setFrameId, setAggregatedFrameIds, setFrameBlock, setAggregatedFramesBlock } =
     useSelection();
   const { slotsPerEpoch } = useEthereum();
@@ -61,16 +63,10 @@ function Graph({
   const isBYO = location.startsWith('/byo');
 
   const [windowWidth, windowHeight] = useWindowSize();
-  const [scaleMultiplier, setScaleMultiplier] = useState(
-    calculateScaleMultiplier(windowWidth, windowHeight),
-  );
+  const scaleMultiplier = calculateScaleMultiplier(windowWidth, windowHeight);
   const [scale, setScale] = useState(scaleMultiplier);
   const [focused, setFocused] = useState(true);
   const [isSummaryCollapsed, setIsSummaryCollapsed] = useState(false);
-
-  useEffect(() => {
-    setScaleMultiplier(calculateScaleMultiplier(windowWidth, windowHeight));
-  }, [windowHeight, windowWidth]);
 
   useEffect(() => {
     if (focused) ref.current?.zoomToElement('head', scaleMultiplier);
@@ -90,12 +86,12 @@ function Graph({
           key={slot}
           slot={slot}
           epoch={isEpoch ? slot / slotsPerEpoch : undefined}
-          width={8}
+          width={4}
           height={1800}
           x={SPACING_X - RADIUS / 2 + index * SPACING_X}
           y={-SPACING_Y + RADIUS - 1800 / 2}
           textOffset={SPACING_Y / 2 - RADIUS / 1.5}
-          className="bg-gradient-to-t from-stone-100 dark:from-stone-900 from-10% dark:from-10% via-stone-500 dark:via-stone-500 via-50% dark:via-50% to-stone-100 dark:to-stone-900 to-90% dark:to-90%"
+          className="column-fade"
         />
       );
     });
@@ -136,17 +132,19 @@ function Graph({
               <Link
                 href={`/node/${frame.metadata.node}`}
                 className={classNames(
-                  'font-bold',
-                  isBehind && 'line-through text-red-600 dark:text-red-400',
+                  'font-medium transition-colors duration-150',
+                  isBehind
+                    ? 'text-danger line-through hover:text-danger/80'
+                    : 'text-foreground hover:text-link',
                 )}
               >
                 {frame.metadata.node}
               </Link>
             </td>
-            <td className="whitespace-nowrap py-1 pl-2 text-xs">
+            <td className="whitespace-nowrap py-1 pl-3 text-xs">
               {isBehind ? (
                 <span
-                  className="font-bold text-red-600 dark:text-red-400"
+                  className="font-mono font-semibold text-danger tabular-nums"
                   title={`${slotsBehind} slots behind`}
                 >
                   {slotsBehind} slots behind
@@ -155,10 +153,8 @@ function Graph({
                 <Link
                   href={`/node/${frame.metadata.node}`}
                   className={classNames(
-                    'font-semibold',
-                    isAggregatedHead
-                      ? 'text-green-800 dark:text-green-300'
-                      : 'text-amber-500 dark:text-amber-300',
+                    'font-mono font-medium',
+                    isAggregatedHead ? 'text-success' : 'text-warning',
                   )}
                 >
                   {truncateHash(weightedHead?.blockRoot)}
@@ -180,8 +176,8 @@ function Graph({
         y1={edge.source.y + RADIUS}
         x2={edge.target.x + RADIUS}
         y2={edge.target.y + RADIUS}
-        className="dark:bg-stone-50 bg-stone-700"
-        thickness={12}
+        className="bg-edge"
+        thickness={8}
       />
     ));
 
@@ -283,71 +279,77 @@ function Graph({
     <>
       {location.startsWith('/node/') && (
         <button
-          className="absolute text-stone-900 dark:text-stone-100 mt-24 ml-5 lg:ml-8 z-20 flex text-xs 2xl:text-sm items-center p-1 2xl:p-2 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+          className="glass-chrome absolute top-16 left-4 z-20 flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted shadow-md transition-colors duration-150 hover:text-foreground lg:left-6 2xl:text-sm"
           onClick={handleNavigateAggregatedView}
         >
-          <ArrowLeftCircleIcon className="h-6 w-6 mr-1" />
+          <ArrowLeftCircleIcon className="size-5" />
           Aggregated view
         </button>
       )}
       {!isBYO && type === 'weighted' && (
         <button
           className={classNames(
-            'absolute text-stone-900 dark:text-stone-100 ml-5 lg:ml-8 z-20 flex text-xs 2xl:text-sm items-center p-1 2xl:p-2 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5',
-            location.startsWith('/node/') ? 'mt-36' : ' mt-24',
+            'glass-chrome absolute left-4 z-20 flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted shadow-md transition-colors duration-150 hover:text-foreground lg:left-6 2xl:text-sm',
+            location.startsWith('/node/') ? 'top-[6.75rem]' : 'top-16',
           )}
           onClick={() => {
             setFrameId(data[0].frame.metadata.id);
           }}
         >
-          <InformationCircleIcon className="h-6 w-6 mr-1" />
+          <InformationCircleIcon className="size-5" />
           Snapshot
         </button>
       )}
       {!isBYO && type === 'aggregated' && formattedSummary.length && (
-        <div className="absolute mt-24 ml-5 lg:ml-8 z-20 text-xs">
+        <div className="absolute top-16 left-4 z-20 text-xs lg:left-6">
           <button
-            className="flex lg:hidden text-stone-900 dark:text-stone-100 items-center p-1 2xl:p-2 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+            className="glass-chrome flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted shadow-md transition-colors duration-150 hover:text-foreground lg:hidden"
             onClick={() => {
               setAggregatedFrameIds(ids);
             }}
           >
-            <InformationCircleIcon className="h-6 w-6 mr-1" />
+            <InformationCircleIcon className="size-5" />
             Sources
           </button>
           {isSummaryCollapsed ? (
             <button
-              className="hidden lg:flex items-center px-3 py-2 rounded bg-stone-200/90 dark:bg-stone-800/90 text-stone-900 dark:text-stone-100 hover:bg-stone-300/90 dark:hover:bg-stone-700/90 transition-colors"
+              aria-label="Show sources"
+              className="glass-chrome hidden items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted shadow-md transition-colors duration-150 hover:text-foreground lg:flex"
               onClick={() => setIsSummaryCollapsed(false)}
             >
-              <ChevronDownIcon className="w-4 h-4 mr-1" />
-              <span className="font-medium">Show Sources</span>
+              <ChevronDownIcon className="size-4" />
+              <span className="font-mono text-[10px]/4 font-semibold uppercase tracking-widest">
+                Sources
+              </span>
             </button>
           ) : (
-            <div className="hidden lg:flex flex-col px-2 pt-1 pb-1 rounded bg-stone-200/90 dark:bg-stone-800/90 text-stone-900 dark:text-stone-100">
-              <div className="flex items-center justify-between w-full">
-                <span className="font-bold">Sources</span>
+            <div className="glass-chrome hidden flex-col rounded-xl border border-border px-3 pt-2 pb-2 text-foreground shadow-lg lg:flex">
+              <div className="flex w-full items-center justify-between gap-6">
+                <span className="font-mono text-[10px]/4 font-semibold uppercase tracking-widest text-faint">
+                  Sources
+                </span>
                 <div className="flex">
                   <button
-                    className="flex text-stone-900 dark:text-stone-100 text-xs items-center p-1 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5 mr-1"
+                    aria-label="Collapse sources"
+                    className="mr-1 flex items-center rounded p-1 text-xs text-muted transition-colors duration-150 hover:bg-overlay/5 hover:text-foreground"
                     onClick={() => setIsSummaryCollapsed(true)}
                   >
-                    <ChevronUpIcon className="w-4 h-4" />
+                    <ChevronUpIcon className="size-4" />
                   </button>
                   <button
-                    className="flex text-stone-900 dark:text-stone-100 text-xs items-center p-1 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+                    className="flex items-center gap-1 rounded p-1 text-xs text-muted transition-colors duration-150 hover:bg-overlay/5 hover:text-foreground"
                     onClick={() => {
                       setAggregatedFrameIds(ids);
                     }}
                   >
-                    <InformationCircleIcon className="w-4 h-4 mr-1" />
+                    <InformationCircleIcon className="size-4" />
                     More
                   </button>
                 </div>
               </div>
-              <div className="mt-0 mb-1 border-t border-t-stone-900 dark:border-t-stone-100" />
+              <div className="mt-1.5 mb-1 border-t border-border" />
               <table className="min-w-full">
-                <tbody className="divide-y divide-gray-800">{formattedSummary}</tbody>
+                <tbody className="divide-y divide-border">{formattedSummary}</tbody>
               </table>
             </div>
           )}
@@ -387,22 +389,20 @@ function Graph({
                 onClick={handleFocus}
                 title="Focus to the head of the canonical chain"
                 className={classNames(
-                  isBYO ? 'top-20' : 'top-36',
-                  'fixed z-10 right-6 lg:right-8 top-36 text-stone-700 dark:text-stone-300 cursor-pointer w-10 h-10 rounded-md transition hover:bg-stone-900/5 dark:hover:bg-white/5',
+                  isBYO ? 'top-16' : 'top-[6.75rem]',
+                  'glass-chrome fixed right-4 z-10 flex size-9 cursor-pointer items-center justify-center rounded-lg border border-border text-muted shadow-md transition-colors duration-150 hover:text-foreground lg:right-6',
                 )}
               >
                 <span className="sr-only">Focus to the head of the canonical chain</span>
                 {focused && (
                   <>
-                    <ViewfinderCircleIconSolid onClick={handleFocus} className="fixed h-10 w-10" />
-                    <span className="fixed mt-4 ml-4 h-2 w-2">
-                      <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-green-400 dark:bg-green-700"></span>
+                    <ViewfinderCircleIconSolid className="size-6" />
+                    <span className="absolute size-1.5">
+                      <span className="absolute inline-flex h-full w-full animate-pulse rounded-full bg-live"></span>
                     </span>
                   </>
                 )}
-                {!focused && (
-                  <ViewfinderCircleIconOutline onClick={handleFocus} className="fixed h-10 w-10" />
-                )}
+                {!focused && <ViewfinderCircleIconOutline className="size-6" />}
               </span>
               <TransformComponent
                 wrapperStyle={{
@@ -414,12 +414,12 @@ function Graph({
                 {truncation?.markers.map(marker => (
                   <SlotBoundary
                     key={`truncation-line-${marker.x}`}
-                    width={8}
+                    width={4}
                     height={1800}
                     x={marker.x - RADIUS / 2}
                     y={-SPACING_Y + RADIUS - 1800 / 2}
                     textOffset={SPACING_Y / 2 - RADIUS / 1.5}
-                    className="bg-gradient-to-t from-stone-100 dark:from-stone-900 from-10% dark:from-10% via-stone-500 dark:via-stone-500 via-50% dark:via-50% to-stone-100 dark:to-stone-900 to-90% dark:to-90%"
+                    className="column-fade"
                   />
                 ))}
                 {truncation?.checkpoints.map(checkpoint => {
@@ -429,12 +429,12 @@ function Graph({
                       key={`checkpoint-${checkpoint.slot}`}
                       slot={checkpoint.slot}
                       epoch={isEpoch ? checkpoint.slot / slotsPerEpoch : undefined}
-                      width={8}
+                      width={4}
                       height={1800}
                       x={checkpoint.x - RADIUS / 2}
                       y={-SPACING_Y + RADIUS - 1800 / 2}
                       textOffset={SPACING_Y / 2 - RADIUS / 1.5}
-                      className="bg-gradient-to-t from-stone-100 dark:from-stone-900 from-10% dark:from-10% via-stone-500 dark:via-stone-500 via-50% dark:via-50% to-stone-100 dark:to-stone-900 to-90% dark:to-90%"
+                      className="column-fade"
                     />
                   );
                 })}
@@ -447,8 +447,8 @@ function Graph({
                         y1={truncation.rail.y1 + RADIUS}
                         x2={truncation.rail.x2 + RADIUS}
                         y2={truncation.rail.y2 + RADIUS}
-                        className="dark:bg-stone-500 bg-stone-400"
-                        thickness={12}
+                        className="bg-edge"
+                        thickness={8}
                       />
                     )}
                     {truncation.markers.map(marker => (

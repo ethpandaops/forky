@@ -1,8 +1,12 @@
 bin
+/forky
+.playwright-mcp/
+coverage.out
 config.yaml
 config2.yaml
 __debug_bin*
 dist/
+web/dist/
 checkpointz
 store.db
 index.db

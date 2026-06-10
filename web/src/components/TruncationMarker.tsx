@@ -2,6 +2,9 @@ import { memo } from 'react';
 
 import classNames from 'clsx';
 
+/* Bridges a hidden range of the graph when the tail is truncated: rendered
+ * in the same circular footprint as graph nodes, in the neutral "gap"
+ * language (dashed ring, no status color). */
 function TruncationMarker({
   x,
   y,
@@ -18,7 +21,8 @@ function TruncationMarker({
   return (
     <div
       className={classNames(
-        'absolute flex flex-col items-center justify-center gap-6 rounded-full border-dashed border-stone-400 dark:border-stone-500 bg-gradient-to-br from-stone-100 to-stone-300 dark:from-stone-600 dark:to-stone-800 shadow-inner-xl',
+        'absolute flex flex-col items-center justify-center gap-6 rounded-full',
+        'border-8 border-dashed border-border-strong bg-surface',
         className,
       )}
       style={{
@@ -26,15 +30,14 @@ function TruncationMarker({
         top: `${y}px`,
         width: `${radius * 2}px`,
         height: `${radius * 2}px`,
-        borderWidth: '16px',
       }}
       title={`${slots.toLocaleString()} earlier slots hidden`}
     >
-      <div className="flex flex-col items-center leading-none">
-        <p className="text-stone-700 dark:text-stone-100 text-6xl font-mono font-bold tabular-nums">
+      <div className="flex max-w-full flex-col items-center px-6 leading-none">
+        <p className="font-mono text-5xl font-bold tabular-nums text-foreground-strong">
           {slots.toLocaleString()}
         </p>
-        <p className="mt-3 text-stone-700 dark:text-white text-xl font-mono font-bold uppercase tracking-[0.3em]">
+        <p className="mt-4 font-mono text-lg font-semibold uppercase tracking-[0.25em] text-muted">
           slots&nbsp;hidden
         </p>
       </div>

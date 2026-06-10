@@ -1,0 +1,558 @@
+openapi: 3.1.0
+info:
+  title: Forky API
+  version: 1.0.0
+  description: |
+    Forky captures, stores, indexes and serves Ethereum Beacon Chain
+    fork-choice data. This API exposes fork-choice frames and their metadata.
+
+    All successful responses wrap their payload in a top-level `data` object.
+    Error responses return a flat `{ "code", "message" }` object.
+
+    Frame metadata serializes slots and epochs as JSON numbers. The fork-choice
+    dump inside a frame mirrors the beacon node `/eth/v1/debug/fork_choice`
+    response, where slots, epochs and weights are serialized as strings.
+  license:
+    name: GPL-3.0-or-later
+    url: https://www.gnu.org/licenses/gpl-3.0.html
+
+servers:
+  - url: https://forky.mainnet.ethpandaops.io
+    description: Mainnet public instance
+  - url: https://forky.hoodi.ethpandaops.io
+    description: Hoodi public instance
+
+tags:
+  - name: Ethereum
+    description: Ethereum network timing and spec information.
+  - name: Metadata
+    description: Query stored fork-choice frame metadata.
+  - name: Frames
+    description: Retrieve individual fork-choice frames.
+
+paths:
+  /api/v1/ethereum/now:
+    get:
+      operationId: getEthereumNow
+      summary: Get the current wall-clock slot and epoch
+      tags:
+        - Ethereum
+      responses:
+        "200":
+          description: The current wall-clock slot and epoch.
+          headers:
+            Cache-Control:
+              $ref: "#/components/headers/CacheControl"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/EthereumNow"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
+
+  /api/v1/ethereum/spec:
+    get:
+      operationId: getEthereumSpec
+      summary: Get the Ethereum network name and spec
+      tags:
+        - Ethereum
+      responses:
+        "200":
+          description: The configured network name and spec.
+          headers:
+            Cache-Control:
+              $ref: "#/components/headers/CacheControl"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/EthereumSpecResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
+
+  /api/v1/frames/{id}:
+    get:
+      operationId: getFrame
+      summary: Get a single fork-choice frame by ID
+      tags:
+        - Frames
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The frame ID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The requested fork-choice frame.
+          headers:
+            Cache-Control:
+              $ref: "#/components/headers/CacheControl"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [frame]
+                    properties:
+                      frame:
+                        $ref: "#/components/schemas/Frame"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
+
+  /api/v1/metadata:
+    post:
+      operationId: listMetadata
+      summary: List fork-choice frame metadata
+      tags:
+        - Metadata
+      requestBody:
+        $ref: "#/components/requestBodies/MetadataQuery"
+      responses:
+        "200":
+          description: A page of frame metadata.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [frames, pagination]
+                    properties:
+                      frames:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/FrameMetadata"
+                      pagination:
+                        $ref: "#/components/schemas/PaginationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
+
+  /api/v1/metadata/nodes:
+    post:
+      operationId: listMetadataNodes
+      summary: List distinct nodes across stored frames
+      tags:
+        - Metadata
+      requestBody:
+        $ref: "#/components/requestBodies/MetadataQuery"
+      responses:
+        "200":
+          description: A page of distinct node names.
+          headers:
+            Cache-Control:
+              $ref: "#/components/headers/CacheControl"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [nodes, pagination]
+                    properties:
+                      nodes:
+                        type: array
+                        items:
+                          type: string
+                      pagination:
+                        $ref: "#/components/schemas/PaginationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
+
+  /api/v1/metadata/slots:
+    post:
+      operationId: listMetadataSlots
+      summary: List distinct slots across stored frames
+      tags:
+        - Metadata
+      requestBody:
+        $ref: "#/components/requestBodies/MetadataQuery"
+      responses:
+        "200":
+          description: A page of distinct slots.
+          headers:
+            Cache-Control:
+              $ref: "#/components/headers/CacheControl"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [slots, pagination]
+                    properties:
+                      slots:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Slot"
+                      pagination:
+                        $ref: "#/components/schemas/PaginationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
+
+  /api/v1/metadata/epochs:
+    post:
+      operationId: listMetadataEpochs
+      summary: List distinct epochs across stored frames
+      tags:
+        - Metadata
+      requestBody:
+        $ref: "#/components/requestBodies/MetadataQuery"
+      responses:
+        "200":
+          description: A page of distinct epochs.
+          headers:
+            Cache-Control:
+              $ref: "#/components/headers/CacheControl"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [epochs, pagination]
+                    properties:
+                      epochs:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Epoch"
+                      pagination:
+                        $ref: "#/components/schemas/PaginationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
+
+  /api/v1/metadata/labels:
+    post:
+      operationId: listMetadataLabels
+      summary: List distinct labels across stored frames
+      tags:
+        - Metadata
+      requestBody:
+        $ref: "#/components/requestBodies/MetadataQuery"
+      responses:
+        "200":
+          description: A page of distinct labels.
+          headers:
+            Cache-Control:
+              $ref: "#/components/headers/CacheControl"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [labels, pagination]
+                    properties:
+                      labels:
+                        type: array
+                        items:
+                          type: string
+                      pagination:
+                        $ref: "#/components/schemas/PaginationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
+
+components:
+  headers:
+    CacheControl:
+      description: Caching directives for the response.
+      schema:
+        type: string
+
+  requestBodies:
+    MetadataQuery:
+      description: Filter and pagination for a metadata query.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MetadataQuery"
+
+  responses:
+    BadRequest:
+      description: The request was malformed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    UnexpectedError:
+      description: An unexpected error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Slot:
+      type: integer
+      format: int64
+      minimum: 0
+      description: A beacon-chain slot number.
+      example: 7654321
+    Epoch:
+      type: integer
+      format: int64
+      minimum: 0
+      description: A beacon-chain epoch number.
+      example: 239197
+    SlotString:
+      type: string
+      description: |
+        A beacon-chain slot number serialized as a string, following the
+        beacon-API convention used by the fork-choice dump.
+      example: "7654321"
+    EpochString:
+      type: string
+      description: |
+        A beacon-chain epoch number serialized as a string, following the
+        beacon-API convention used by the fork-choice dump.
+      example: "239197"
+    Root:
+      type: string
+      description: A 32-byte hex-encoded root.
+      example: "0x0000000000000000000000000000000000000000000000000000000000000000"
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: integer
+          description: The HTTP status code.
+        message:
+          type: string
+          description: A human-readable error message.
+
+    PaginationCursor:
+      type: object
+      description: Offset-based pagination cursor.
+      properties:
+        offset:
+          type: integer
+          description: The number of items to skip.
+          default: 0
+        limit:
+          type: integer
+          description: The maximum number of items to return.
+          default: 1000
+
+    PaginationResponse:
+      type: object
+      required: [total]
+      properties:
+        total:
+          type: integer
+          format: int64
+          description: The total number of matching items.
+
+    FrameFilter:
+      type: object
+      description: Filters applied to a frame query. All fields are optional.
+      properties:
+        node:
+          type: string
+        before:
+          type: string
+          format: date-time
+        after:
+          type: string
+          format: date-time
+        slot:
+          $ref: "#/components/schemas/Slot"
+        epoch:
+          $ref: "#/components/schemas/Epoch"
+        labels:
+          type: array
+          items:
+            type: string
+        consensus_client:
+          type: string
+        event_source:
+          type: string
+
+    MetadataQuery:
+      type: object
+      properties:
+        filter:
+          $ref: "#/components/schemas/FrameFilter"
+        pagination:
+          $ref: "#/components/schemas/PaginationCursor"
+
+    FrameMetadata:
+      type: object
+      required:
+        - id
+        - node
+        - fetched_at
+        - wall_clock_slot
+        - wall_clock_epoch
+        - labels
+        - consensus_client
+        - event_source
+      properties:
+        id:
+          type: string
+          description: The frame ID.
+        node:
+          type: string
+          description: |
+            The node that provided the frame. For a beacon node this is the
+            configured node ID; for Xatu it is the Xatu Sentry ID.
+        fetched_at:
+          type: string
+          format: date-time
+          description: When the frame was fetched.
+        wall_clock_slot:
+          $ref: "#/components/schemas/Slot"
+        wall_clock_epoch:
+          $ref: "#/components/schemas/Epoch"
+        labels:
+          type: array
+          items:
+            type: string
+        consensus_client:
+          type: string
+        event_source:
+          type: string
+
+    Checkpoint:
+      type: object
+      required: [epoch, root]
+      properties:
+        epoch:
+          $ref: "#/components/schemas/EpochString"
+        root:
+          $ref: "#/components/schemas/Root"
+
+    ForkChoiceNode:
+      type: object
+      required:
+        - slot
+        - block_root
+        - parent_root
+        - justified_epoch
+        - finalized_epoch
+        - weight
+        - validity
+        - execution_block_hash
+      properties:
+        slot:
+          $ref: "#/components/schemas/SlotString"
+        block_root:
+          $ref: "#/components/schemas/Root"
+        parent_root:
+          $ref: "#/components/schemas/Root"
+        justified_epoch:
+          $ref: "#/components/schemas/EpochString"
+        finalized_epoch:
+          $ref: "#/components/schemas/EpochString"
+        weight:
+          type: string
+          description: The node's fork-choice weight, serialized as a string.
+        validity:
+          type: string
+          description: The node's validity status.
+          enum: [valid, invalid, optimistic, unknown]
+        execution_block_hash:
+          $ref: "#/components/schemas/Root"
+        extra_data:
+          type: object
+          additionalProperties: true
+
+    ForkChoice:
+      type: object
+      description: A beacon node's fork-choice dump.
+      required: [justified_checkpoint, finalized_checkpoint, fork_choice_nodes]
+      properties:
+        justified_checkpoint:
+          $ref: "#/components/schemas/Checkpoint"
+        finalized_checkpoint:
+          $ref: "#/components/schemas/Checkpoint"
+        fork_choice_nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/ForkChoiceNode"
+
+    Frame:
+      type: object
+      required: [data, metadata]
+      properties:
+        data:
+          $ref: "#/components/schemas/ForkChoice"
+        metadata:
+          $ref: "#/components/schemas/FrameMetadata"
+
+    EthereumNow:
+      type: object
+      required: [slot, epoch]
+      properties:
+        slot:
+          $ref: "#/components/schemas/Slot"
+        epoch:
+          $ref: "#/components/schemas/Epoch"
+
+    EthereumSpec:
+      type: object
+      required: [seconds_per_slot, slots_per_epoch, genesis_time]
+      properties:
+        seconds_per_slot:
+          type: integer
+          format: int64
+        slots_per_epoch:
+          type: integer
+          format: int64
+        genesis_time:
+          type: string
+          format: date-time
+
+    EthereumSpecResult:
+      type: object
+      required: [network_name, spec]
+      properties:
+        network_name:
+          type: string
+        spec:
+          $ref: "#/components/schemas/EthereumSpec"

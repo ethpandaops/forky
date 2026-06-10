@@ -56,22 +56,26 @@ export function useValue(props: ValueProps): State {
   const [byoData, setBYODataInternal] = useState<ProcessedData | undefined>();
   const { secondsPerSlot, slotsPerEpoch, genesisTime } = useEthereum();
   const timer = useRef<number | null>(null);
-  const initialPlayTime = useRef<number | undefined>(
-    props.playing ? new Date().getTime() : undefined,
-  );
+  const initialPlayTime = useRef<number | undefined>(undefined);
   const [playing, setPlaying] = useState(props.playing);
 
-  useEffect(() => {
+  // Sync route-driven props into state during render (React's documented
+  // pattern for adjusting state when props change).
+  const [prevRouteProps, setPrevRouteProps] = useState({
+    node: props.node,
+    byo: props.byo,
+    frameId: props.frameId,
+  });
+  if (
+    prevRouteProps.node !== props.node ||
+    prevRouteProps.byo !== props.byo ||
+    prevRouteProps.frameId !== props.frameId
+  ) {
+    setPrevRouteProps({ node: props.node, byo: props.byo, frameId: props.frameId });
     if (props.node !== node) setNode(props.node);
-  }, [props.node, node]);
-
-  useEffect(() => {
     if (props.byo !== byo) setBYO(props.byo);
-  }, [props.byo, byo]);
-
-  useEffect(() => {
     if (props.frameId !== frameId) setFrameId(props.frameId);
-  }, [props.frameId, frameId]);
+  }
 
   const setTimeWrapper = useCallback(
     (update: number) => {
@@ -97,34 +101,32 @@ export function useValue(props: ValueProps): State {
     [setTime, genesisTime],
   );
 
+  const stepRef = useRef<() => void>(() => {});
+
   const step = useCallback(() => {
     if (!initialPlayTime.current) initialPlayTime.current = new Date().getTime();
     const currentTime = new Date().getTime();
     const timeDiff = currentTime - (initialPlayTime.current ?? 0);
     shiftTime(timeDiff);
     initialPlayTime.current = currentTime;
-    timer.current = requestAnimationFrame(step);
+    timer.current = requestAnimationFrame(() => stepRef.current());
   }, [shiftTime]);
+
+  useEffect(() => {
+    stepRef.current = step;
+  });
 
   const play = useCallback(
     (offset?: number) => {
-      if (timer.current) cancelAnimationFrame(timer.current);
-      initialPlayTime.current = new Date().getTime();
       if (offset) shiftTime(offset);
-      timer.current = requestAnimationFrame(step);
       setPlaying(true);
     },
-    [shiftTime, step],
+    [shiftTime],
   );
 
   const stop = useCallback(() => {
-    initialPlayTime.current = undefined;
-    if (timer.current) {
-      cancelAnimationFrame(timer.current);
-      timer.current = null;
-    }
     setPlaying(false);
-  }, [setPlaying]);
+  }, []);
 
   const setSlot = useCallback(
     (targetSlot: number) => {
@@ -155,12 +157,23 @@ export function useValue(props: ValueProps): State {
     [setBYODataInternal],
   );
 
+  // The animation-frame loop is an external system: subscribe to it while
+  // playing and tear it down on stop/unmount.
   useEffect(() => {
-    if (playing) play();
+    if (!playing) return;
+
+    if (timer.current) cancelAnimationFrame(timer.current);
+    initialPlayTime.current = new Date().getTime();
+    timer.current = requestAnimationFrame(() => stepRef.current());
+
     return () => {
-      stop();
+      initialPlayTime.current = undefined;
+      if (timer.current) {
+        cancelAnimationFrame(timer.current);
+        timer.current = null;
+      }
     };
-  }, [playing, play, stop]);
+  }, [playing]);
 
   useEffect(() => {
     return () => {

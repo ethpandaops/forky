@@ -6,11 +6,21 @@ import {
   PauseIcon,
   PlayIcon,
 } from '@heroicons/react/20/solid';
+import classNames from 'clsx';
 
 import EditableInput from '@components/EditableInput';
 import useEthereum from '@contexts/ethereum';
 import useFocus from '@contexts/focus';
+import useNow from '@hooks/useNow';
 import useOutsideInteraction from '@hooks/useOutsideInteraction';
+
+const FIELD =
+  'flex items-center gap-2 rounded-lg border border-border-strong bg-field px-2.5 transition-colors duration-150 focus-within:border-accent';
+const FIELD_LABEL = 'font-mono text-[9px]/3 uppercase tracking-widest text-faint';
+const FIELD_INPUT =
+  'block w-full bg-transparent py-1.5 font-mono text-xs/5 tabular-nums text-foreground focus:outline-hidden';
+const STEP_BUTTON =
+  'hidden size-9 shrink-0 items-center justify-center rounded-md text-muted transition-colors duration-150 hover:bg-overlay/5 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent md:flex';
 
 function TimelineControl() {
   const controlRef = useRef<HTMLDivElement>(null);
@@ -33,9 +43,11 @@ function TimelineControl() {
     playing,
   } = useFocus();
   const { genesisTime, secondsPerSlot } = useEthereum();
+  const now = useNow();
 
-  const slotDiff = Math.floor((Date.now() - genesisTime) / 1000 / secondsPerSlot) - focusedSlot;
+  const slotDiff = Math.floor((now - genesisTime) / 1000 / secondsPerSlot) - focusedSlot;
   const isCloseToLiveSlot = slotDiff <= 3 && slotDiff >= -1;
+  const isLive = playing && isCloseToLiveSlot;
 
   const handleBack = () => {
     if (focusedTimeIntoSlot > 500) {
@@ -59,64 +71,45 @@ function TimelineControl() {
   };
 
   return (
-    <div ref={controlRef} className="flex justify-center">
-      <div className="flex gap-x-8 w-full h-12 xl:h-16 xl:w-fit bg-stone-200 dark:bg-stone-700 px-3 xl:py-3 xl:rounded-t-xl justify-center items-center">
-        <div className="relative hidden md:block">
-          <label
-            htmlFor="slot"
-            className="absolute -top-2 left-2 inline-block bg-stone-300 dark:bg-stone-500 rounded px-1 text-xs font-medium text-stone-900 dark:text-stone-100"
-          >
-            Slot
-          </label>
+    <div ref={controlRef} className="flex justify-center px-2">
+      <div className="glass-chrome mb-2 flex w-full max-w-full items-center justify-center gap-2 rounded-xl border border-border px-2.5 py-2 shadow-lg sm:w-fit sm:gap-3 sm:px-3">
+        <label className={classNames(FIELD, 'min-w-0 flex-1 sm:flex-none')}>
+          <span className={FIELD_LABEL}>Slot</span>
           <EditableInput
             id="slot"
             value={focusedSlot}
             onChange={value => setCurrentSlot(value)}
             type="number"
+            className={classNames(FIELD_INPUT, 'sm:w-24')}
           />
-        </div>
-        <div className="relative hidden lg:block">
-          <label
-            htmlFor="epoch"
-            className="absolute -top-2 left-2 inline-block bg-stone-300 dark:bg-stone-500 rounded px-1 text-xs font-medium text-stone-900 dark:text-stone-100"
-          >
-            Epoch
-          </label>
+        </label>
+        <label className={classNames(FIELD, 'hidden lg:flex')}>
+          <span className={FIELD_LABEL}>Epoch</span>
           <EditableInput
             id="epoch"
             value={focusedEpoch}
             onChange={value => setCurrentEpoch(value)}
             type="number"
+            className={classNames(FIELD_INPUT, 'w-20')}
           />
-        </div>
-        <div className="relative">
-          <label
-            htmlFor="time"
-            className="absolute -top-2 left-2 bg-stone-300 dark:bg-stone-500 rounded px-1 text-xs font-medium text-stone-900 dark:text-stone-100 hidden sm:inline-block"
-          >
-            Time
-          </label>
-          <div className="w-72">
-            <EditableInput
-              id="time"
-              value={Math.ceil(focusedTime / 1000) * 1000}
-              onChange={value => setFocusedTime(value)}
-              type="datetime-local"
-            />
-          </div>
-        </div>
-        <div className="flex items-center justify-self-center">
-          <button
-            type="button"
-            className="p-2 group relative hidden xl:flex flex-shrink-0 items-center justify-center h-12 w-12 text-stone-900 dark:text-stone-100"
-            onClick={handleBack}
-            aria-label="Back"
-          >
-            <ArrowUturnLeftIcon className="h-6 w-6" />
+        </label>
+        <label className={classNames(FIELD, 'hidden md:flex')}>
+          <span className={FIELD_LABEL}>Time</span>
+          <EditableInput
+            id="time"
+            value={Math.ceil(focusedTime / 1000) * 1000}
+            onChange={value => setFocusedTime(value)}
+            type="datetime-local"
+            className={classNames(FIELD_INPUT, 'w-44')}
+          />
+        </label>
+        <div className="flex shrink-0 items-center gap-1">
+          <button type="button" className={STEP_BUTTON} onClick={handleBack} aria-label="Back">
+            <ArrowUturnLeftIcon className="size-4" />
           </button>
           <button
             type="button"
-            className="p-2 group relative flex flex-shrink-0 items-center justify-center rounded-full bg-stone-700 dark:bg-stone-200 hover:bg-stone-900 dark:hover:bg-stone-100 focus:outline-none focus:ring-stone-700 dark:focus:ring-stone-300 h-18 w-18 focus:ring focus:ring-offset-1"
+            className="group flex size-10 shrink-0 items-center justify-center rounded-full bg-control transition-colors duration-150 hover:bg-control-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:size-11"
             onClick={() => {
               if (playing) stopTimer();
               else playTimer();
@@ -124,44 +117,47 @@ function TimelineControl() {
             aria-label={playing ? 'Pause' : 'Play'}
           >
             {playing ? (
-              <PauseIcon className="fill-stone-100 dark:fill-stone-900 group-active:fill-stone-100/80 dark:group-active:fill-stone-900/80 h-4 w-4 xl:h-7 xl:w-7" />
+              <PauseIcon className="size-5 fill-on-primary group-active:fill-on-primary/80" />
             ) : (
-              <PlayIcon className="fill-stone-100 dark:fill-stone-900 group-active:fill-stone-100/80 dark:group-active:fill-stone-900/80 h-4 w-4 xl:h-7 xl:w-7 pl-1" />
+              <PlayIcon className="size-5 fill-on-primary pl-0.5 group-active:fill-on-primary/80" />
             )}
           </button>
           <button
             type="button"
-            className="p-2 group relative hidden xl:flex flex-shrink-0 items-center justify-center h-12 w-12 text-stone-900 dark:text-stone-100"
+            className={STEP_BUTTON}
             onClick={handleForward}
-            aria-label="Back"
+            aria-label="Forward"
           >
-            <ArrowUturnRightIcon className="h-6 w-6" />
+            <ArrowUturnRightIcon className="size-4" />
           </button>
-          <span className="relative inline-flex ml-4 xl:ml-0 text-stone-900 dark:text-stone-100">
-            <button onClick={handleLive} disabled={playing && isCloseToLiveSlot}>
-              Live
-            </button>
-            <span
-              onClick={handleLive}
-              className={`relative flex h-3 w-3 self-center ml-2 ${
-                playing && isCloseToLiveSlot ? '' : 'cursor-pointer'
-              }`}
-            >
-              <span
-                className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
-                  playing && isCloseToLiveSlot
-                    ? 'bg-rose-400 dark:bg-rose-600'
-                    : 'bg-stone-400 dark:bg-stone-100'
-                } opacity-75`}
-              ></span>
-              <span
-                className={`relative inline-flex rounded-full h-3 w-3 ${
-                  playing && isCloseToLiveSlot ? 'bg-rose-500' : 'bg-stone-500 dark:bg-stone-200'
-                }`}
-              ></span>
-            </span>
-          </span>
         </div>
+        <button
+          type="button"
+          onClick={handleLive}
+          disabled={isLive}
+          className={classNames(
+            'flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[10px]/4 font-semibold uppercase tracking-widest transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+            isLive
+              ? 'border-rec/40 text-rec-strong'
+              : 'cursor-pointer border-border-strong text-muted hover:border-border-strong hover:text-foreground',
+          )}
+        >
+          Live
+          <span className="relative flex size-2" aria-hidden="true">
+            <span
+              className={classNames(
+                'absolute inline-flex h-full w-full animate-ping rounded-full opacity-75',
+                isLive ? 'bg-rec' : 'bg-scrubber',
+              )}
+            ></span>
+            <span
+              className={classNames(
+                'relative inline-flex size-2 rounded-full',
+                isLive ? 'bg-rec-strong' : 'bg-scrubber-strong',
+              )}
+            ></span>
+          </span>
+        </button>
       </div>
     </div>
   );

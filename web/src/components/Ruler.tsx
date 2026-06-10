@@ -37,16 +37,16 @@ const Ruler: React.FC<RulerProps> = ({
         <div
           key={i}
           className={classNames(
-            'border-l w-1 border-stone-500 dark:border-stone-400',
+            'w-1 border-l border-tick',
             i === 0 ? 'h-full' : isCentimeter ? 'h-2' : 'h-1',
-            isCentimeter ? '' : 'opacity-60',
+            isCentimeter ? '' : 'opacity-50',
           )}
         >
           {markText && isCentimeter && i !== 0 && i != totalSubmarks && (
             <span
               className={classNames(
-                ' text-stone-800 dark:text-stone-500 relative text-[9px]',
-                flip ? '-top-5 mt-5' : '-top-0.5',
+                'relative font-mono text-[8px]/3 tabular-nums text-tick-label',
+                flip ? '-top-5 mt-5' : 'top-0',
               )}
             >
               {i / subMarksInterval}
@@ -63,20 +63,20 @@ const Ruler: React.FC<RulerProps> = ({
     <div className={classNames('flex select-none', className)} style={style}>
       <div
         className={classNames(
-          'absolute flex items-baseline flex-col justify-end w-full h-full',
+          'absolute flex w-full h-full items-baseline justify-end',
           flip ? 'flex-col-reverse' : 'flex-col',
         )}
       >
         <div className={classNames(flip ? 'mb-5' : 'mt-5')}></div>
-        <div className="pr-1 w-full h-full">{children}</div>
+        <div className="h-full w-full pr-1">{children}</div>
         {summary && (
-          <span className="whitespace-nowrap pl-1 text-xs text-stone-600 dark:text-stone-400">
+          <span className="whitespace-nowrap pl-1.5 font-mono text-[10px]/4 uppercase tracking-wider tabular-nums text-active">
             {summary}
           </span>
         )}
       </div>
       <div
-        className={classNames('flex  justify-between w-full', flip ? 'items-end' : 'items-start')}
+        className={classNames('flex justify-between w-full', flip ? 'items-end' : 'items-start')}
       >
         {generateRulerMarks()}
       </div>

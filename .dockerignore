@@ -1,0 +1,10 @@
+.git/
+.github/
+.idea/
+.vscode/
+*.db
+*.db-journal
+*.db-wal
+coverage.out
+dist/
+web/node_modules/
