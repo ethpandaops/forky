@@ -33,36 +33,24 @@ function WeightedNode({
 
   const [color, backgroundColor, borderColor] = (() => {
     if (!['valid', 'optimistic'].includes(validity.toLowerCase())) {
-      return ['text-red-600', 'text-red-800', 'border-red-500 dark:border-red-900'];
+      return ['text-invalid-ring', 'text-invalid-deep', 'border-invalid-edge'];
     }
     switch (type) {
       case 'canonical':
         if (validity.toLowerCase() === 'optimistic') {
-          return ['text-yellow-600', 'text-yellow-800', 'border-yellow-500 dark:border-yellow-900'];
+          return ['text-optimistic-ring', 'text-optimistic-deep', 'border-optimistic-edge'];
         }
-        return [
-          'text-emerald-600',
-          'text-emerald-800',
-          'border-emerald-500 dark:border-emerald-900',
-        ];
+        return ['text-canonical-ring', 'text-canonical-deep', 'border-canonical-edge'];
       case 'fork':
-        return ['text-amber-600', 'text-amber-800', 'border-amber-500 dark:border-amber-900'];
+        return ['text-fork-ring', 'text-fork-deep', 'border-fork-edge'];
       case 'finalized':
-        return [
-          'text-fuchsia-600',
-          'text-fuchsia-800',
-          'border-fuchsia-500 dark:border-fuchsia-900',
-        ];
+        return ['text-finalized-ring', 'text-finalized-deep', 'border-finalized-edge'];
       case 'justified':
-        return ['text-indigo-600', 'text-indigo-800', 'border-indigo-500 dark:border-indigo-900'];
+        return ['text-justified-ring', 'text-justified-deep', 'border-justified-edge'];
       case 'detached':
-        return ['text-red-600', 'text-red-800', 'border-red-500 dark:border-red-900'];
+        return ['text-invalid-ring', 'text-invalid-deep', 'border-invalid-edge'];
       default:
-        return [
-          'text-emerald-600',
-          'text-emerald-800',
-          'border-emerald-500 dark:border-emerald-900',
-        ];
+        return ['text-canonical-ring', 'text-canonical-deep', 'border-canonical-edge'];
     }
   })();
 
@@ -72,7 +60,7 @@ function WeightedNode({
       className={classNames(
         'absolute flex flex-col items-center justify-center rounded-full cursor-pointer gap-3 shadow-inner-xl',
         borderColor,
-        isHighlighted ? 'bg-stone-300 dark:bg-stone-500' : 'bg-stone-200 dark:bg-stone-600',
+        isHighlighted ? 'bg-track' : 'bg-field',
         className,
       )}
       style={{
@@ -93,17 +81,17 @@ function WeightedNode({
         color={color}
         backgroundColor={backgroundColor}
       />
-      <p className="text-stone-950 dark:text-stone-50 text-xl font-mono mb-3">
+      <p className="text-foreground-strong text-xl font-mono mb-3">
         {type === 'finalized' || type === 'justified' || type === 'detached'
           ? type.toUpperCase()
           : validity.toUpperCase()}
       </p>
-      <p className="text-stone-950 dark:text-stone-50 text-2xl font-mono">
+      <p className="text-foreground-strong text-2xl font-mono">
         {hash.substring(0, 6)}...{hash.substring(hash.length - 4)}
       </p>
       <p
         className={classNames(
-          'text-stone-950 dark:text-stone-50 text-xl font-mono mt-3',
+          'text-foreground-strong text-xl font-mono mt-3',
           weight.length < 22 ? 'text-xl' : '',
         )}
       >

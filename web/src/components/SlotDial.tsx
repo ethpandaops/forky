@@ -51,7 +51,7 @@ const SlotDial = () => {
   });
 
   return (
-    <div className="cursor-col-resize select-none relative flex items-center justify-center w-screen overflow-hidden bg-stone-200 h-24">
+    <div className="cursor-col-resize select-none relative flex items-center justify-center w-screen overflow-hidden bg-dial h-24">
       <TimeDrag multiplier={multiplier}>
         {leftSideRulers}
         <div className="absolute" style={{ left: middleSlotX }}>

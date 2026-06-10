@@ -2,7 +2,7 @@ import { memo, useRef, useState, useEffect, useCallback } from 'react';
 
 import { DocumentArrowUpIcon } from '@heroicons/react/24/solid';
 
-import { ForkChoiceData, Frame, Checkpoint, ForkChoiceNode } from '@app/types/api';
+import { ForkChoice, Frame, Checkpoint, ForkChoiceNode } from '@api';
 import useFocus from '@contexts/focus';
 import { processForkChoiceData } from '@utils/graph';
 
@@ -55,7 +55,7 @@ function validateForkChoiceData(data: unknown): { isValid: boolean; message?: st
     return { isValid: false, message: 'Data is not an object or is null.' };
   }
 
-  const castedData = data as ForkChoiceData;
+  const castedData = data as ForkChoice;
 
   if (!castedData.fork_choice_nodes) {
     return { isValid: false, message: 'fork_choice_nodes is missing.' };
@@ -114,6 +114,9 @@ function BYOFooter() {
                 fetched_at: new Date().toISOString(),
                 wall_clock_slot: 0,
                 wall_clock_epoch: 0,
+                labels: [],
+                consensus_client: '',
+                event_source: 'unknown',
               },
               data: jsonData,
             };
@@ -188,7 +191,7 @@ function BYOFooter() {
 
   return (
     <div
-      className="fixed left-0 w-full bottom-0 bg-stone-300 dark:bg-stone-800"
+      className="fixed left-0 w-full bottom-0 bg-toolbar border-t border-border"
       style={{ height: 148 }}
     >
       <input
@@ -197,12 +200,12 @@ function BYOFooter() {
         style={{ display: 'none' }}
         onChange={handleFileInputChange}
       />
-      <div className="flex h-full items-center justify-center text-stone-900 dark:text-stone-100 gap-x-10">
+      <div className="flex h-full items-center justify-center text-foreground gap-x-10">
         <button className="flex flex-col items-center" onClick={handleButtonClick}>
-          <span className="flex items-center rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5 gap-2 text-lg p-4">
+          <span className="flex items-center rounded transition hover:bg-overlay/5 gap-2 text-lg p-4">
             <DocumentArrowUpIcon className="h-10 w-10" />
           </span>
-          {error && <div className="text-red-500">{error}</div>}
+          {error && <div className="text-danger">{error}</div>}
           {!error &&
             (dragging ? (
               'Drop to view'
@@ -211,7 +214,7 @@ function BYOFooter() {
                 Upload beacon API{' '}
                 <a
                   href="https://ethereum.github.io/beacon-APIs/?urls.primaryName=dev#/Debug/getDebugForkChoice"
-                  className="font-bold text-stone-800 dark:text-stone-50"
+                  className="font-bold text-foreground-strong"
                   onClick={e => e.stopPropagation()}
                   target="_blank"
                   rel="noreferrer"

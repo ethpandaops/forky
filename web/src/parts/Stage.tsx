@@ -38,10 +38,7 @@ export default function Stage() {
   }
 
   return (
-    <div
-      className="w-full bg-stone-100 dark:bg-stone-900"
-      style={{ height: 'calc(100vh - 148px)' }}
-    >
+    <div className="w-full bg-background" style={{ height: 'calc(100vh - 148px)' }}>
       {!isLoading && <Graph data={data.frames} ids={ids} unique={data.loadedIds.join('_')} />}
     </div>
   );

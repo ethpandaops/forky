@@ -45,70 +45,50 @@ function AggregatedNode({
   const [color, backgroundColor, borderColor, title] = (() => {
     if (valid !== seen) {
       return [
-        'text-red-600',
-        'text-red-800',
-        'border-red-500 dark:border-red-900',
+        'text-invalid-ring',
+        'text-invalid-deep',
+        'border-invalid-edge',
         `${seen - valid} NOT VALID`,
       ];
     }
 
     if (orphans > 0) {
       return [
-        'text-red-600',
-        'text-red-800',
-        'border-red-500 dark:border-red-900',
+        'text-invalid-ring',
+        'text-invalid-deep',
+        'border-invalid-edge',
         `${orphans} DETACHED`,
       ];
     }
 
     if (finalizedCheckpoints > 0) {
-      return [
-        'text-fuchsia-600',
-        'text-fuchsia-800',
-        'border-fuchsia-500 dark:border-fuchsia-900',
-        'FINALIZED',
-      ];
+      return ['text-finalized-ring', 'text-finalized-deep', 'border-finalized-edge', 'FINALIZED'];
     }
 
     if (justifiedCheckpoints > 0) {
-      return [
-        'text-indigo-600',
-        'text-indigo-800',
-        'border-indigo-500 dark:border-indigo-900',
-        'JUSTIFIED',
-      ];
+      return ['text-justified-ring', 'text-justified-deep', 'border-justified-edge', 'JUSTIFIED'];
     }
 
     switch (type) {
       case 'canonical':
         if (optimistic > 0) {
           return [
-            'text-yellow-600',
-            'text-yellow-800',
-            'border-yellow-500 dark:border-yellow-900',
+            'text-optimistic-ring',
+            'text-optimistic-deep',
+            'border-optimistic-edge',
             `${optimistic}/${valid} OPTIMISTIC`,
           ];
         }
-        return [
-          'text-emerald-600',
-          'text-emerald-800',
-          'border-emerald-500 dark:border-emerald-900',
-          'VALID',
-        ];
+        return ['text-canonical-ring', 'text-canonical-deep', 'border-canonical-edge', 'VALID'];
       case 'fork':
         return [
-          'text-amber-600',
-          'text-amber-800',
-          'border-amber-500 dark:border-amber-900',
+          'text-fork-ring',
+          'text-fork-deep',
+          'border-fork-edge',
           optimistic > 0 ? `${optimistic}/${valid} OPTIMISTIC` : 'VALID',
         ];
       default:
-        return [
-          'text-emerald-600',
-          'text-emerald-800',
-          'border-emerald-500 dark:border-emerald-900',
-          type,
-        ];
+        return ['text-canonical-ring', 'text-canonical-deep', 'border-canonical-edge', type];
     }
   })();
 
@@ -118,7 +98,7 @@ function AggregatedNode({
       className={classNames(
         'absolute flex flex-col items-center justify-center rounded-full cursor-pointer gap-3 shadow-inner-xl',
         borderColor,
-        isHighlighted ? 'bg-stone-300 dark:bg-stone-500' : 'bg-stone-200 dark:bg-stone-600',
+        isHighlighted ? 'bg-track' : 'bg-field',
         className,
       )}
       style={{
@@ -139,11 +119,11 @@ function AggregatedNode({
         color={color}
         backgroundColor={backgroundColor}
       />
-      <p className="text-stone-950 dark:text-stone-50 text-xl font-mono h-16 pt-6">{title}</p>
-      <p className="text-stone-950 dark:text-stone-50 text-2xl font-mono">
+      <p className="text-foreground-strong text-xl font-mono h-16 pt-6">{title}</p>
+      <p className="text-foreground-strong text-2xl font-mono">
         {hash.substring(0, 6)}...{hash.substring(hash.length - 4)}
       </p>
-      <p className="text-stone-950 dark:text-stone-50 text-xl font-mono flex gap-5 h-16 pt-2">
+      <p className="text-foreground-strong text-xl font-mono flex gap-5 h-16 pt-2">
         <span className="flex flex-col items-center gap-1">
           {finalizedCheckpoints > 0 || justifiedCheckpoints > 0 ? (
             <>

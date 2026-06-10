@@ -10,7 +10,8 @@ import {
 } from '@heroicons/react/24/solid';
 import classNames from 'clsx';
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch';
-import { useLocation, Link } from 'wouter';
+import Link from '@components/Link';
+import { useAppNavigate, usePathname } from '@hooks/useAppNavigation';
 
 import SlotBoundary from '@app/components/SlotBoundary';
 import { AggregatedNodeAttributes, ProcessedData, WeightedNodeAttributes } from '@app/types/graph';
@@ -35,7 +36,8 @@ function calculateScaleMultiplier(windowWidth: number, windowHeight: number) {
 }
 
 function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; unique: string }) {
-  const [location, navigate] = useLocation();
+  const location = usePathname();
+  const navigate = useAppNavigate();
   const { setFrameId, setAggregatedFrameIds, setFrameBlock, setAggregatedFramesBlock } =
     useSelection();
   const { slotsPerEpoch } = useEthereum();
@@ -49,16 +51,10 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
   const isBYO = location.startsWith('/byo');
 
   const [windowWidth, windowHeight] = useWindowSize();
-  const [scaleMultiplier, setScaleMultiplier] = useState(
-    calculateScaleMultiplier(windowWidth, windowHeight),
-  );
+  const scaleMultiplier = calculateScaleMultiplier(windowWidth, windowHeight);
   const [scale, setScale] = useState(scaleMultiplier);
   const [focused, setFocused] = useState(true);
   const [isSummaryCollapsed, setIsSummaryCollapsed] = useState(false);
-
-  useEffect(() => {
-    setScaleMultiplier(calculateScaleMultiplier(windowWidth, windowHeight));
-  }, [windowHeight, windowWidth]);
 
   useEffect(() => {
     if (focused) ref.current?.zoomToElement('head', scaleMultiplier);
@@ -83,7 +79,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
           x={SPACING_X - RADIUS / 2 + index * SPACING_X}
           y={-SPACING_Y + RADIUS - 1800 / 2}
           textOffset={SPACING_Y / 2 - RADIUS / 1.5}
-          className="bg-gradient-to-t from-stone-100 dark:from-stone-900 from-10% dark:from-10% via-stone-500 dark:via-stone-500 via-50% dark:via-50% to-stone-100 dark:to-stone-900 to-90% dark:to-90%"
+          className="column-fade"
         />
       );
     });
@@ -126,9 +122,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
                 href={`/node/${frame.metadata.node}`}
                 className={classNames(
                   'font-semibold',
-                  isAggregatedHead
-                    ? 'text-green-800 dark:text-green-300'
-                    : 'text-amber-500 dark:text-amber-300',
+                  isAggregatedHead ? 'text-success' : 'text-warning',
                 )}
               >
                 {truncateHash(weightedHead?.blockRoot)}
@@ -149,7 +143,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
         y1={edge.source.y + RADIUS}
         x2={edge.target.x + RADIUS}
         y2={edge.target.y + RADIUS}
-        className="dark:bg-stone-50 bg-stone-700"
+        className="bg-edge"
         thickness={12}
       />
     ));
@@ -252,7 +246,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
     <>
       {location.startsWith('/node/') && (
         <button
-          className="absolute text-stone-900 dark:text-stone-100 mt-24 ml-5 lg:ml-8 z-20 flex text-xs 2xl:text-sm items-center p-1 2xl:p-2 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+          className="absolute text-foreground mt-24 ml-5 lg:ml-8 z-20 flex text-xs 2xl:text-sm items-center p-1 2xl:p-2 rounded transition hover:bg-overlay/5"
           onClick={handleNavigateAggregatedView}
         >
           <ArrowLeftCircleIcon className="h-6 w-6 mr-1" />
@@ -262,7 +256,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
       {!isBYO && type === 'weighted' && (
         <button
           className={classNames(
-            'absolute text-stone-900 dark:text-stone-100 ml-5 lg:ml-8 z-20 flex text-xs 2xl:text-sm items-center p-1 2xl:p-2 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5',
+            'absolute text-foreground ml-5 lg:ml-8 z-20 flex text-xs 2xl:text-sm items-center p-1 2xl:p-2 rounded transition hover:bg-overlay/5',
             location.startsWith('/node/') ? 'mt-36' : ' mt-24',
           )}
           onClick={() => {
@@ -276,7 +270,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
       {!isBYO && type === 'aggregated' && formattedSummary.length && (
         <div className="absolute mt-24 ml-5 lg:ml-8 z-20 text-xs">
           <button
-            className="flex lg:hidden text-stone-900 dark:text-stone-100 items-center p-1 2xl:p-2 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+            className="flex lg:hidden text-foreground items-center p-1 2xl:p-2 rounded transition hover:bg-overlay/5"
             onClick={() => {
               setAggregatedFrameIds(ids);
             }}
@@ -286,25 +280,25 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
           </button>
           {isSummaryCollapsed ? (
             <button
-              className="hidden lg:flex items-center px-3 py-2 rounded bg-stone-200/90 dark:bg-stone-800/90 text-stone-900 dark:text-stone-100 hover:bg-stone-300/90 dark:hover:bg-stone-700/90 transition-colors"
+              className="hidden lg:flex items-center px-3 py-2 rounded bg-surface-raised/90 text-foreground hover:bg-track/90 transition-colors"
               onClick={() => setIsSummaryCollapsed(false)}
             >
               <ChevronDownIcon className="w-4 h-4 mr-1" />
               <span className="font-medium">Show Sources</span>
             </button>
           ) : (
-            <div className="hidden lg:flex flex-col px-2 pt-1 pb-1 rounded bg-stone-200/90 dark:bg-stone-800/90 text-stone-900 dark:text-stone-100">
+            <div className="hidden lg:flex flex-col px-2 pt-1 pb-1 rounded bg-surface-raised/90 text-foreground">
               <div className="flex items-center justify-between w-full">
                 <span className="font-bold">Sources</span>
                 <div className="flex">
                   <button
-                    className="flex text-stone-900 dark:text-stone-100 text-xs items-center p-1 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5 mr-1"
+                    className="flex text-foreground text-xs items-center p-1 rounded transition hover:bg-overlay/5 mr-1"
                     onClick={() => setIsSummaryCollapsed(true)}
                   >
                     <ChevronUpIcon className="w-4 h-4" />
                   </button>
                   <button
-                    className="flex text-stone-900 dark:text-stone-100 text-xs items-center p-1 rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5"
+                    className="flex text-foreground text-xs items-center p-1 rounded transition hover:bg-overlay/5"
                     onClick={() => {
                       setAggregatedFrameIds(ids);
                     }}
@@ -314,9 +308,9 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
                   </button>
                 </div>
               </div>
-              <div className="mt-0 mb-1 border-t border-t-stone-900 dark:border-t-stone-100" />
+              <div className="mt-0 mb-1 border-t border-t-foreground" />
               <table className="min-w-full">
-                <tbody className="divide-y divide-gray-800">{formattedSummary}</tbody>
+                <tbody className="divide-y divide-border">{formattedSummary}</tbody>
               </table>
             </div>
           )}
@@ -357,7 +351,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
                 title="Focus to the head of the canonical chain"
                 className={classNames(
                   isBYO ? 'top-20' : 'top-36',
-                  'fixed z-10 right-6 lg:right-8 top-36 text-stone-700 dark:text-stone-300 cursor-pointer w-10 h-10 rounded-md transition hover:bg-stone-900/5 dark:hover:bg-white/5',
+                  'fixed z-10 right-6 lg:right-8 top-36 text-muted cursor-pointer w-10 h-10 rounded-md transition hover:bg-overlay/5',
                 )}
               >
                 <span className="sr-only">Focus to the head of the canonical chain</span>
@@ -365,7 +359,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
                   <>
                     <ViewfinderCircleIconSolid onClick={handleFocus} className="fixed h-10 w-10" />
                     <span className="fixed mt-4 ml-4 h-2 w-2">
-                      <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-green-400 dark:bg-green-700"></span>
+                      <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-live"></span>
                     </span>
                   </>
                 )}

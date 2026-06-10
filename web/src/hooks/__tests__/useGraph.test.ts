@@ -144,22 +144,24 @@ describe('useGraph', () => {
       },
     );
 
-    const x = result.current.nodes[result.current.nodes.length - 1].x;
-    const y = result.current.nodes[result.current.nodes.length - 1].y;
+    // Compare full position arrays: single-node comparisons are flaky because
+    // a node on the canonical row keeps y=0 at any spacing.
+    const positions = result.current.nodes.map(({ x, y }) => ({ x, y }));
+    const serialize = () => JSON.stringify(result.current.nodes.map(({ x, y }) => ({ x, y })));
 
     rerender({ data, spacingX: 15, spacingY: 15 });
 
-    expect(x).not.toEqual(result.current.nodes[result.current.nodes.length - 1].x);
-    expect(y).not.toEqual(result.current.nodes[result.current.nodes.length - 1].y);
+    expect(serialize()).not.toEqual(JSON.stringify(positions));
 
     rerender({ data, spacingX: 10, spacingY: 15 });
 
-    expect(x).toEqual(result.current.nodes[result.current.nodes.length - 1].x);
-    expect(y).not.toEqual(result.current.nodes[result.current.nodes.length - 1].y);
+    result.current.nodes.forEach((node, i) => {
+      expect(node.x).toEqual(positions[i].x);
+    });
+    expect(serialize()).not.toEqual(JSON.stringify(positions));
 
     rerender({ data, spacingX: 10, spacingY: 10 });
 
-    expect(x).toEqual(result.current.nodes[result.current.nodes.length - 1].x);
-    expect(y).toEqual(result.current.nodes[result.current.nodes.length - 1].y);
+    expect(serialize()).toEqual(JSON.stringify(positions));
   });
 });

@@ -1,14 +1,14 @@
 import { renderHook } from '@testing-library/react';
 import { vi, Mock } from 'vitest';
 
-import { FrameMetaData } from '@app/types/api';
+import { FrameMetadata } from '@api';
 import useActiveFrame, { findLatestFrameIdPerNode } from '@hooks/useActive';
 import { useMetadataQuery } from '@hooks/useQuery';
 import { ProviderWrapper } from '@utils/testing';
 
 vi.mock('@hooks/useQuery');
 
-const metadataMock: FrameMetaData[] = [
+const metadataMock: FrameMetadata[] = [
   {
     id: '1',
     node: 'node1',
@@ -168,7 +168,7 @@ describe('useActive', () => {
     });
 
     it('should ignore reorg frames when finding the latest frame ids per node', () => {
-      const reorgMetadata: FrameMetaData = {
+      const reorgMetadata: FrameMetadata = {
         id: '55',
         node: 'node1',
         fetched_at: '2000-01-01T02:10:00.000Z',
@@ -223,7 +223,7 @@ describe('useActive', () => {
     });
 
     it('should return the latest frame ids per node considering metadataMinus2', () => {
-      const metadataMinus2Mock: FrameMetaData = {
+      const metadataMinus2Mock: FrameMetadata = {
         id: '3',
         node: 'node1',
         fetched_at: '2000-01-01T00:40:00.000Z',

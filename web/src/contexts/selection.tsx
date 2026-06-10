@@ -1,6 +1,6 @@
 import { useContext as reactUseContext, createContext, useState, useCallback } from 'react';
 
-import { ForkChoiceNode, FrameMetaData } from '@app/types/api';
+import { ForkChoiceNode, FrameMetadata } from '@api';
 import { WeightedNodeAttributes, AggregatedNodeAttributes } from '@app/types/graph';
 
 export const Context = createContext<State | undefined>(undefined);
@@ -14,7 +14,7 @@ export default function useContext() {
 }
 
 export type WeightedNode = {
-  metadata: FrameMetaData;
+  metadata: FrameMetadata;
   attributes: WeightedNodeAttributes;
   node: ForkChoiceNode;
 };
@@ -23,7 +23,7 @@ export type AggregatedNode = {
   nodes: Record<
     string,
     {
-      metadata: FrameMetaData;
+      metadata: FrameMetadata;
       attributes: WeightedNodeAttributes;
       node: ForkChoiceNode;
     }

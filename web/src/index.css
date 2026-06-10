@@ -1,0 +1,418 @@
+/**
+ * Main CSS Entry Point
+ *
+ * Two-Tier Token Architecture
+ *
+ * Tier 1: Primitive color values (plain CSS variables, not exposed as
+ *         Tailwind utilities). Values mirror the Tailwind v4 palette shades
+ *         forky's UI was originally built on.
+ * Tier 2: Semantic tokens (@theme), named for intent. These are the ONLY
+ *         colors application code may use (enforced by the custom ESLint
+ *         rules in eslint-rules/). Light/dark theming happens here — app
+ *         code never writes `dark:` variants for colors.
+ */
+
+@import 'tailwindcss';
+
+/* Enable class-based dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* fix for safari https://github.com/mdn/browser-compat-data/issues/17726 */
+.drop-shadow-xs,
+.drop-shadow-sm,
+.drop-shadow-md,
+.drop-shadow-lg,
+.drop-shadow-xl,
+.drop-shadow-2xl {
+  transform: translateZ(0);
+}
+
+@theme {
+  /* ===== TIER 2: Semantic tokens ===== */
+
+  /* Surfaces */
+  --color-background: var(--background-value);
+  --color-surface: var(--surface-value);
+  --color-surface-raised: var(--surface-raised-value);
+  --color-surface-inverted: var(--surface-inverted-value);
+  --color-overlay: var(--overlay-value);
+  --color-shell: var(--shell-value);
+
+  /* Borders and separators */
+  --color-border: var(--border-value);
+  --color-border-strong: var(--border-strong-value);
+
+  /* Text */
+  --color-foreground: var(--foreground-value);
+  --color-foreground-strong: var(--foreground-strong-value);
+  --color-foreground-inverted: var(--foreground-inverted-value);
+  --color-muted: var(--muted-value);
+  --color-faint: var(--faint-value);
+
+  /* Controls (sliders, toggles, scrubbers, interactive emphasis) */
+  --color-track: var(--track-value);
+  --color-active: var(--active-value);
+  --color-active-hover: var(--active-hover-value);
+  --color-surface-hover: var(--surface-hover-value);
+  --color-field: var(--field-value);
+  --color-control: var(--control-value);
+  --color-control-hover: var(--control-hover-value);
+  --color-toolbar: var(--toolbar-value);
+  --color-timeline: var(--timeline-value);
+  --color-timeline-edge: var(--timeline-edge-value);
+  --color-timeline-fg: var(--timeline-fg-value);
+  --color-dial: var(--dial-value);
+
+  /* Primary action (share/copy buttons) */
+  --color-primary: var(--primary-value);
+  --color-primary-hover: var(--emerald-500);
+  --color-on-primary: var(--stone-100);
+
+  /* Graph rendering */
+  --color-edge: var(--edge-value);
+  --color-live: var(--live-value);
+
+  /* Brand and links */
+  --color-brand: var(--brand-value);
+  --color-link: var(--link-value);
+  --color-link-hover: var(--link-hover-value);
+
+  /* Modal/drawer backdrop */
+  --color-scrim: var(--scrim-value);
+
+  /* State */
+  --color-success: var(--success-value);
+  --color-warning: var(--warning-value);
+  --color-caution: var(--caution-value);
+  --color-danger: var(--danger-value);
+  --color-danger-surface: var(--danger-surface-value);
+  --color-danger-accent: var(--danger-accent-value);
+
+  /* Fork-choice domain: block/node states in the graph visualization.
+   * `-deep` is the ring base shade, `-edge` the border shade and `-ring`
+   * the progress-arc shade (decoupled from the AA-contrast label text). */
+  --color-canonical: var(--canonical-value);
+  --color-canonical-deep: var(--canonical-deep-value);
+  --color-canonical-edge: var(--canonical-edge-value);
+  --color-canonical-ring: var(--canonical-ring-value);
+  --color-canonical-bright: var(--canonical-bright-value);
+  --color-fork: var(--fork-value);
+  --color-fork-deep: var(--fork-deep-value);
+  --color-fork-edge: var(--fork-edge-value);
+  --color-fork-ring: var(--fork-ring-value);
+  --color-finalized: var(--finalized-value);
+  --color-finalized-deep: var(--finalized-deep-value);
+  --color-finalized-edge: var(--finalized-edge-value);
+  --color-finalized-ring: var(--finalized-ring-value);
+  --color-justified: var(--justified-value);
+  --color-justified-deep: var(--justified-deep-value);
+  --color-justified-edge: var(--justified-edge-value);
+  --color-justified-ring: var(--justified-ring-value);
+  --color-invalid: var(--invalid-value);
+  --color-invalid-deep: var(--invalid-deep-value);
+  --color-invalid-edge: var(--invalid-edge-value);
+  --color-invalid-ring: var(--invalid-ring-value);
+  --color-optimistic: var(--optimistic-value);
+  --color-optimistic-deep: var(--optimistic-deep-value);
+  --color-optimistic-edge: var(--optimistic-edge-value);
+  --color-optimistic-ring: var(--optimistic-ring-value);
+
+  /* Timeline markers */
+  --color-marker: var(--marker-value);
+  --color-marker-active: var(--marker-active-value);
+  --color-marker-time: var(--marker-time-value);
+  --color-marker-time-active: var(--marker-time-active-value);
+
+  /* Playback scrubber */
+  --color-scrubber: var(--scrubber-value);
+  --color-scrubber-strong: var(--scrubber-strong-value);
+  --color-rec: var(--rec-value);
+  --color-rec-strong: var(--rose-500);
+
+  /* Ruler ticks */
+  --color-tick: var(--tick-value);
+  --color-tick-label: var(--tick-label-value);
+
+  /* Text on the always-dark shell */
+  --color-on-shell: var(--stone-100);
+
+  /* Inset shadows for dials and graph nodes (ported from the pre-v4
+   * tailwind.config.js, which Tailwind v4 no longer reads). Depth adapts
+   * per theme via --inner-shadow-color. */
+  --shadow-inner-lg: 0px 0px 5px 1px var(--inner-shadow-color) inset;
+  --shadow-inner-xl: 0px 0px 10px 2px var(--inner-shadow-color) inset;
+
+  /* Gentle pulse used by loading slot columns in dark mode */
+  --animate-pulse-light: pulse-light 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  @keyframes pulse-light {
+    50% {
+      opacity: 0.97;
+    }
+  }
+
+}
+
+/* Landing hero title gradient (light: emerald→lime, dark: lime→green).
+ * Kept as a CSS component class so the gradient stops stay in the theme. */
+.hero-gradient-text {
+  background-image: linear-gradient(to right, var(--lime-200), var(--green-200), var(--green-300));
+  background-clip: text;
+  color: transparent;
+}
+
+html:not(.dark) .hero-gradient-text {
+  background-image: linear-gradient(to right, var(--emerald-600), var(--lime-700));
+}
+
+/* Vertical fade behind slot columns in the graph (background → stone-500 →
+ * background). Kept in CSS so the gradient stops stay in the theme. */
+.column-fade {
+  background-image: linear-gradient(
+    to top,
+    var(--background-value) 10%,
+    var(--column-fade-mid) 50%,
+    var(--background-value) 90%
+  );
+}
+
+@layer base {
+  :root {
+    /* ===== TIER 1: Primitive values (Tailwind v4 palette) ===== */
+    --stone-50: oklch(98.5% 0.001 106.423);
+    --stone-100: oklch(97% 0.001 106.424);
+    --stone-200: oklch(92.3% 0.003 48.717);
+    --stone-300: oklch(86.9% 0.005 56.366);
+    --stone-400: oklch(70.9% 0.01 56.259);
+    --stone-500: oklch(55.3% 0.013 58.071);
+    --stone-600: oklch(44.4% 0.011 73.639);
+    --stone-700: oklch(37.4% 0.01 67.558);
+    --stone-800: oklch(26.8% 0.007 34.298);
+    --stone-900: oklch(21.6% 0.006 56.043);
+    --stone-950: oklch(14.7% 0.004 49.25);
+    --emerald-300: oklch(84.5% 0.143 164.978);
+    --emerald-400: oklch(76.5% 0.177 163.223);
+    --emerald-500: oklch(69.6% 0.17 162.48);
+    --emerald-600: oklch(59.6% 0.145 163.225);
+    --emerald-800: oklch(43.2% 0.095 166.913);
+    --emerald-900: oklch(37.8% 0.077 168.94);
+    --green-300: oklch(87.1% 0.15 154.449);
+    --green-700: oklch(52.7% 0.154 150.069);
+    --amber-300: oklch(87.9% 0.169 91.605);
+    --amber-400: oklch(82.8% 0.189 84.429);
+    --amber-500: oklch(76.9% 0.188 70.08);
+    --amber-600: oklch(66.6% 0.179 58.318);
+    --amber-700: oklch(55.5% 0.163 48.998);
+    --amber-800: oklch(47.3% 0.137 46.201);
+    --amber-900: oklch(41.4% 0.112 45.904);
+    --yellow-300: oklch(90.5% 0.182 98.111);
+    --yellow-500: oklch(79.5% 0.184 86.047);
+    --yellow-700: oklch(55.4% 0.135 66.442);
+    --yellow-600: oklch(68.1% 0.162 75.834);
+    --yellow-800: oklch(47.6% 0.114 61.907);
+    --yellow-900: oklch(42.1% 0.095 57.708);
+    --red-300: oklch(80.8% 0.114 19.571);
+    --red-700: oklch(50.5% 0.213 27.518);
+    --red-400: oklch(70.4% 0.191 22.216);
+    --red-500: oklch(63.7% 0.237 25.331);
+    --red-600: oklch(57.7% 0.245 27.325);
+    --red-800: oklch(44.4% 0.177 26.899);
+    --red-900: oklch(39.6% 0.141 25.723);
+    --rose-200: oklch(89.2% 0.058 10.001);
+    --rose-400: oklch(71.2% 0.194 13.428);
+    --rose-500: oklch(64.5% 0.246 16.439);
+    --rose-600: oklch(58.6% 0.253 17.585);
+    --rose-950: oklch(27.1% 0.105 12.094);
+    --fuchsia-300: oklch(83.3% 0.145 321.434);
+    --fuchsia-500: oklch(66.7% 0.295 322.15);
+    --fuchsia-600: oklch(59.1% 0.293 322.896);
+    --fuchsia-700: oklch(51.8% 0.253 323.949);
+    --fuchsia-800: oklch(45.2% 0.211 324.591);
+    --fuchsia-900: oklch(40.1% 0.17 325.612);
+    --indigo-300: oklch(78.5% 0.115 274.713);
+    --indigo-500: oklch(58.5% 0.233 277.117);
+    --indigo-600: oklch(51.1% 0.262 276.966);
+    --indigo-700: oklch(45.7% 0.24 277.023);
+    --indigo-800: oklch(39.8% 0.195 277.366);
+    --indigo-900: oklch(35.9% 0.144 278.697);
+    --sky-400: oklch(74.6% 0.16 232.661);
+    --sky-500: oklch(68.5% 0.169 237.323);
+    --sky-600: oklch(58.8% 0.158 241.966);
+    --sky-700: oklch(50% 0.134 242.749);
+    --teal-400: oklch(77.7% 0.152 181.912);
+    --teal-600: oklch(60% 0.118 184.704);
+
+    --inner-shadow-color: rgb(0 0 0 / 0.12);
+
+    /* Walker loading animation ramp (decorative, static; read from canvas
+     * code via getComputedStyle) */
+    --color-walker-1: #241e44;
+    --color-walker-2: #25315e;
+    --color-walker-3: #3a5c85;
+    --color-walker-4: #56a1bf;
+    --color-walker-5: #97dbd2;
+    --green-400: oklch(79.2% 0.209 151.711);
+    --emerald-700: oklch(50.8% 0.118 165.612);
+    --green-200: oklch(92.5% 0.084 155.995);
+    --green-500: oklch(72.3% 0.219 149.579);
+    --green-800: oklch(44.8% 0.119 151.328);
+    --green-600: oklch(62.7% 0.194 149.214);
+    --lime-200: oklch(93.8% 0.127 124.321);
+    --lime-600: oklch(64.8% 0.2 131.684);
+    --lime-700: oklch(53.2% 0.157 131.589);
+    --yellow-400: oklch(85.2% 0.199 91.936);
+
+    /* ===== Semantic mappings: light mode ===== */
+    --background-value: var(--stone-100);
+    --surface-value: #fff;
+    --surface-raised-value: var(--stone-200);
+    --surface-inverted-value: var(--stone-900);
+    --overlay-value: var(--stone-900);
+    --shell-value: var(--stone-900);
+    --border-value: var(--stone-200);
+    --border-strong-value: var(--stone-300);
+    --foreground-value: var(--stone-900);
+    --foreground-strong-value: var(--stone-950);
+    --foreground-inverted-value: var(--stone-100);
+    --muted-value: var(--stone-500);
+    --faint-value: var(--stone-500);
+    --track-value: var(--stone-200);
+    --active-value: var(--stone-600);
+    --active-hover-value: var(--stone-500);
+    --surface-hover-value: var(--stone-50);
+    --field-value: var(--stone-100);
+    --control-value: var(--stone-700);
+    --control-hover-value: var(--stone-900);
+    --toolbar-value: #fff;
+    --timeline-value: var(--stone-50);
+    --timeline-edge-value: var(--stone-200);
+    --timeline-fg-value: var(--stone-700);
+    --primary-value: var(--emerald-600);
+    --edge-value: var(--stone-400);
+    --live-value: var(--green-400);
+    --brand-value: var(--teal-600);
+    --link-value: var(--green-700);
+    --link-hover-value: var(--green-800);
+    --scrim-value: oklch(21.6% 0.006 56.043 / 40%); /* stone-900 @ 40% */
+    --success-value: var(--green-700);
+    --warning-value: var(--amber-700);
+    --caution-value: var(--yellow-700);
+    --danger-value: var(--red-600);
+    --danger-surface-value: var(--rose-200);
+    /* danger-accent renders on the always-dark shell (error pages) */
+    --danger-accent-value: var(--rose-400);
+    --canonical-value: var(--emerald-700);
+    --canonical-deep-value: var(--emerald-300);
+    --canonical-edge-value: var(--emerald-300);
+    --canonical-ring-value: var(--emerald-500);
+    --canonical-bright-value: var(--emerald-400);
+    --fork-value: var(--amber-700);
+    --fork-deep-value: var(--amber-300);
+    --fork-edge-value: var(--amber-300);
+    --fork-ring-value: var(--amber-500);
+    --finalized-value: var(--fuchsia-700);
+    --finalized-deep-value: var(--fuchsia-300);
+    --finalized-edge-value: var(--fuchsia-300);
+    --finalized-ring-value: var(--fuchsia-500);
+    --justified-value: var(--indigo-700);
+    --justified-deep-value: var(--indigo-300);
+    --justified-edge-value: var(--indigo-300);
+    --justified-ring-value: var(--indigo-500);
+    --invalid-value: var(--red-700);
+    --invalid-deep-value: var(--red-300);
+    --invalid-edge-value: var(--red-300);
+    --invalid-ring-value: var(--red-500);
+    --optimistic-value: var(--yellow-700);
+    --optimistic-deep-value: var(--yellow-300);
+    --optimistic-edge-value: var(--yellow-300);
+    --optimistic-ring-value: var(--yellow-500);
+    --marker-value: var(--amber-700);
+    --marker-active-value: var(--amber-600);
+    --marker-time-value: var(--sky-400);
+    --marker-time-active-value: var(--sky-600);
+    --scrubber-value: var(--stone-500);
+    --scrubber-strong-value: var(--stone-500);
+    --rec-value: var(--rose-400);
+    --tick-value: var(--stone-500);
+    --tick-label-value: var(--stone-800);
+    --dial-value: #fff;
+    --column-fade-mid: var(--stone-200);
+  }
+
+  html.dark {
+    /* ===== Semantic mappings: dark mode ===== */
+    --inner-shadow-color: rgb(0 0 0 / 0.5);
+    --background-value: var(--stone-900);
+    --surface-value: var(--stone-800);
+    --surface-raised-value: var(--stone-800);
+    --surface-inverted-value: var(--stone-100);
+    --overlay-value: #fff;
+    --shell-value: var(--stone-900);
+    --border-value: var(--stone-800);
+    --border-strong-value: var(--stone-700);
+    --foreground-value: var(--stone-100);
+    --foreground-strong-value: var(--stone-50);
+    --foreground-inverted-value: var(--stone-900);
+    --muted-value: var(--stone-300);
+    --faint-value: var(--stone-400);
+    --track-value: var(--stone-700);
+    --active-value: var(--stone-400);
+    --active-hover-value: var(--stone-500);
+    --surface-hover-value: var(--stone-950);
+    --field-value: var(--stone-600);
+    --scrim-value: oklch(14.7% 0.004 49.25 / 60%); /* stone-950 @ 60% */
+    --control-value: var(--stone-200);
+    --control-hover-value: var(--stone-100);
+    --toolbar-value: var(--stone-700);
+    --timeline-value: var(--stone-600);
+    --timeline-edge-value: var(--stone-600);
+    --timeline-fg-value: var(--stone-50);
+    --primary-value: var(--emerald-700);
+    --edge-value: var(--stone-50);
+    --live-value: var(--green-700);
+    --brand-value: oklch(77.7% 0.152 181.912 / 80%); /* teal-400/80 */
+    --link-value: var(--green-200);
+    --link-hover-value: var(--green-300);
+    --success-value: var(--green-300);
+    --warning-value: var(--amber-300);
+    --caution-value: var(--yellow-400);
+    --danger-value: var(--red-400);
+    --danger-surface-value: var(--rose-950);
+    --danger-accent-value: var(--rose-400);
+    --canonical-edge-value: var(--emerald-900);
+    --fork-edge-value: var(--amber-900);
+    --finalized-edge-value: var(--fuchsia-900);
+    --justified-edge-value: var(--indigo-900);
+    --invalid-edge-value: var(--red-900);
+    --optimistic-edge-value: var(--yellow-900);
+    --marker-value: var(--amber-400);
+    --marker-active-value: var(--amber-500);
+    --marker-time-value: var(--sky-700);
+    --canonical-value: var(--emerald-600);
+    --canonical-deep-value: var(--emerald-800);
+    --canonical-ring-value: var(--emerald-600);
+    --fork-value: var(--amber-600);
+    --fork-deep-value: var(--amber-800);
+    --fork-ring-value: var(--amber-600);
+    --finalized-value: var(--fuchsia-600);
+    --finalized-deep-value: var(--fuchsia-800);
+    --finalized-ring-value: var(--fuchsia-600);
+    --justified-value: var(--indigo-600);
+    --justified-deep-value: var(--indigo-800);
+    --justified-ring-value: var(--indigo-600);
+    --invalid-value: var(--red-600);
+    --invalid-deep-value: var(--red-800);
+    --invalid-ring-value: var(--red-600);
+    --optimistic-value: var(--yellow-600);
+    --optimistic-deep-value: var(--yellow-800);
+    --optimistic-ring-value: var(--yellow-600);
+    --marker-time-active-value: var(--sky-500);
+    --dial-value: var(--stone-200);
+    --column-fade-mid: var(--stone-500);
+    --scrubber-value: var(--stone-100);
+    --scrubber-strong-value: var(--stone-200);
+    --rec-value: var(--rose-600);
+    --tick-value: var(--stone-400);
+    --tick-label-value: var(--stone-500);
+  }
+}

@@ -1,7 +1,5 @@
 import { ReactNode } from 'react';
 
-import { navigate } from 'wouter/use-browser-location';
-
 import EthereumProvider, { Props as EthereumProps } from '@providers/ethereum';
 import FocusProvider, { Props as FocusProps } from '@providers/focus';
 import SelectionProvider, { Props as SelectionProps } from '@providers/selection';
@@ -14,10 +12,6 @@ interface Props {
 }
 
 function Provider({ children, ethereum, focus, selection }: Props) {
-  // clear the time param if it exists
-  if (new URLSearchParams(window.location.search).get('t')) {
-    navigate(window.location.pathname, { replace: true });
-  }
   return (
     <EthereumProvider {...ethereum}>
       <FocusProvider {...focus}>

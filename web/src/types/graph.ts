@@ -1,6 +1,6 @@
 import Graphology from 'graphology';
 
-import { V1GetFrameResponse, FrameMetaData, Checkpoint } from '@app/types/api';
+import { Frame, FrameMetadata, Checkpoint } from '@api';
 
 export interface ProcessedForkChoiceNode {
   slot: number;
@@ -52,7 +52,7 @@ export interface WeightedGraphAttributes extends GraphAttributes {
 
 export interface AggregatedGraphAttributes extends GraphAttributes {
   nodes: {
-    metadata: FrameMetaData;
+    metadata: FrameMetadata;
     head?: WeightedNodeAttributes;
     justifiedCheckpoint?: Checkpoint;
     finalizedCheckpoint?: Checkpoint;
@@ -79,7 +79,7 @@ export interface AggregatedNodeAttributes extends NodeAttributes {
 }
 
 export type ProcessedData = {
-  frame: Required<Required<V1GetFrameResponse>['frame']>;
+  frame: Required<Frame>;
   graph: WeightedGraph;
 };
 

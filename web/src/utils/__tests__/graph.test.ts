@@ -1,6 +1,6 @@
 import Graphology from 'graphology';
 
-import { Frame } from '@app/types/api';
+import { Frame } from '@api';
 import {
   NodeAttributes,
   WeightedNodeAttributes,

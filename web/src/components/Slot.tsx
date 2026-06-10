@@ -2,7 +2,7 @@ import React, { useMemo, ReactNode } from 'react';
 
 import classNames from 'clsx';
 
-import { FrameMetaData } from '@app/types/api';
+import { FrameMetadata } from '@api';
 import Ruler from '@components/Ruler';
 import SnapshotMarker from '@components/SnapshotMarker';
 import useEthereum from '@contexts/ethereum';
@@ -33,7 +33,7 @@ function Slot({ subMarks, slot, shouldFetch = false, segments }: Props) {
   const groupedMarkers = useMemo<ReactNode[]>(() => {
     const groupSize = 100 / segments;
     const groups =
-      data?.reduce<Record<number, FrameMetaData[]>>((acc, frame) => {
+      data?.reduce<Record<number, FrameMetadata[]>>((acc, frame) => {
         if (node && frame.node !== node) return acc;
         const timeIntoSlot = new Date(frame.fetched_at).getTime() - slotStart;
 
@@ -58,10 +58,10 @@ function Slot({ subMarks, slot, shouldFetch = false, segments }: Props) {
         'h-24 shadow-inner-xl',
         isLoading && shouldFetch && 'animate-pulse dark:animate-pulse-light',
         isLoading
-          ? 'bg-stone-200 dark:bg-stone-800/95'
+          ? 'bg-surface-raised dark:bg-surface-raised/95'
           : error
-            ? 'bg-rose-200 dark:bg-rose-950/95'
-            : 'bg-stone-300 dark:bg-stone-800',
+            ? 'bg-danger-surface dark:bg-danger-surface/95'
+            : 'bg-track',
       )}
       marks={secondsPerSlot}
       subMarks={subMarks}

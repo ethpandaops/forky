@@ -10,6 +10,7 @@ import {
 import EditableInput from '@components/EditableInput';
 import useEthereum from '@contexts/ethereum';
 import useFocus from '@contexts/focus';
+import useNow from '@hooks/useNow';
 import useOutsideInteraction from '@hooks/useOutsideInteraction';
 
 function TimelineControl() {
@@ -33,8 +34,9 @@ function TimelineControl() {
     playing,
   } = useFocus();
   const { genesisTime, secondsPerSlot } = useEthereum();
+  const now = useNow();
 
-  const slotDiff = Math.floor((Date.now() - genesisTime) / 1000 / secondsPerSlot) - focusedSlot;
+  const slotDiff = Math.floor((now - genesisTime) / 1000 / secondsPerSlot) - focusedSlot;
   const isCloseToLiveSlot = slotDiff <= 3 && slotDiff >= -1;
 
   const handleBack = () => {
@@ -60,11 +62,11 @@ function TimelineControl() {
 
   return (
     <div ref={controlRef} className="flex justify-center">
-      <div className="flex gap-x-8 w-full h-12 xl:h-16 xl:w-fit bg-stone-200 dark:bg-stone-700 px-3 xl:py-3 xl:rounded-t-xl justify-center items-center">
+      <div className="flex gap-x-8 w-full h-12 xl:h-16 xl:w-fit bg-toolbar border border-b-0 border-border px-3 xl:py-3 xl:rounded-t-xl justify-center items-center">
         <div className="relative hidden md:block">
           <label
             htmlFor="slot"
-            className="absolute -top-2 left-2 inline-block bg-stone-300 dark:bg-stone-500 rounded px-1 text-xs font-medium text-stone-900 dark:text-stone-100"
+            className="absolute -top-2 left-2 inline-block bg-track rounded px-1 text-xs font-medium text-foreground"
           >
             Slot
           </label>
@@ -78,7 +80,7 @@ function TimelineControl() {
         <div className="relative hidden lg:block">
           <label
             htmlFor="epoch"
-            className="absolute -top-2 left-2 inline-block bg-stone-300 dark:bg-stone-500 rounded px-1 text-xs font-medium text-stone-900 dark:text-stone-100"
+            className="absolute -top-2 left-2 inline-block bg-track rounded px-1 text-xs font-medium text-foreground"
           >
             Epoch
           </label>
@@ -92,7 +94,7 @@ function TimelineControl() {
         <div className="relative">
           <label
             htmlFor="time"
-            className="absolute -top-2 left-2 bg-stone-300 dark:bg-stone-500 rounded px-1 text-xs font-medium text-stone-900 dark:text-stone-100 hidden sm:inline-block"
+            className="absolute -top-2 left-2 bg-track rounded px-1 text-xs font-medium text-foreground hidden sm:inline-block"
           >
             Time
           </label>
@@ -108,7 +110,7 @@ function TimelineControl() {
         <div className="flex items-center justify-self-center">
           <button
             type="button"
-            className="p-2 group relative hidden xl:flex flex-shrink-0 items-center justify-center h-12 w-12 text-stone-900 dark:text-stone-100"
+            className="p-2 group relative hidden xl:flex flex-shrink-0 items-center justify-center h-12 w-12 text-foreground"
             onClick={handleBack}
             aria-label="Back"
           >
@@ -116,7 +118,7 @@ function TimelineControl() {
           </button>
           <button
             type="button"
-            className="p-2 group relative flex flex-shrink-0 items-center justify-center rounded-full bg-stone-700 dark:bg-stone-200 hover:bg-stone-900 dark:hover:bg-stone-100 focus:outline-none focus:ring-stone-700 dark:focus:ring-stone-300 h-18 w-18 focus:ring focus:ring-offset-1"
+            className="p-2 group relative flex flex-shrink-0 items-center justify-center rounded-full bg-control hover:bg-control-hover focus:outline-none focus:ring-control h-18 w-18 focus:ring focus:ring-offset-1"
             onClick={() => {
               if (playing) stopTimer();
               else playTimer();
@@ -124,20 +126,20 @@ function TimelineControl() {
             aria-label={playing ? 'Pause' : 'Play'}
           >
             {playing ? (
-              <PauseIcon className="fill-stone-100 dark:fill-stone-900 group-active:fill-stone-100/80 dark:group-active:fill-stone-900/80 h-4 w-4 xl:h-7 xl:w-7" />
+              <PauseIcon className="fill-background group-active:fill-background/80 h-4 w-4 xl:h-7 xl:w-7" />
             ) : (
-              <PlayIcon className="fill-stone-100 dark:fill-stone-900 group-active:fill-stone-100/80 dark:group-active:fill-stone-900/80 h-4 w-4 xl:h-7 xl:w-7 pl-1" />
+              <PlayIcon className="fill-background group-active:fill-background/80 h-4 w-4 xl:h-7 xl:w-7 pl-1" />
             )}
           </button>
           <button
             type="button"
-            className="p-2 group relative hidden xl:flex flex-shrink-0 items-center justify-center h-12 w-12 text-stone-900 dark:text-stone-100"
+            className="p-2 group relative hidden xl:flex flex-shrink-0 items-center justify-center h-12 w-12 text-foreground"
             onClick={handleForward}
             aria-label="Back"
           >
             <ArrowUturnRightIcon className="h-6 w-6" />
           </button>
-          <span className="relative inline-flex ml-4 xl:ml-0 text-stone-900 dark:text-stone-100">
+          <span className="relative inline-flex ml-4 xl:ml-0 text-foreground">
             <button onClick={handleLive} disabled={playing && isCloseToLiveSlot}>
               Live
             </button>
@@ -149,14 +151,12 @@ function TimelineControl() {
             >
               <span
                 className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
-                  playing && isCloseToLiveSlot
-                    ? 'bg-rose-400 dark:bg-rose-600'
-                    : 'bg-stone-400 dark:bg-stone-100'
+                  playing && isCloseToLiveSlot ? 'bg-rec' : 'bg-scrubber'
                 } opacity-75`}
               ></span>
               <span
                 className={`relative inline-flex rounded-full h-3 w-3 ${
-                  playing && isCloseToLiveSlot ? 'bg-rose-500' : 'bg-stone-500 dark:bg-stone-200'
+                  playing && isCloseToLiveSlot ? 'bg-rec-strong' : 'bg-scrubber-strong'
                 }`}
               ></span>
             </span>

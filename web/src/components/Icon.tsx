@@ -16,7 +16,7 @@ export default function Icon({
   return (
     <span
       className={classNames(
-        'flex items-center rounded transition hover:bg-stone-900/5 dark:hover:bg-white/5 gap-2',
+        'flex items-center rounded transition hover:bg-overlay/5 gap-2',
         `text-${size}`,
         size === 'sm' && 'p-2',
         size === 'md' && 'p-3',

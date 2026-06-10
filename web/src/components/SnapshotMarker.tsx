@@ -3,7 +3,7 @@ import { memo, useMemo } from 'react';
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import classNames from 'clsx';
 
-import { FrameMetaData } from '@app/types/api';
+import { FrameMetadata } from '@api';
 import useSelection from '@contexts/selection';
 
 function SnapshotMarker({
@@ -11,7 +11,7 @@ function SnapshotMarker({
   activeIds,
   percentage,
 }: {
-  metadata: FrameMetaData[];
+  metadata: FrameMetadata[];
   activeIds: string[];
   percentage: string;
 }) {
@@ -25,14 +25,14 @@ function SnapshotMarker({
       const isActive = activeIds.includes(metadata[i].id);
       const isReorg = metadata[i].event_source === 'xatu_reorg_event';
 
-      let color = 'bg-sky-400 dark:bg-sky-700';
+      let color = 'bg-marker-time';
       if (isReorg) {
-        color = 'dark:bg-amber-400 bg-amber-700';
+        color = 'bg-marker';
         if (isActive) {
-          color = 'bg-amber-600 dark:bg-amber-500';
+          color = 'bg-marker-active';
         }
       } else if (isActive) {
-        color = 'bg-sky-600 dark:bg-sky-500';
+        color = 'bg-marker-time-active';
       }
 
       segments.push(
@@ -84,15 +84,11 @@ function SnapshotMarker({
       <PopoverButton as="span" className="relative flex h-10 w-1 pt-2 cursor-pointer">
         <span className="relative flex flex-col rounded-full h-10 w-1">{segments}</span>
       </PopoverButton>
-      <PopoverPanel className="fixed z-40 bottom-28 w-72 -ml-28 bg-stone-200 dark:bg-stone-800 shadow-lg rounded divide-y dark:divide-stone-700 cursor-pointer">
+      <PopoverPanel className="fixed z-40 bottom-28 w-72 -ml-28 bg-surface-raised shadow-lg rounded divide-y dark:divide-border-strong cursor-pointer">
         {metadata.map(meta => (
-          <div
-            key={meta.id}
-            className="p-2 hover:bg-stone-300 dark:hover:bg-stone-700"
-            onClick={() => setFrameId(meta.id)}
-          >
-            <div className="text-sm font-medium text-stone-900 dark:text-stone-100">{meta.id}</div>
-            <div className="text-sm text-stone-500 dark:text-stone-400">{meta.node}</div>
+          <div key={meta.id} className="p-2 hover:bg-track" onClick={() => setFrameId(meta.id)}>
+            <div className="text-sm font-medium text-foreground">{meta.id}</div>
+            <div className="text-sm text-muted">{meta.node}</div>
           </div>
         ))}
       </PopoverPanel>

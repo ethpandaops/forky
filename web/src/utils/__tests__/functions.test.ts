@@ -97,9 +97,8 @@ describe('functions', () => {
     it('should return different bigints for multiple calls within the same range', () => {
       const min = BigInt(1);
       const max = BigInt(100);
-      const result1 = randomBigInt(min, max);
-      const result2 = randomBigInt(min, max);
-      expect(result1).not.toBe(result2);
+      const results = new Set(Array.from({ length: 20 }, () => randomBigInt(min, max)));
+      expect(results.size).toBeGreaterThan(1);
     });
 
     it('should return a bigint within large range', () => {

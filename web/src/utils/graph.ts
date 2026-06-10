@@ -1,7 +1,7 @@
 import Graphology from 'graphology';
 import { Attributes } from 'graphology-types';
 
-import { ForkChoiceNode, Frame } from '@app/types/api';
+import { ForkChoiceNode, Frame } from '@api';
 import {
   Graph,
   WeightedGraph,

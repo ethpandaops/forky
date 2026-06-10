@@ -12,11 +12,16 @@ const TimeDrag = ({ multiplier, children }: { multiplier: number; children?: Rea
   const lastTimes = useRef<number[]>([]);
   const velocityRef = useRef(0);
   const requestIdRef = useRef<number | null>(null);
-  const lastMoveTimeRef = useRef(performance.now());
+  const lastMoveTimeRef = useRef(0);
+
+  // End the drag when the pointer is released anywhere; converges in one
+  // re-render, so adjust state during render instead of in an effect.
+  if (up && dragging) {
+    setDragging(false);
+  }
 
   useEffect(() => {
     if (up) {
-      setDragging(false);
       prevX.current = null;
     }
   }, [up]);
@@ -34,6 +39,8 @@ const TimeDrag = ({ multiplier, children }: { multiplier: number; children?: Rea
     }
   }, [playing]);
 
+  const updateFocusedTimeRef = useRef<() => void>(() => {});
+
   const updateFocusedTime = useCallback(() => {
     if (!playing) {
       const deltaTime = velocityRef.current;
@@ -42,11 +49,15 @@ const TimeDrag = ({ multiplier, children }: { multiplier: number; children?: Rea
     }
 
     if (!playing && Math.abs(velocityRef.current) > 1) {
-      requestIdRef.current = requestAnimationFrame(updateFocusedTime);
+      requestIdRef.current = requestAnimationFrame(() => updateFocusedTimeRef.current());
     } else {
       requestIdRef.current = null;
     }
   }, [shiftFocusedTime, playing]);
+
+  useEffect(() => {
+    updateFocusedTimeRef.current = updateFocusedTime;
+  });
 
   useEffect(() => {
     if (prevX.current !== x && dragging && x !== null && prevX.current !== null) {

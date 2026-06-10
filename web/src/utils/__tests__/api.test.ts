@@ -1,4 +1,4 @@
-import { ForkChoiceNode, ForkChoiceData } from '@app/types/api';
+import { ForkChoiceNode, ForkChoice } from '@api';
 import { equalForkChoiceNode, equalForkChoiceData, getCheckpointType } from '@utils/api';
 
 function generateForkChoiceNode(): ForkChoiceNode {
@@ -22,7 +22,7 @@ function generateForkChoiceNode(): ForkChoiceNode {
   };
 }
 
-function generateForkChoiceData(): ForkChoiceData {
+function generateForkChoiceData(): ForkChoice {
   return {
     justified_checkpoint: { epoch: '1', root: '0x1' },
     finalized_checkpoint: { epoch: '2', root: '0x2' },
@@ -82,13 +82,13 @@ describe('api', () => {
       expect(equalForkChoiceData(undefined, undefined)).toBe(false);
     });
 
-    it('should return true for equal ForkChoiceData', () => {
+    it('should return true for equal ForkChoice', () => {
       const a = generateForkChoiceData();
       const b = generateForkChoiceData();
       expect(equalForkChoiceData(a, b)).toBe(true);
     });
 
-    it('should return true for equal ForkChoiceData and ForkChoiceNodes', () => {
+    it('should return true for equal ForkChoice and ForkChoiceNodes', () => {
       const a = generateForkChoiceData();
       const b = generateForkChoiceData();
       a.fork_choice_nodes = [generateForkChoiceNode()];

@@ -15,7 +15,7 @@ export default function Loading({
     <div
       className={classNames(
         'w-full h-full flex flex-col items-center justify-center',
-        textColor ?? 'text-stone-900 dark:text-stone-100',
+        textColor ?? 'text-foreground',
         className,
       )}
     >

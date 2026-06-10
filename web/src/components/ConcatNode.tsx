@@ -22,8 +22,8 @@ function ConcatNode({
       id={id}
       className={classNames(
         'absolute flex flex-col items-center justify-center rounded-full gap-3 shadow-inner-xl',
-        'border-dashed border-2 border-stone-400 dark:border-stone-500',
-        'bg-stone-100 dark:bg-stone-700',
+        'border-dashed border-2 border-faint',
+        'bg-field',
         className,
       )}
       style={{
@@ -33,8 +33,8 @@ function ConcatNode({
         height: `${radius * 2}px`,
       }}
     >
-      <p className="text-stone-950 dark:text-stone-50 text-xl font-mono">CONCAT</p>
-      <p className="text-stone-950 dark:text-stone-50 text-2xl font-mono">
+      <p className="text-foreground-strong text-xl font-mono">CONCAT</p>
+      <p className="text-foreground-strong text-2xl font-mono">
         {slotStart} → {slotEnd}
       </p>
     </div>
