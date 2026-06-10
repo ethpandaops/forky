@@ -1,44 +1,47 @@
 /**
  * Main CSS Entry Point
  *
+ * "Chain Console" design language: a dark-first, cool-neutral canvas where
+ * the six fork-choice status colors are the only loud thing on screen,
+ * framed by quiet glass chrome. Light mode is a faithful inversion.
+ *
  * Two-Tier Token Architecture
  *
  * Tier 1: Primitive color values (plain CSS variables, not exposed as
- *         Tailwind utilities). Values mirror the Tailwind v4 palette shades
- *         forky's UI was originally built on.
+ *         Tailwind utilities): the "ink" cool-neutral ramp (hue 270), the
+ *         cyan accent family and the six status families. Status bands
+ *         share OKLCH lightness/chroma per role so every status holds the
+ *         same contrast against the surface ladder in both themes.
  * Tier 2: Semantic tokens (@theme), named for intent. These are the ONLY
  *         colors application code may use (enforced by the custom ESLint
  *         rules in eslint-rules/). Light/dark theming happens here — app
  *         code never writes `dark:` variants for colors.
  */
 
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
 @import 'tailwindcss';
 
 /* Enable class-based dark mode */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* fix for safari https://github.com/mdn/browser-compat-data/issues/17726 */
-.drop-shadow-xs,
-.drop-shadow-sm,
-.drop-shadow-md,
-.drop-shadow-lg,
-.drop-shadow-xl,
-.drop-shadow-2xl {
-  transform: translateZ(0);
-}
-
 @theme {
+  /* ===== Typography ===== */
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+
   /* ===== TIER 2: Semantic tokens ===== */
 
-  /* Surfaces */
+  /* Surfaces (elevation = lighter surface in dark mode) */
   --color-background: var(--background-value);
   --color-surface: var(--surface-value);
   --color-surface-raised: var(--surface-raised-value);
-  --color-surface-inverted: var(--surface-inverted-value);
   --color-overlay: var(--overlay-value);
   --color-shell: var(--shell-value);
 
-  /* Borders and separators */
+  /* Borders and separators (alpha hairlines: they read identically over
+   * glass, gradients and surfaces) */
   --color-border: var(--border-value);
   --color-border-strong: var(--border-strong-value);
 
@@ -48,6 +51,12 @@
   --color-foreground-inverted: var(--foreground-inverted-value);
   --color-muted: var(--muted-value);
   --color-faint: var(--faint-value);
+
+  /* Accent (electric cyan): focus rings, links, live playhead, brand.
+   * Sits in the largest hue gap between the status hues so it never
+   * collides with node semantics. */
+  --color-accent: var(--accent-value);
+  --color-accent-hover: var(--accent-hover-value);
 
   /* Controls (sliders, toggles, scrubbers, interactive emphasis) */
   --color-track: var(--track-value);
@@ -65,8 +74,8 @@
 
   /* Primary action (share/copy buttons) */
   --color-primary: var(--primary-value);
-  --color-primary-hover: var(--emerald-500);
-  --color-on-primary: var(--stone-100);
+  --color-primary-hover: var(--primary-hover-value);
+  --color-on-primary: var(--on-primary-value);
 
   /* Graph rendering */
   --color-edge: var(--edge-value);
@@ -89,13 +98,13 @@
   --color-danger-accent: var(--danger-accent-value);
 
   /* Fork-choice domain: block/node states in the graph visualization.
-   * `-deep` is the ring base shade, `-edge` the border shade and `-ring`
-   * the progress-arc shade (decoupled from the AA-contrast label text). */
+   * Roles: base = status text (AA on surfaces), `-deep` = node core fill
+   * (dim in dark, tint in light), `-edge` = rim track under the progress
+   * arc, `-ring` = the bright progress-arc / rim shade. */
   --color-canonical: var(--canonical-value);
   --color-canonical-deep: var(--canonical-deep-value);
   --color-canonical-edge: var(--canonical-edge-value);
   --color-canonical-ring: var(--canonical-ring-value);
-  --color-canonical-bright: var(--canonical-bright-value);
   --color-fork: var(--fork-value);
   --color-fork-deep: var(--fork-deep-value);
   --color-fork-edge: var(--fork-edge-value);
@@ -127,292 +136,309 @@
   --color-scrubber: var(--scrubber-value);
   --color-scrubber-strong: var(--scrubber-strong-value);
   --color-rec: var(--rec-value);
-  --color-rec-strong: var(--rose-500);
+  --color-rec-strong: var(--rec-strong-value);
 
   /* Ruler ticks */
   --color-tick: var(--tick-value);
   --color-tick-label: var(--tick-label-value);
 
   /* Text on the always-dark shell */
-  --color-on-shell: var(--stone-100);
-
-  /* Inset shadows for dials and graph nodes (ported from the pre-v4
-   * tailwind.config.js, which Tailwind v4 no longer reads). Depth adapts
-   * per theme via --inner-shadow-color. */
-  --shadow-inner-lg: 0px 0px 5px 1px var(--inner-shadow-color) inset;
-  --shadow-inner-xl: 0px 0px 10px 2px var(--inner-shadow-color) inset;
-
-  /* Gentle pulse used by loading slot columns in dark mode */
-  --animate-pulse-light: pulse-light 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-
-  @keyframes pulse-light {
-    50% {
-      opacity: 0.97;
-    }
-  }
-
+  --color-on-shell: var(--ink-100);
 }
 
-/* Landing hero title gradient (light: emerald→lime, dark: lime→green).
- * Kept as a CSS component class so the gradient stops stay in the theme. */
+/* Landing hero / wordmark gradient (canonical emerald → accent cyan). */
 .hero-gradient-text {
-  background-image: linear-gradient(to right, var(--lime-200), var(--green-200), var(--green-300));
+  background-image: linear-gradient(
+    to right,
+    oklch(78% 0.155 163),
+    oklch(80% 0.13 195)
+  );
   background-clip: text;
   color: transparent;
 }
 
 html:not(.dark) .hero-gradient-text {
-  background-image: linear-gradient(to right, var(--emerald-600), var(--lime-700));
+  background-image: linear-gradient(to right, oklch(46% 0.11 163), oklch(52% 0.12 205));
 }
 
-/* Vertical fade behind slot columns in the graph (background → stone-500 →
- * background). Kept in CSS so the gradient stops stay in the theme. */
+/* Vertical fade behind slot columns in the graph (transparent → hairline →
+ * transparent). Kept in CSS so the gradient stops stay in the theme. */
 .column-fade {
   background-image: linear-gradient(
     to top,
-    var(--background-value) 10%,
+    transparent 5%,
     var(--column-fade-mid) 50%,
-    var(--background-value) 90%
+    transparent 95%
   );
 }
 
+/* Infinite-canvas dot grid for the graph stage. */
+.stage-grid {
+  background-image: radial-gradient(var(--grid-dot-color) 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+}
+
+/* Glass chrome: the floating console dock + blurred header. Glass is for
+ * chrome only — content panels stay solid for readability. */
+.glass-chrome {
+  background-color: color-mix(in oklab, var(--toolbar-value) 82%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+}
+
 @layer base {
+  body {
+    background-color: var(--background-value);
+    color: var(--foreground-value);
+  }
+
   :root {
-    /* ===== TIER 1: Primitive values (Tailwind v4 palette) ===== */
-    --stone-50: oklch(98.5% 0.001 106.423);
-    --stone-100: oklch(97% 0.001 106.424);
-    --stone-200: oklch(92.3% 0.003 48.717);
-    --stone-300: oklch(86.9% 0.005 56.366);
-    --stone-400: oklch(70.9% 0.01 56.259);
-    --stone-500: oklch(55.3% 0.013 58.071);
-    --stone-600: oklch(44.4% 0.011 73.639);
-    --stone-700: oklch(37.4% 0.01 67.558);
-    --stone-800: oklch(26.8% 0.007 34.298);
-    --stone-900: oklch(21.6% 0.006 56.043);
-    --stone-950: oklch(14.7% 0.004 49.25);
-    --emerald-300: oklch(84.5% 0.143 164.978);
-    --emerald-400: oklch(76.5% 0.177 163.223);
-    --emerald-500: oklch(69.6% 0.17 162.48);
-    --emerald-600: oklch(59.6% 0.145 163.225);
-    --emerald-800: oklch(43.2% 0.095 166.913);
-    --emerald-900: oklch(37.8% 0.077 168.94);
-    --green-300: oklch(87.1% 0.15 154.449);
-    --green-700: oklch(52.7% 0.154 150.069);
-    --amber-300: oklch(87.9% 0.169 91.605);
-    --amber-400: oklch(82.8% 0.189 84.429);
-    --amber-500: oklch(76.9% 0.188 70.08);
-    --amber-600: oklch(66.6% 0.179 58.318);
-    --amber-700: oklch(55.5% 0.163 48.998);
-    --amber-800: oklch(47.3% 0.137 46.201);
-    --amber-900: oklch(41.4% 0.112 45.904);
-    --yellow-300: oklch(90.5% 0.182 98.111);
-    --yellow-500: oklch(79.5% 0.184 86.047);
-    --yellow-700: oklch(55.4% 0.135 66.442);
-    --yellow-600: oklch(68.1% 0.162 75.834);
-    --yellow-800: oklch(47.6% 0.114 61.907);
-    --yellow-900: oklch(42.1% 0.095 57.708);
-    --red-300: oklch(80.8% 0.114 19.571);
-    --red-700: oklch(50.5% 0.213 27.518);
-    --red-400: oklch(70.4% 0.191 22.216);
-    --red-500: oklch(63.7% 0.237 25.331);
-    --red-600: oklch(57.7% 0.245 27.325);
-    --red-800: oklch(44.4% 0.177 26.899);
-    --red-900: oklch(39.6% 0.141 25.723);
-    --rose-200: oklch(89.2% 0.058 10.001);
-    --rose-400: oklch(71.2% 0.194 13.428);
-    --rose-500: oklch(64.5% 0.246 16.439);
-    --rose-600: oklch(58.6% 0.253 17.585);
-    --rose-950: oklch(27.1% 0.105 12.094);
-    --fuchsia-300: oklch(83.3% 0.145 321.434);
-    --fuchsia-500: oklch(66.7% 0.295 322.15);
-    --fuchsia-600: oklch(59.1% 0.293 322.896);
-    --fuchsia-700: oklch(51.8% 0.253 323.949);
-    --fuchsia-800: oklch(45.2% 0.211 324.591);
-    --fuchsia-900: oklch(40.1% 0.17 325.612);
-    --indigo-300: oklch(78.5% 0.115 274.713);
-    --indigo-500: oklch(58.5% 0.233 277.117);
-    --indigo-600: oklch(51.1% 0.262 276.966);
-    --indigo-700: oklch(45.7% 0.24 277.023);
-    --indigo-800: oklch(39.8% 0.195 277.366);
-    --indigo-900: oklch(35.9% 0.144 278.697);
-    --sky-400: oklch(74.6% 0.16 232.661);
-    --sky-500: oklch(68.5% 0.169 237.323);
-    --sky-600: oklch(58.8% 0.158 241.966);
-    --sky-700: oklch(50% 0.134 242.749);
-    --teal-400: oklch(77.7% 0.152 181.912);
-    --teal-600: oklch(60% 0.118 184.704);
+    /* ===== TIER 1: Primitive values ===== */
 
-    --inner-shadow-color: rgb(0 0 0 / 0.12);
+    /* Ink: cool near-neutral ramp (hue 270) */
+    --ink-0: oklch(98.5% 0.002 270);
+    --ink-50: oklch(95.5% 0.004 270);
+    --ink-100: oklch(92% 0.005 270);
+    --ink-200: oklch(87% 0.006 270);
+    --ink-300: oklch(78% 0.008 270);
+    --ink-400: oklch(66% 0.01 270);
+    --ink-500: oklch(55% 0.01 270);
+    --ink-600: oklch(44% 0.011 270);
+    --ink-700: oklch(33% 0.011 270);
+    --ink-800: oklch(26.5% 0.011 270);
+    --ink-850: oklch(22.5% 0.01 270);
+    --ink-900: oklch(18.5% 0.009 270);
+    --ink-950: oklch(14.5% 0.008 270);
 
-    /* Walker loading animation ramp (decorative, static; read from canvas
-     * code via getComputedStyle) */
-    --color-walker-1: #241e44;
-    --color-walker-2: #25315e;
-    --color-walker-3: #3a5c85;
-    --color-walker-4: #56a1bf;
-    --color-walker-5: #97dbd2;
-    --green-400: oklch(79.2% 0.209 151.711);
-    --emerald-700: oklch(50.8% 0.118 165.612);
-    --green-200: oklch(92.5% 0.084 155.995);
-    --green-500: oklch(72.3% 0.219 149.579);
-    --green-800: oklch(44.8% 0.119 151.328);
-    --green-600: oklch(62.7% 0.194 149.214);
-    --lime-200: oklch(93.8% 0.127 124.321);
-    --lime-600: oklch(64.8% 0.2 131.684);
-    --lime-700: oklch(53.2% 0.157 131.589);
-    --yellow-400: oklch(85.2% 0.199 91.936);
+    /* Accent: electric cyan */
+    --accent-bright: oklch(78% 0.13 200);
+    --accent-brighter: oklch(85% 0.12 198);
+    --accent-deep: oklch(55% 0.12 205);
+    --accent-deeper: oklch(48% 0.11 207);
+
+    /* Status families. Hues: canonical 163, fork 60, finalized 322,
+     * justified 277, invalid 25, optimistic 100. Bands (shared L/C per
+     * role): bright = dark-mode text/arc, dim = dark node fill, shade =
+     * dark rim track, strong = light-mode text, vivid = light arc,
+     * tint = light node fill, wash = light rim track. */
+    --status-canonical-bright: oklch(72% 0.155 163);
+    --status-canonical-dim: oklch(40% 0.09 163);
+    --status-canonical-shade: oklch(30% 0.055 163);
+    --status-canonical-strong: oklch(46% 0.11 163);
+    --status-canonical-vivid: oklch(58% 0.14 163);
+    --status-canonical-tint: oklch(93% 0.06 163);
+    --status-canonical-wash: oklch(86% 0.07 163);
+    --status-fork-bright: oklch(72% 0.155 60);
+    --status-fork-dim: oklch(40% 0.09 60);
+    --status-fork-shade: oklch(30% 0.055 60);
+    --status-fork-strong: oklch(46% 0.11 60);
+    --status-fork-vivid: oklch(58% 0.14 60);
+    --status-fork-tint: oklch(93% 0.06 60);
+    --status-fork-wash: oklch(86% 0.07 60);
+    --status-finalized-bright: oklch(72% 0.155 322);
+    --status-finalized-dim: oklch(40% 0.09 322);
+    --status-finalized-shade: oklch(30% 0.055 322);
+    --status-finalized-strong: oklch(46% 0.11 322);
+    --status-finalized-vivid: oklch(58% 0.14 322);
+    --status-finalized-tint: oklch(93% 0.06 322);
+    --status-finalized-wash: oklch(86% 0.07 322);
+    --status-justified-bright: oklch(72% 0.155 277);
+    --status-justified-dim: oklch(40% 0.09 277);
+    --status-justified-shade: oklch(30% 0.055 277);
+    --status-justified-strong: oklch(46% 0.11 277);
+    --status-justified-vivid: oklch(58% 0.14 277);
+    --status-justified-tint: oklch(93% 0.06 277);
+    --status-justified-wash: oklch(86% 0.07 277);
+    --status-invalid-bright: oklch(72% 0.155 25);
+    --status-invalid-dim: oklch(40% 0.09 25);
+    --status-invalid-shade: oklch(30% 0.055 25);
+    --status-invalid-strong: oklch(46% 0.11 25);
+    --status-invalid-vivid: oklch(58% 0.14 25);
+    --status-invalid-tint: oklch(93% 0.06 25);
+    --status-invalid-wash: oklch(86% 0.07 25);
+    --status-optimistic-bright: oklch(76% 0.155 100);
+    --status-optimistic-dim: oklch(40% 0.09 100);
+    --status-optimistic-shade: oklch(30% 0.055 100);
+    --status-optimistic-strong: oklch(46% 0.11 100);
+    --status-optimistic-vivid: oklch(58% 0.14 100);
+    --status-optimistic-tint: oklch(93% 0.06 100);
+    --status-optimistic-wash: oklch(86% 0.07 100);
+
+    /* Rose (REC / replay indicator) */
+    --rose-bright: oklch(71% 0.19 13);
+    --rose-mid: oklch(64.5% 0.246 16);
+    --rose-deep: oklch(59% 0.25 17);
+
+    /* Walker loading animation ramp (decorative; read from canvas code via
+     * getComputedStyle). Ink → accent cyan. */
+    --color-walker-1: oklch(25% 0.04 270);
+    --color-walker-2: oklch(35% 0.07 240);
+    --color-walker-3: oklch(50% 0.1 220);
+    --color-walker-4: oklch(65% 0.12 205);
+    --color-walker-5: oklch(80% 0.13 195);
 
     /* ===== Semantic mappings: light mode ===== */
-    --background-value: var(--stone-100);
+    --background-value: var(--ink-0);
     --surface-value: #fff;
-    --surface-raised-value: var(--stone-200);
-    --surface-inverted-value: var(--stone-900);
-    --overlay-value: var(--stone-900);
-    --shell-value: var(--stone-900);
-    --border-value: var(--stone-200);
-    --border-strong-value: var(--stone-300);
-    --foreground-value: var(--stone-900);
-    --foreground-strong-value: var(--stone-950);
-    --foreground-inverted-value: var(--stone-100);
-    --muted-value: var(--stone-500);
-    --faint-value: var(--stone-500);
-    --track-value: var(--stone-200);
-    --active-value: var(--stone-600);
-    --active-hover-value: var(--stone-500);
-    --surface-hover-value: var(--stone-50);
-    --field-value: var(--stone-100);
-    --control-value: var(--stone-700);
-    --control-hover-value: var(--stone-900);
+    --surface-raised-value: var(--ink-50);
+    --overlay-value: var(--ink-950);
+    --shell-value: var(--ink-950);
+    --border-value: oklch(0% 0 0 / 8%);
+    --border-strong-value: oklch(0% 0 0 / 15%);
+    --foreground-value: oklch(21% 0.01 270);
+    --foreground-strong-value: var(--ink-950);
+    --foreground-inverted-value: var(--ink-0);
+    --muted-value: var(--ink-500);
+    --faint-value: var(--ink-400);
+    --accent-value: var(--accent-deep);
+    --accent-hover-value: var(--accent-deeper);
+    --track-value: oklch(0% 0 0 / 5%);
+    --active-value: var(--accent-deep);
+    --active-hover-value: var(--accent-deeper);
+    --surface-hover-value: #fff;
+    --field-value: oklch(0% 0 0 / 4%);
+    --control-value: var(--accent-deep);
+    --control-hover-value: var(--accent-deeper);
     --toolbar-value: #fff;
-    --timeline-value: var(--stone-50);
-    --timeline-edge-value: var(--stone-200);
-    --timeline-fg-value: var(--stone-700);
-    --primary-value: var(--emerald-600);
-    --edge-value: var(--stone-400);
-    --live-value: var(--green-400);
-    --brand-value: var(--teal-600);
-    --link-value: var(--green-700);
-    --link-hover-value: var(--green-800);
-    --scrim-value: oklch(21.6% 0.006 56.043 / 40%); /* stone-900 @ 40% */
-    --success-value: var(--green-700);
-    --warning-value: var(--amber-700);
-    --caution-value: var(--yellow-700);
-    --danger-value: var(--red-600);
-    --danger-surface-value: var(--rose-200);
+    --timeline-value: var(--ink-0);
+    --timeline-edge-value: oklch(0% 0 0 / 8%);
+    --timeline-fg-value: oklch(21% 0.01 270);
+    --dial-value: var(--ink-50);
+    --primary-value: var(--accent-deep);
+    --primary-hover-value: var(--accent-deeper);
+    --on-primary-value: #fff;
+    --edge-value: oklch(0% 0 0 / 18%);
+    --live-value: var(--accent-deep);
+    --brand-value: var(--accent-deep);
+    --link-value: var(--accent-deep);
+    --link-hover-value: var(--accent-deeper);
+    --scrim-value: oklch(14.5% 0.008 270 / 40%);
+    --success-value: var(--status-canonical-strong);
+    --warning-value: var(--status-fork-strong);
+    --caution-value: var(--status-optimistic-strong);
+    --danger-value: oklch(52% 0.19 25);
+    --danger-surface-value: var(--status-invalid-tint);
     /* danger-accent renders on the always-dark shell (error pages) */
-    --danger-accent-value: var(--rose-400);
-    --canonical-value: var(--emerald-700);
-    --canonical-deep-value: var(--emerald-300);
-    --canonical-edge-value: var(--emerald-300);
-    --canonical-ring-value: var(--emerald-500);
-    --canonical-bright-value: var(--emerald-400);
-    --fork-value: var(--amber-700);
-    --fork-deep-value: var(--amber-300);
-    --fork-edge-value: var(--amber-300);
-    --fork-ring-value: var(--amber-500);
-    --finalized-value: var(--fuchsia-700);
-    --finalized-deep-value: var(--fuchsia-300);
-    --finalized-edge-value: var(--fuchsia-300);
-    --finalized-ring-value: var(--fuchsia-500);
-    --justified-value: var(--indigo-700);
-    --justified-deep-value: var(--indigo-300);
-    --justified-edge-value: var(--indigo-300);
-    --justified-ring-value: var(--indigo-500);
-    --invalid-value: var(--red-700);
-    --invalid-deep-value: var(--red-300);
-    --invalid-edge-value: var(--red-300);
-    --invalid-ring-value: var(--red-500);
-    --optimistic-value: var(--yellow-700);
-    --optimistic-deep-value: var(--yellow-300);
-    --optimistic-edge-value: var(--yellow-300);
-    --optimistic-ring-value: var(--yellow-500);
-    --marker-value: var(--amber-700);
-    --marker-active-value: var(--amber-600);
-    --marker-time-value: var(--sky-400);
-    --marker-time-active-value: var(--sky-600);
-    --scrubber-value: var(--stone-500);
-    --scrubber-strong-value: var(--stone-500);
-    --rec-value: var(--rose-400);
-    --tick-value: var(--stone-500);
-    --tick-label-value: var(--stone-800);
-    --dial-value: #fff;
-    --column-fade-mid: var(--stone-200);
+    --danger-accent-value: oklch(70% 0.19 20);
+    --canonical-value: var(--status-canonical-strong);
+    --canonical-deep-value: var(--status-canonical-tint);
+    --canonical-edge-value: var(--status-canonical-wash);
+    --canonical-ring-value: var(--status-canonical-vivid);
+    --fork-value: var(--status-fork-strong);
+    --fork-deep-value: var(--status-fork-tint);
+    --fork-edge-value: var(--status-fork-wash);
+    --fork-ring-value: var(--status-fork-vivid);
+    --finalized-value: var(--status-finalized-strong);
+    --finalized-deep-value: var(--status-finalized-tint);
+    --finalized-edge-value: var(--status-finalized-wash);
+    --finalized-ring-value: var(--status-finalized-vivid);
+    --justified-value: var(--status-justified-strong);
+    --justified-deep-value: var(--status-justified-tint);
+    --justified-edge-value: var(--status-justified-wash);
+    --justified-ring-value: var(--status-justified-vivid);
+    --invalid-value: var(--status-invalid-strong);
+    --invalid-deep-value: var(--status-invalid-tint);
+    --invalid-edge-value: var(--status-invalid-wash);
+    --invalid-ring-value: var(--status-invalid-vivid);
+    --optimistic-value: var(--status-optimistic-strong);
+    --optimistic-deep-value: var(--status-optimistic-tint);
+    --optimistic-edge-value: var(--status-optimistic-wash);
+    --optimistic-ring-value: var(--status-optimistic-vivid);
+    --marker-value: var(--status-fork-vivid);
+    --marker-active-value: var(--status-fork-strong);
+    --marker-time-value: oklch(65% 0.08 235);
+    --marker-time-active-value: var(--accent-deep);
+    --scrubber-value: var(--ink-500);
+    --scrubber-strong-value: var(--ink-600);
+    --rec-value: var(--rose-bright);
+    --rec-strong-value: var(--rose-mid);
+    --tick-value: oklch(0% 0 0 / 30%);
+    --tick-label-value: var(--ink-500);
+    --column-fade-mid: oklch(0% 0 0 / 12%);
+    --grid-dot-color: oklch(0% 0 0 / 7%);
+    --glass-highlight: oklch(100% 0 0 / 60%);
   }
 
   html.dark {
     /* ===== Semantic mappings: dark mode ===== */
-    --inner-shadow-color: rgb(0 0 0 / 0.5);
-    --background-value: var(--stone-900);
-    --surface-value: var(--stone-800);
-    --surface-raised-value: var(--stone-800);
-    --surface-inverted-value: var(--stone-100);
+    --background-value: var(--ink-950);
+    --surface-value: var(--ink-900);
+    --surface-raised-value: var(--ink-850);
     --overlay-value: #fff;
-    --shell-value: var(--stone-900);
-    --border-value: var(--stone-800);
-    --border-strong-value: var(--stone-700);
-    --foreground-value: var(--stone-100);
-    --foreground-strong-value: var(--stone-50);
-    --foreground-inverted-value: var(--stone-900);
-    --muted-value: var(--stone-300);
-    --faint-value: var(--stone-400);
-    --track-value: var(--stone-700);
-    --active-value: var(--stone-400);
-    --active-hover-value: var(--stone-500);
-    --surface-hover-value: var(--stone-950);
-    --field-value: var(--stone-600);
-    --scrim-value: oklch(14.7% 0.004 49.25 / 60%); /* stone-950 @ 60% */
-    --control-value: var(--stone-200);
-    --control-hover-value: var(--stone-100);
-    --toolbar-value: var(--stone-700);
-    --timeline-value: var(--stone-600);
-    --timeline-edge-value: var(--stone-600);
-    --timeline-fg-value: var(--stone-50);
-    --primary-value: var(--emerald-700);
-    --edge-value: var(--stone-50);
-    --live-value: var(--green-700);
-    --brand-value: oklch(77.7% 0.152 181.912 / 80%); /* teal-400/80 */
-    --link-value: var(--green-200);
-    --link-hover-value: var(--green-300);
-    --success-value: var(--green-300);
-    --warning-value: var(--amber-300);
-    --caution-value: var(--yellow-400);
-    --danger-value: var(--red-400);
-    --danger-surface-value: var(--rose-950);
-    --danger-accent-value: var(--rose-400);
-    --canonical-edge-value: var(--emerald-900);
-    --fork-edge-value: var(--amber-900);
-    --finalized-edge-value: var(--fuchsia-900);
-    --justified-edge-value: var(--indigo-900);
-    --invalid-edge-value: var(--red-900);
-    --optimistic-edge-value: var(--yellow-900);
-    --marker-value: var(--amber-400);
-    --marker-active-value: var(--amber-500);
-    --marker-time-value: var(--sky-700);
-    --canonical-value: var(--emerald-600);
-    --canonical-deep-value: var(--emerald-800);
-    --canonical-ring-value: var(--emerald-600);
-    --fork-value: var(--amber-600);
-    --fork-deep-value: var(--amber-800);
-    --fork-ring-value: var(--amber-600);
-    --finalized-value: var(--fuchsia-600);
-    --finalized-deep-value: var(--fuchsia-800);
-    --finalized-ring-value: var(--fuchsia-600);
-    --justified-value: var(--indigo-600);
-    --justified-deep-value: var(--indigo-800);
-    --justified-ring-value: var(--indigo-600);
-    --invalid-value: var(--red-600);
-    --invalid-deep-value: var(--red-800);
-    --invalid-ring-value: var(--red-600);
-    --optimistic-value: var(--yellow-600);
-    --optimistic-deep-value: var(--yellow-800);
-    --optimistic-ring-value: var(--yellow-600);
-    --marker-time-active-value: var(--sky-500);
-    --dial-value: var(--stone-200);
-    --column-fade-mid: var(--stone-500);
-    --scrubber-value: var(--stone-100);
-    --scrubber-strong-value: var(--stone-200);
-    --rec-value: var(--rose-600);
-    --tick-value: var(--stone-400);
-    --tick-label-value: var(--stone-500);
+    --shell-value: var(--ink-950);
+    --border-value: oklch(100% 0 0 / 8%);
+    --border-strong-value: oklch(100% 0 0 / 15%);
+    --foreground-value: var(--ink-100);
+    --foreground-strong-value: var(--ink-0);
+    --foreground-inverted-value: var(--ink-950);
+    --muted-value: oklch(72% 0.01 270);
+    --faint-value: var(--ink-500);
+    --accent-value: var(--accent-bright);
+    --accent-hover-value: var(--accent-brighter);
+    --track-value: oklch(100% 0 0 / 6%);
+    --active-value: var(--accent-bright);
+    --active-hover-value: var(--accent-brighter);
+    --surface-hover-value: var(--ink-800);
+    --field-value: oklch(100% 0 0 / 5%);
+    --control-value: var(--accent-bright);
+    --control-hover-value: var(--accent-brighter);
+    --toolbar-value: var(--ink-900);
+    --timeline-value: var(--ink-950);
+    --timeline-edge-value: oklch(100% 0 0 / 8%);
+    --timeline-fg-value: var(--ink-100);
+    --dial-value: var(--ink-950);
+    --primary-value: var(--accent-bright);
+    --primary-hover-value: var(--accent-brighter);
+    --on-primary-value: var(--ink-950);
+    --edge-value: oklch(100% 0 0 / 20%);
+    --live-value: var(--accent-bright);
+    --brand-value: var(--accent-bright);
+    --link-value: var(--accent-bright);
+    --link-hover-value: var(--accent-brighter);
+    --scrim-value: oklch(10% 0.01 270 / 60%);
+    --success-value: var(--status-canonical-bright);
+    --warning-value: var(--status-fork-bright);
+    --caution-value: var(--status-optimistic-bright);
+    --danger-value: oklch(68% 0.19 25);
+    --danger-surface-value: oklch(28% 0.07 25);
+    --danger-accent-value: oklch(70% 0.19 20);
+    --canonical-value: var(--status-canonical-bright);
+    --canonical-deep-value: var(--status-canonical-dim);
+    --canonical-edge-value: var(--status-canonical-shade);
+    --canonical-ring-value: var(--status-canonical-bright);
+    --fork-value: var(--status-fork-bright);
+    --fork-deep-value: var(--status-fork-dim);
+    --fork-edge-value: var(--status-fork-shade);
+    --fork-ring-value: var(--status-fork-bright);
+    --finalized-value: var(--status-finalized-bright);
+    --finalized-deep-value: var(--status-finalized-dim);
+    --finalized-edge-value: var(--status-finalized-shade);
+    --finalized-ring-value: var(--status-finalized-bright);
+    --justified-value: var(--status-justified-bright);
+    --justified-deep-value: var(--status-justified-dim);
+    --justified-edge-value: var(--status-justified-shade);
+    --justified-ring-value: var(--status-justified-bright);
+    --invalid-value: var(--status-invalid-bright);
+    --invalid-deep-value: var(--status-invalid-dim);
+    --invalid-edge-value: var(--status-invalid-shade);
+    --invalid-ring-value: var(--status-invalid-bright);
+    --optimistic-value: var(--status-optimistic-bright);
+    --optimistic-deep-value: var(--status-optimistic-dim);
+    --optimistic-edge-value: var(--status-optimistic-shade);
+    --optimistic-ring-value: var(--status-optimistic-bright);
+    --marker-value: var(--status-fork-bright);
+    --marker-active-value: oklch(80% 0.16 70);
+    --marker-time-value: oklch(55% 0.09 235);
+    --marker-time-active-value: var(--accent-bright);
+    --scrubber-value: oklch(72% 0.01 270);
+    --scrubber-strong-value: var(--ink-200);
+    --rec-value: var(--rose-deep);
+    --rec-strong-value: var(--rose-mid);
+    --tick-value: oklch(100% 0 0 / 28%);
+    --tick-label-value: var(--ink-500);
+    --column-fade-mid: oklch(100% 0 0 / 12%);
+    --grid-dot-color: oklch(100% 0 0 / 6%);
+    --glass-highlight: oklch(100% 0 0 / 7%);
   }
 }

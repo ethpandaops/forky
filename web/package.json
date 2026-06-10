@@ -26,6 +26,8 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@headlessui/react": "2.2.10",
     "@heroicons/react": "2.2.0",
     "@tailwindcss/vite": "4.3.0",

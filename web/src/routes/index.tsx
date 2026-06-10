@@ -1,7 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import AppRoute from './-AppRoute';
-
-export const Route = createFileRoute('/')({
-  component: AppRoute,
-});
+/* Matcher only — the persistent <App> is rendered by the root route. */
+export const Route = createFileRoute('/')({});

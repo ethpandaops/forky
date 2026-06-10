@@ -55,8 +55,8 @@ export const NodeScoped: Story = {
   parameters: {
     tanstack: {
       router: {
-        path: '/node/$nodeId/events',
-        params: { nodeId: 'ams3-teku-001' },
+        path: '/node/$',
+        params: { _splat: 'ams3-teku-001/events' },
       },
     },
   },

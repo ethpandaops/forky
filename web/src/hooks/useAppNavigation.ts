@@ -39,15 +39,15 @@ export function useAppNavigate(): NavigateFn {
           return;
         case 'node':
           routerNavigate({
-            to: '/node/$nodeId',
-            params: { nodeId: route.nodeId },
+            to: '/node/$',
+            params: { _splat: route.nodeId },
             replace: options?.replace,
           });
           return;
         case 'nodeEvents':
           routerNavigate({
-            to: '/node/$nodeId/events',
-            params: { nodeId: route.nodeId },
+            to: '/node/$',
+            params: { _splat: `${route.nodeId}/events` },
             replace: options?.replace,
           });
           return;

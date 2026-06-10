@@ -30,10 +30,12 @@ export function SummaryRow({
 }) {
   return (
     <div className="items-baseline px-4 py-2.5 sm:grid sm:grid-cols-[10.5rem_1fr] sm:gap-4 sm:px-5">
-      <dt className="text-xs font-medium leading-5 text-muted">{label}</dt>
+      <dt className="font-mono text-[10px]/5 font-medium uppercase tracking-wider text-muted">
+        {label}
+      </dt>
       <dd
         className={classNames(
-          'mt-0.5 break-all text-sm leading-5 text-foreground sm:mt-0',
+          'mt-0.5 break-all text-sm/5 text-foreground sm:mt-0',
           mono && 'font-mono text-xs',
         )}
       >
@@ -46,7 +48,9 @@ export function SummaryRow({
 export function SummarySection({ title }: { title: string }) {
   return (
     <div className="bg-background/60 px-4 pb-1.5 pt-3.5 sm:px-5">
-      <dt className="text-[11px] font-semibold uppercase tracking-wider text-faint">{title}</dt>
+      <dt className="font-mono text-[10px] font-semibold uppercase tracking-widest text-faint">
+        {title}
+      </dt>
     </div>
   );
 }

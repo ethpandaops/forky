@@ -26,9 +26,9 @@ export default function Link({ href, ...props }: Props) {
     case 'byoEvents':
       return <RouterLink to="/byo/events" {...props} />;
     case 'node':
-      return <RouterLink to="/node/$nodeId" params={{ nodeId: route.nodeId }} {...props} />;
+      return <RouterLink to="/node/$" params={{ _splat: route.nodeId }} {...props} />;
     case 'nodeEvents':
-      return <RouterLink to="/node/$nodeId/events" params={{ nodeId: route.nodeId }} {...props} />;
+      return <RouterLink to="/node/$" params={{ _splat: `${route.nodeId}/events` }} {...props} />;
     case 'snapshot':
       return <RouterLink to="/snapshot/$frameId" params={{ frameId: route.frameId }} {...props} />;
     case 'snapshotEvents':

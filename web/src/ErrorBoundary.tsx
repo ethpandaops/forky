@@ -12,9 +12,11 @@ interface State {
 
 export function ErrorBoundaryFallback() {
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-center bg-shell">
-      <img src={Logo} className="object-contain w-72 h-72 rotate-180" />
-      <h1 className="mt-6 text-2xl text-danger-accent">Uhh... Something went wrong</h1>
+    <div className="flex h-dvh w-screen flex-col items-center justify-center bg-shell">
+      <img src={Logo} className="size-72 rotate-180 object-contain" />
+      <h1 className="mt-8 font-mono text-base uppercase tracking-widest text-danger-accent">
+        Uhh... Something went wrong
+      </h1>
     </div>
   );
 }

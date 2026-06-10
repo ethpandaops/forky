@@ -55,13 +55,9 @@ function Slot({ subMarks, slot, shouldFetch = false, segments }: Props) {
   return (
     <Ruler
       className={classNames(
-        'h-24 shadow-inner-xl',
-        isLoading && shouldFetch && 'animate-pulse dark:animate-pulse-light',
-        isLoading
-          ? 'bg-surface-raised dark:bg-surface-raised/95'
-          : error
-            ? 'bg-danger-surface dark:bg-danger-surface/95'
-            : 'bg-track',
+        'h-24',
+        isLoading && shouldFetch && 'animate-pulse',
+        isLoading ? 'bg-surface-raised/60' : error ? 'bg-danger-surface/60' : 'bg-track',
       )}
       marks={secondsPerSlot}
       subMarks={subMarks}

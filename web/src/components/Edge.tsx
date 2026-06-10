@@ -34,7 +34,7 @@ function Edge({
 
   return (
     <div
-      className={classNames('absolute px-0 py-0 m-0 leading-none', className)}
+      className={classNames('absolute m-0 rounded-full px-0 py-0 leading-none', className)}
       style={lineStyle}
     />
   );

@@ -34,7 +34,7 @@ export default function Selection() {
         >
           <DialogBackdrop
             transition
-            className="fixed inset-0 z-30 bg-scrim transition-opacity duration-100 ease-in-out data-[closed]:opacity-0"
+            className="fixed inset-0 z-30 bg-scrim backdrop-blur-xs transition-opacity duration-150 ease-out data-[closed]:opacity-0"
           />
           <div className="fixed inset-0 overflow-hidden z-30">
             <div className="absolute inset-0 overflow-hidden">
@@ -42,13 +42,13 @@ export default function Selection() {
                 <DialogPanel
                   transition
                   className={classNames(
-                    'fixed inset-y-0 overflow-x-hidden right-0 w-full overflow-y-auto bg-background border-l border-border sm:ring-1 sm:ring-overlay/10 transform transition ease-in-out duration-100 sm:duration-200 data-[closed]:translate-x-full',
+                    'fixed inset-y-0 overflow-x-hidden right-0 w-full overflow-y-auto bg-background border-l border-border transform transition ease-out duration-150 sm:duration-200 data-[closed]:translate-x-full',
                     aggregatedFrameIds ? 'sm:max-w-[95%]' : 'sm:max-w-3xl',
                   )}
                 >
                   <div className="flex h-full flex-col">
-                    <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-surface/90 px-4 py-3 backdrop-blur sm:px-6">
-                      <DialogTitle className="text-sm font-semibold leading-6 text-foreground">
+                    <div className="glass-chrome sticky top-0 z-10 flex items-center justify-between border-b border-border px-4 py-3 sm:px-6">
+                      <DialogTitle className="font-mono text-xs/6 font-semibold uppercase tracking-widest text-foreground">
                         {frameId && 'Snapshot'}
                         {aggregatedFrameIds && 'Aggregated Snapshots'}
                         {frameBlock && 'Block'}
@@ -56,11 +56,11 @@ export default function Selection() {
                       </DialogTitle>
                       <button
                         type="button"
-                        className="rounded-md p-1.5 text-faint transition hover:bg-overlay/5 hover:text-foreground"
+                        className="rounded-md p-1.5 text-faint transition-colors duration-150 hover:bg-overlay/5 hover:text-foreground"
                         onClick={clearAll}
                       >
                         <span className="sr-only">Close menu</span>
-                        <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+                        <XMarkIcon className="size-5" aria-hidden="true" />
                       </button>
                     </div>
                     <div className="flex-1 py-4">

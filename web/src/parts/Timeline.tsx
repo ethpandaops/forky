@@ -1,26 +1,25 @@
-import { MinusIcon } from '@heroicons/react/20/solid';
-
 import Control from '@components/Control';
 import EpochDial from '@components/EpochDial';
 import SlotDial from '@components/SlotDial';
 
 export default function Timeline() {
   return (
-    <div className="fixed left-0 w-full bottom-0">
+    <div className="fixed bottom-0 left-0 w-full">
       <Control />
-      <div className="grid grid-cols-1 xl:border-t-8 border-timeline-edge">
-        <div className="hidden xl:block">
+      <div className="relative border-t border-timeline-edge bg-timeline">
+        <div className="hidden border-b border-timeline-edge xl:block">
           <EpochDial />
         </div>
-        <div className="relative select-none pt-1 bg-timeline">
-          <span className="hidden xl:block z-10 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <MinusIcon className="mt-px rotate-90 h-8 w-8 ml-px text-timeline-fg" />
-          </span>
-          <span className="xl:hidden z-10 absolute left-1/2 transform -translate-x-1/2 -translate-y-2 max-h-5 overflow-y-hidden">
-            <MinusIcon className="mt-px rotate-90 w-8 ml-px text-timeline-fg" />
-          </span>
-        </div>
         <SlotDial />
+        {/* Playhead: marks "now" across the dial stack */}
+        <div
+          className="pointer-events-none absolute inset-y-0 left-1/2 z-10 w-px -translate-x-1/2 bg-accent shadow-[0_0_6px_var(--color-accent)]"
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute top-0 left-1/2 z-10 size-1.5 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-accent"
+          aria-hidden="true"
+        />
       </div>
     </div>
   );

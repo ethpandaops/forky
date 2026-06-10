@@ -37,7 +37,7 @@ function BYOFooterHarness() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="flex h-[calc(100vh-148px)] items-center justify-center p-6 text-sm text-muted">
+      <div className="flex h-[calc(100dvh-97px)] items-center justify-center p-6 text-sm text-muted">
         <span>
           {byoData
             ? `Loaded ${byoData.frame.data.fork_choice_nodes.length} nodes`

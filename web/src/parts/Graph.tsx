@@ -74,7 +74,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
           key={slot}
           slot={slot}
           epoch={isEpoch ? slot / slotsPerEpoch : undefined}
-          width={8}
+          width={4}
           height={1800}
           x={SPACING_X - RADIUS / 2 + index * SPACING_X}
           y={-SPACING_Y + RADIUS - 1800 / 2}
@@ -113,15 +113,18 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
         return (
           <tr key={frame.metadata.id}>
             <td className="whitespace-nowrap py-1 text-xs">
-              <Link href={`/node/${frame.metadata.node}`} className="font-bold">
+              <Link
+                href={`/node/${frame.metadata.node}`}
+                className="font-medium text-foreground transition-colors duration-150 hover:text-link"
+              >
                 {frame.metadata.node}
               </Link>
             </td>
-            <td className="whitespace-nowrap py-1 pl-2 text-xs">
+            <td className="whitespace-nowrap py-1 pl-3 text-xs">
               <Link
                 href={`/node/${frame.metadata.node}`}
                 className={classNames(
-                  'font-semibold',
+                  'font-mono font-medium',
                   isAggregatedHead ? 'text-success' : 'text-warning',
                 )}
               >
@@ -144,7 +147,7 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
         x2={edge.target.x + RADIUS}
         y2={edge.target.y + RADIUS}
         className="bg-edge"
-        thickness={12}
+        thickness={8}
       />
     ));
 
@@ -246,69 +249,75 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
     <>
       {location.startsWith('/node/') && (
         <button
-          className="absolute text-foreground mt-24 ml-5 lg:ml-8 z-20 flex text-xs 2xl:text-sm items-center p-1 2xl:p-2 rounded transition hover:bg-overlay/5"
+          className="glass-chrome absolute top-16 left-4 z-20 flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted shadow-md transition-colors duration-150 hover:text-foreground lg:left-6 2xl:text-sm"
           onClick={handleNavigateAggregatedView}
         >
-          <ArrowLeftCircleIcon className="h-6 w-6 mr-1" />
+          <ArrowLeftCircleIcon className="size-5" />
           Aggregated view
         </button>
       )}
       {!isBYO && type === 'weighted' && (
         <button
           className={classNames(
-            'absolute text-foreground ml-5 lg:ml-8 z-20 flex text-xs 2xl:text-sm items-center p-1 2xl:p-2 rounded transition hover:bg-overlay/5',
-            location.startsWith('/node/') ? 'mt-36' : ' mt-24',
+            'glass-chrome absolute left-4 z-20 flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted shadow-md transition-colors duration-150 hover:text-foreground lg:left-6 2xl:text-sm',
+            location.startsWith('/node/') ? 'top-[6.75rem]' : 'top-16',
           )}
           onClick={() => {
             setFrameId(data[0].frame.metadata.id);
           }}
         >
-          <InformationCircleIcon className="h-6 w-6 mr-1" />
+          <InformationCircleIcon className="size-5" />
           Snapshot
         </button>
       )}
       {!isBYO && type === 'aggregated' && formattedSummary.length && (
-        <div className="absolute mt-24 ml-5 lg:ml-8 z-20 text-xs">
+        <div className="absolute top-16 left-4 z-20 text-xs lg:left-6">
           <button
-            className="flex lg:hidden text-foreground items-center p-1 2xl:p-2 rounded transition hover:bg-overlay/5"
+            className="glass-chrome flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted shadow-md transition-colors duration-150 hover:text-foreground lg:hidden"
             onClick={() => {
               setAggregatedFrameIds(ids);
             }}
           >
-            <InformationCircleIcon className="h-6 w-6 mr-1" />
+            <InformationCircleIcon className="size-5" />
             Sources
           </button>
           {isSummaryCollapsed ? (
             <button
-              className="hidden lg:flex items-center px-3 py-2 rounded bg-surface-raised/90 text-foreground hover:bg-track/90 transition-colors"
+              aria-label="Show sources"
+              className="glass-chrome hidden items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted shadow-md transition-colors duration-150 hover:text-foreground lg:flex"
               onClick={() => setIsSummaryCollapsed(false)}
             >
-              <ChevronDownIcon className="w-4 h-4 mr-1" />
-              <span className="font-medium">Show Sources</span>
+              <ChevronDownIcon className="size-4" />
+              <span className="font-mono text-[10px]/4 font-semibold uppercase tracking-widest">
+                Sources
+              </span>
             </button>
           ) : (
-            <div className="hidden lg:flex flex-col px-2 pt-1 pb-1 rounded bg-surface-raised/90 text-foreground">
-              <div className="flex items-center justify-between w-full">
-                <span className="font-bold">Sources</span>
+            <div className="glass-chrome hidden flex-col rounded-xl border border-border px-3 pt-2 pb-2 text-foreground shadow-lg lg:flex">
+              <div className="flex w-full items-center justify-between gap-6">
+                <span className="font-mono text-[10px]/4 font-semibold uppercase tracking-widest text-faint">
+                  Sources
+                </span>
                 <div className="flex">
                   <button
-                    className="flex text-foreground text-xs items-center p-1 rounded transition hover:bg-overlay/5 mr-1"
+                    aria-label="Collapse sources"
+                    className="mr-1 flex items-center rounded p-1 text-xs text-muted transition-colors duration-150 hover:bg-overlay/5 hover:text-foreground"
                     onClick={() => setIsSummaryCollapsed(true)}
                   >
-                    <ChevronUpIcon className="w-4 h-4" />
+                    <ChevronUpIcon className="size-4" />
                   </button>
                   <button
-                    className="flex text-foreground text-xs items-center p-1 rounded transition hover:bg-overlay/5"
+                    className="flex items-center gap-1 rounded p-1 text-xs text-muted transition-colors duration-150 hover:bg-overlay/5 hover:text-foreground"
                     onClick={() => {
                       setAggregatedFrameIds(ids);
                     }}
                   >
-                    <InformationCircleIcon className="w-4 h-4 mr-1" />
+                    <InformationCircleIcon className="size-4" />
                     More
                   </button>
                 </div>
               </div>
-              <div className="mt-0 mb-1 border-t border-t-foreground" />
+              <div className="mt-1.5 mb-1 border-t border-border" />
               <table className="min-w-full">
                 <tbody className="divide-y divide-border">{formattedSummary}</tbody>
               </table>
@@ -350,22 +359,20 @@ function Graph({ data, ids, unique }: { data: ProcessedData[]; ids: string[]; un
                 onClick={handleFocus}
                 title="Focus to the head of the canonical chain"
                 className={classNames(
-                  isBYO ? 'top-20' : 'top-36',
-                  'fixed z-10 right-6 lg:right-8 top-36 text-muted cursor-pointer w-10 h-10 rounded-md transition hover:bg-overlay/5',
+                  isBYO ? 'top-16' : 'top-[6.75rem]',
+                  'glass-chrome fixed right-4 z-10 flex size-9 cursor-pointer items-center justify-center rounded-lg border border-border text-muted shadow-md transition-colors duration-150 hover:text-foreground lg:right-6',
                 )}
               >
                 <span className="sr-only">Focus to the head of the canonical chain</span>
                 {focused && (
                   <>
-                    <ViewfinderCircleIconSolid onClick={handleFocus} className="fixed h-10 w-10" />
-                    <span className="fixed mt-4 ml-4 h-2 w-2">
-                      <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-live"></span>
+                    <ViewfinderCircleIconSolid className="size-6" />
+                    <span className="absolute size-1.5">
+                      <span className="absolute inline-flex h-full w-full animate-pulse rounded-full bg-live"></span>
                     </span>
                   </>
                 )}
-                {!focused && (
-                  <ViewfinderCircleIconOutline onClick={handleFocus} className="fixed h-10 w-10" />
-                )}
+                {!focused && <ViewfinderCircleIconOutline className="size-6" />}
               </span>
               <TransformComponent
                 wrapperStyle={{

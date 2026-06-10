@@ -39,12 +39,12 @@ function SnapshotMarker({
         <div
           key={i}
           className={classNames(
-            'w-1 h-full',
+            'w-1',
             color,
-            `h-[${segmentHeight}%]`,
             i === 0 && 'rounded-t-full',
             i === numberOfSegments - 1 && 'rounded-b-full',
           )}
+          style={{ height: `${segmentHeight}%` }}
           title={`${metadata[i].node} - ${metadata[i].id}`}
         />,
       );
@@ -84,11 +84,15 @@ function SnapshotMarker({
       <PopoverButton as="span" className="relative flex h-10 w-1 pt-2 cursor-pointer">
         <span className="relative flex flex-col rounded-full h-10 w-1">{segments}</span>
       </PopoverButton>
-      <PopoverPanel className="fixed z-40 bottom-28 w-72 -ml-28 bg-surface-raised shadow-lg rounded divide-y dark:divide-border-strong cursor-pointer">
+      <PopoverPanel className="fixed bottom-28 z-40 -ml-28 w-72 cursor-pointer divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface-raised shadow-lg">
         {metadata.map(meta => (
-          <div key={meta.id} className="p-2 hover:bg-track" onClick={() => setFrameId(meta.id)}>
-            <div className="text-sm font-medium text-foreground">{meta.id}</div>
-            <div className="text-sm text-muted">{meta.node}</div>
+          <div
+            key={meta.id}
+            className="p-2.5 transition-colors duration-150 hover:bg-overlay/5"
+            onClick={() => setFrameId(meta.id)}
+          >
+            <div className="font-mono text-xs font-medium text-foreground">{meta.id}</div>
+            <div className="mt-0.5 text-xs text-muted">{meta.node}</div>
           </div>
         ))}
       </PopoverPanel>

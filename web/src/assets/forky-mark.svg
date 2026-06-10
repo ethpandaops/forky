@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Forky: a fork-choice graph with an Ethereum head node and a lower-weight fork">
+  <!--
+    Forky mark - a fork-choice graph in the web UI's own node language
+    (see parts/Graph): nodes with status rings, a partial weight arc on
+    the lower-weight fork, thin neutral edges, and the Ethereum glyph as
+    the canonical head's content.
+
+    Universal palette: one set of colors legible on BOTH light and dark
+    backgrounds, no media queries needed.
+    - Solids are the theme's vivid band (web/src/index.css), which sits
+      in the dual-background sweet spot (WCAG non-text contrast >= 3:1
+      against #fff, GitHub dark #0d1117 and the app's ink-950):
+        canonical #009362 = oklch(58% .14 163)  3.9:1 / 4.8:1 / 5.0:1
+        fork      #b46200 = oklch(58% .14 60)   4.5:1 / 4.2:1 / 4.4:1
+        eth blue  #5872e8 = oklch(59% .18 271)  3.4:1 vs the node core
+                  (brand #627EEA deepened ~3% to clear non-text contrast)
+    - Node cores and the fork rim track are opaque (the theme's light
+      tint/wash band baked solid) so the nodes carry their own
+      background and busy content can never bleed through them.
+    - Edges keep alpha so they stay quiet over any background.
+  -->
+
+  <!-- edges, trimmed to the node rims -->
+  <g stroke="#808489" stroke-opacity="0.45" fill="none" stroke-width="5">
+    <path d="M82 186 H128"/>
+    <path d="M76 167.5 L184 96.5"/>
+  </g>
+
+  <!-- parent node on the canonical chain -->
+  <circle cx="48" cy="186" r="30" fill="#d1ece3"/>
+  <circle cx="48" cy="186" r="30" fill="none" stroke="#009362" stroke-width="7"/>
+
+  <!-- lower-weight fork: rim track with a partial weight arc -->
+  <circle cx="212" cy="78" r="30" fill="#f2e3d1"/>
+  <circle cx="212" cy="78" r="30" fill="none" stroke="#e5c8a6" stroke-width="7"/>
+  <circle cx="212" cy="78" r="30" fill="none" stroke="#b46200" stroke-width="7"
+          pathLength="100" stroke-dasharray="30 70" stroke-linecap="round"
+          transform="rotate(-90 212 78)"/>
+
+  <!-- the canonical head: full weight ring, Ethereum inside -->
+  <circle cx="162" cy="186" r="30" fill="#d1ece3"/>
+  <circle cx="162" cy="186" r="30" fill="none" stroke="#009362" stroke-width="7"/>
+  <g fill="#5872e8">
+    <path d="M162 165 L148.5 188 L162 195.5 Z" fill="#8ea9e6"/>
+    <path d="M162 165 L175.5 188 L162 195.5 Z"/>
+    <path d="M162 208 L148.5 191.2 L162 198.5 Z" fill="#8ea9e6"/>
+    <path d="M162 208 L175.5 191.2 L162 198.5 Z"/>
+  </g>
+</svg>

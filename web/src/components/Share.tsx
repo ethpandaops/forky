@@ -36,9 +36,9 @@ function Share() {
       <span
         onClick={() => setOpen(true)}
         title="Share link"
-        className="fixed z-10 right-6 lg:right-8 top-20 text-muted cursor-pointer w-10 h-10 rounded-md transition hover:bg-overlay/5"
+        className="glass-chrome fixed top-16 right-4 z-10 flex size-9 cursor-pointer items-center justify-center rounded-lg border border-border text-muted shadow-md transition-colors duration-150 hover:text-foreground lg:right-6"
       >
-        <ShareIcon className="fixed h-8 w-8 m-1" />
+        <ShareIcon className="size-5" />
       </span>
       <Dialog open={open} className="relative z-40" onClose={setOpen}>
         <DialogBackdrop
@@ -50,34 +50,33 @@ function Share() {
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <DialogPanel
               transition
-              className="duration-300 ease-out data-[leave]:duration-200 data-[leave]:ease-in data-[closed]:opacity-0 data-[closed]:translate-y-4 sm:data-[closed]:translate-y-0 sm:data-[closed]:scale-95 relative transform overflow-hidden rounded-lg bg-surface-raised px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6"
+              className="relative transform overflow-hidden rounded-xl border border-border bg-surface px-4 pt-5 pb-4 text-left shadow-xl transition-all duration-200 ease-out data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[leave]:duration-150 data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-sm sm:p-6 sm:data-[closed]:translate-y-0 sm:data-[closed]:scale-95"
             >
-              <div>
-                <div className="mt-3 text-center sm:mt-5">
-                  <div className="mt-2">
-                    <input
-                      type="text"
-                      name="link"
-                      value={generateLink()}
-                      spellCheck="false"
-                      className="block w-full rounded-md border-0 py-1.5 px-2 bg-track text-foreground shadow-sm ring-1 ring-border-strong placeholder:text-faint focus:ring-2 focus:ring-inset focus:ring-active disabled:cursor-not-allowed disabled:bg-surface disabled:text-muted disabled:ring-border sm:text-sm sm:leading-6"
-                      onFocus={handleFocus}
-                      readOnly
-                    />
-                  </div>
-                </div>
+              <p className="font-mono text-[10px]/4 font-semibold uppercase tracking-widest text-faint">
+                Share this view
+              </p>
+              <div className="mt-3">
+                <input
+                  type="text"
+                  name="link"
+                  value={generateLink()}
+                  spellCheck="false"
+                  className="block w-full rounded-lg border border-border-strong bg-field px-2.5 py-1.5 font-mono text-xs/5 text-foreground transition-colors duration-150 placeholder:text-faint focus:border-accent focus:outline-hidden"
+                  onFocus={handleFocus}
+                  readOnly
+                />
               </div>
-              <div className="mt-5 sm:mt-6">
+              <div className="mt-5">
                 <button
                   type="button"
-                  className="inline-flex w-full justify-center items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-on-primary shadow-sm hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-on-primary shadow-xs transition-colors duration-150 hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                   onClick={() => {
                     navigator.clipboard.writeText(generateLink());
                     setOpen(false);
                   }}
                 >
-                  <ClipboardDocumentCheckIcon className="w-7 h-7 pr-2" />
-                  Copy
+                  <ClipboardDocumentCheckIcon className="size-5" />
+                  Copy link
                 </button>
               </div>
             </DialogPanel>

@@ -19,8 +19,8 @@ export default function Loading({
         className,
       )}
     >
-      <img src={Logo} className="object-contain w-72 h-72" />
-      <h1 className="mt-6 text-2xl">{message}</h1>
+      <img src={Logo} className="size-72 object-contain" />
+      <h1 className="mt-6 font-mono text-base uppercase tracking-widest">{message}</h1>
     </div>
   );
 }

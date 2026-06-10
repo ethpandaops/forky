@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 
+import classNames from 'clsx';
+
 import { ProcessedData } from '@app/types/graph';
 import useFocus from '@contexts/focus';
 import useActive from '@hooks/useActive';
@@ -8,7 +10,7 @@ import Graph from '@parts/Graph';
 
 export default function Stage() {
   const { ids } = useActive();
-  const { byo, stop, byoData } = useFocus();
+  const { byo, stop, byoData, frameId } = useFocus();
   const results = useFrameQueries(ids, !byo && ids.length > 0);
 
   useEffect(() => {
@@ -37,8 +39,17 @@ export default function Stage() {
     );
   }
 
+  // The timeline footer grows to 138px when the epoch dial appears at xl;
+  // the BYO/snapshot footers stay at 97px on all breakpoints.
+  const hasTimelineFooter = !byo && !frameId;
+
   return (
-    <div className="w-full bg-background" style={{ height: 'calc(100vh - 148px)' }}>
+    <div
+      className={classNames(
+        'stage-grid h-[calc(100dvh-97px)] w-full bg-background',
+        hasTimelineFooter && 'xl:h-[calc(100dvh-138px)]',
+      )}
+    >
       {!isLoading && <Graph data={data.frames} ids={ids} unique={data.loadedIds.join('_')} />}
     </div>
   );

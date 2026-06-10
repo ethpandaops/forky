@@ -12,7 +12,8 @@ import { useFrameQueries } from '@hooks/useQuery';
 import { aggregateProcessedData } from '@utils/graph';
 import { truncateHash } from '@utils/strings';
 
-const HEADER_CELL = 'px-2.5 py-2 text-left text-xs font-semibold text-foreground';
+const HEADER_CELL =
+  'px-2.5 py-2 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-faint';
 const BODY_CELL = 'whitespace-nowrap px-2.5 py-2 text-sm text-foreground';
 
 export default function AggregatedFramesSummary({ ids }: { ids: string[] }) {
@@ -44,21 +45,21 @@ export default function AggregatedFramesSummary({ ids }: { ids: string[] }) {
               <th
                 colSpan={2}
                 scope="col"
-                className="border-b border-b-border px-2.5 py-2 text-center text-xs font-semibold text-foreground"
+                className="border-b border-b-border px-2.5 py-2 text-center font-mono text-[10px] font-semibold uppercase tracking-wider text-faint"
               >
                 Head
               </th>
               <th
                 colSpan={2}
                 scope="col"
-                className="border-b border-b-border px-2.5 py-2 text-center text-xs font-semibold text-foreground"
+                className="border-b border-b-border px-2.5 py-2 text-center font-mono text-[10px] font-semibold uppercase tracking-wider text-faint"
               >
                 Finalized
               </th>
               <th
                 colSpan={2}
                 scope="col"
-                className="border-b border-b-border px-2.5 py-2 text-center text-xs font-semibold text-foreground"
+                className="border-b border-b-border px-2.5 py-2 text-center font-mono text-[10px] font-semibold uppercase tracking-wider text-faint"
               >
                 Justified
               </th>

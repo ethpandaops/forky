@@ -210,25 +210,27 @@ export default function Events({ open, closeTo }: { open: boolean; closeTo: stri
         <Dialog open={open} onClose={() => setLocation(closeTo)}>
           <DialogBackdrop
             transition
-            className="fixed inset-0 z-30 bg-scrim transition-opacity duration-100 ease-in-out data-[closed]:opacity-0"
+            className="fixed inset-0 z-30 bg-scrim backdrop-blur-xs transition-opacity duration-150 ease-out data-[closed]:opacity-0"
           />
           <div className="fixed inset-0 overflow-hidden z-30">
             <div className="absolute inset-0 overflow-hidden">
               <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
                 <DialogPanel
                   transition
-                  className="fixed inset-y-0 overflow-x-hidden right-0 w-full overflow-y-auto bg-background sm:ring-1 sm:ring-overlay/10 sm:max-w-[95%] transform transition ease-in-out duration-100 sm:duration-200 data-[closed]:translate-x-full"
+                  className="fixed inset-y-0 overflow-x-hidden right-0 w-full overflow-y-auto border-l border-border bg-background sm:max-w-[95%] transform transition ease-out duration-150 sm:duration-200 data-[closed]:translate-x-full"
                 >
-                  <div className="flex h-full flex-col py-6 shadow-xl">
+                  <div className="flex h-full flex-col py-6">
                     <div className="px-4 mb-6 mt-1 sm:px-6">
                       <div className="flex items-start justify-between">
-                        <DialogTitle className="mt-1 flex items-center text-base  leading-6 text-foreground">
-                          <span className="font-semibold">Events</span>
+                        <DialogTitle className="mt-1 flex items-center gap-2 text-base/6 text-foreground">
+                          <span className="font-mono text-xs font-semibold uppercase tracking-widest">
+                            Events
+                          </span>
                           {node && (
-                            <span>
-                              : {node}
+                            <span className="flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 font-mono text-[10px]/4 text-muted">
+                              {node}
                               <Link href="/events">
-                                <XMarkIcon className="inline w-4 h-4 hover:text-active cursor-pointer align-top" />
+                                <XMarkIcon className="inline size-3.5 cursor-pointer align-text-top transition-colors duration-150 hover:text-active" />
                               </Link>
                             </span>
                           )}
@@ -236,16 +238,16 @@ export default function Events({ open, closeTo }: { open: boolean; closeTo: stri
                         <div className="ml-3 flex h-7 items-center">
                           <button
                             type="button"
-                            className="rounded-md p-1.5 text-faint transition hover:bg-overlay/5"
+                            className="rounded-md p-1.5 text-faint transition-colors duration-150 hover:bg-overlay/5 hover:text-foreground"
                             onClick={() => setLocation(closeTo)}
                           >
                             <span className="sr-only">Close menu</span>
-                            <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+                            <XMarkIcon className="size-5" aria-hidden="true" />
                           </button>
                         </div>
                       </div>
                     </div>
-                    <div className="bg-surface shadow dark:shadow-inner mb-2 px-4 py-2">
+                    <div className="mb-2 border-y border-border bg-surface px-4 py-3">
                       <RadioGroup
                         value={queryType}
                         onChange={value => {
@@ -260,12 +262,14 @@ export default function Events({ open, closeTo }: { open: boolean; closeTo: stri
                               value={option}
                               className={({ focus, checked }) =>
                                 classNames(
-                                  'cursor-pointer focus:outline-none',
-                                  focus ? 'ring-2 ring-active ring-offset-2' : '',
+                                  'cursor-pointer focus:outline-hidden transition-colors duration-150',
+                                  focus
+                                    ? 'ring-2 ring-active ring-offset-2 ring-offset-surface'
+                                    : '',
                                   checked
                                     ? 'bg-active text-foreground-inverted hover:bg-active-hover'
-                                    : 'ring-1 ring-inset ring-border-strong bg-surface-raised text-foreground hover:bg-surface-hover',
-                                  'flex items-center justify-center rounded-md py-3 px-3 text-sm font-semibold uppercase sm:flex-1',
+                                    : 'ring-1 ring-inset ring-border-strong bg-surface-raised text-muted hover:bg-surface-hover hover:text-foreground',
+                                  'flex items-center justify-center rounded-lg py-2.5 px-3 font-mono text-xs font-semibold uppercase tracking-wider sm:flex-1',
                                 )
                               }
                             >
@@ -286,11 +290,11 @@ export default function Events({ open, closeTo }: { open: boolean; closeTo: stri
                           {() => (
                             <>
                               <div className="relative mt-4">
-                                <ListboxButton className="relative w-full cursor-default rounded-md bg-field py-1 pl-2 pr-10 text-left text-foreground shadow-sm ring-1 ring-inset ring-border-strong focus:outline-none focus:ring-2 focus:ring-active sm:text-sm sm:leading-6">
+                                <ListboxButton className="relative w-full cursor-default rounded-lg border border-border-strong bg-field py-1.5 pl-2.5 pr-10 text-left text-sm/6 text-foreground transition-colors duration-150 focus:border-accent focus:outline-hidden">
                                   <span className="block truncate">{queryRelative.name}</span>
                                   <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                                     <ChevronUpDownIcon
-                                      className="h-5 w-5 text-faint"
+                                      className="size-5 text-faint"
                                       aria-hidden="true"
                                     />
                                   </span>
@@ -298,7 +302,7 @@ export default function Events({ open, closeTo }: { open: boolean; closeTo: stri
 
                                 <ListboxOptions
                                   transition
-                                  className="transition ease-in duration-100 data-[closed]:opacity-0 absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-surface-raised py-1 text-base shadow-lg ring-1 ring-overlay/5 focus:outline-none sm:text-sm"
+                                  className="transition ease-in duration-100 data-[closed]:opacity-0 absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-border bg-surface-raised py-1 text-sm shadow-lg focus:outline-hidden"
                                 >
                                   {queryRelativeOptions.map(option => (
                                     <ListboxOption
@@ -373,50 +377,50 @@ export default function Events({ open, closeTo }: { open: boolean; closeTo: stri
                         </div>
                       )}
                     </div>
-                    <div className="bg-surface shadow dark:shadow-inner overflow-x-auto">
-                      <div className="border-t border-border dark:border-b px-4">
+                    <div className="overflow-x-auto border-y border-border bg-surface">
+                      <div className="px-4">
                         <table className="min-w-full divide-y divide-border-strong">
                           <thead>
                             <tr>
                               <th
                                 scope="col"
-                                className="py-2 pl-4 pr-3 text-left text-xs font-semibold text-foreground sm:pl-0"
+                                className="py-2.5 pl-4 pr-3 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-faint sm:pl-0"
                               >
                                 Date
                               </th>
                               <th
                                 scope="col"
-                                className="py-2 text-left text-xs font-semibold text-foreground"
+                                className="py-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-faint"
                               >
                                 Type
                               </th>
                               <th
                                 scope="col"
-                                className="py-2 text-left text-xs font-semibold text-foreground"
+                                className="py-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-faint"
                               >
                                 Node
                               </th>
                               <th
                                 scope="col"
-                                className="py-2 text-left text-xs font-semibold text-foreground"
+                                className="py-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-faint"
                               >
                                 Snapshot ID
                               </th>
                               <th
                                 scope="col"
-                                className="py-2 text-left text-xs font-semibold text-foreground"
+                                className="py-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-faint"
                               >
                                 Slot
                               </th>
                               <th
                                 scope="col"
-                                className="py-2 text-left text-xs font-semibold text-foreground"
+                                className="py-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-faint"
                               >
                                 Epoch
                               </th>
                               <th
                                 scope="col"
-                                className="py-2 text-left text-xs font-semibold text-foreground"
+                                className="py-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-faint"
                               >
                                 Extra Data
                               </th>
@@ -430,60 +434,66 @@ export default function Events({ open, closeTo }: { open: boolean; closeTo: stri
                               const slot = Math.floor(timeDiff / secondsPerSlot);
                               const epoch = Math.floor(slot / slotsPerEpoch);
                               return (
-                                <tr key={event.id}>
-                                  <td className="whitespace-nowrap py-2.5 pl-4 pr-3 text-sm font-semibold text-foreground sm:pl-0">
+                                <tr
+                                  key={event.id}
+                                  className="transition-colors duration-150 hover:bg-overlay/3"
+                                >
+                                  <td className="whitespace-nowrap py-2.5 pl-4 pr-3 text-sm text-foreground sm:pl-0">
                                     <ReactTimeAgo date={time} />
-                                    <span className="pl-1">({time.toISOString()})</span>
+                                    <span className="pl-1.5 font-mono text-xs text-muted">
+                                      {time.toISOString()}
+                                    </span>
                                   </td>
                                   <td
                                     className={classNames(
-                                      'whitespace-nowrap py-2.5 pl-4 pr-3 text-sm font-semibold sm:pl-0 uppercase',
+                                      'whitespace-nowrap py-2.5 pl-4 pr-3 font-mono text-xs font-semibold uppercase tracking-wider sm:pl-0',
                                       colorMap[event.type] ?? 'text-foreground',
                                     )}
                                   >
                                     {event.type}
                                   </td>
-                                  <td className="whitespace-nowrap py-2.5 pl-4 pr-3 text-sm font-semibold underline text-foreground sm:pl-0">
+                                  <td className="whitespace-nowrap py-2.5 pl-4 pr-3 text-sm font-medium sm:pl-0">
                                     <Link
                                       href={`/node/${event.node}`}
+                                      className="text-link transition-colors duration-150 hover:text-link-hover hover:underline"
                                       onClick={() => {
                                         stop();
                                         setTime(time.getTime() + 100);
                                       }}
                                     >
                                       {event.node}
+                                      <ArrowTopRightOnSquareIcon className="ml-1 inline size-3.5 align-[-2px]" />
                                     </Link>
-                                    <ArrowTopRightOnSquareIcon className="inline h-5 w-5 pl-1" />
                                   </td>
-                                  <td className="py-2.5 pl-4 pr-3 text-sm font-semibold text-foreground sm:pl-0">
+                                  <td className="py-2.5 pl-4 pr-3 font-mono text-xs sm:pl-0">
                                     {event.snapshots.map(({ id, key }) => (
                                       <div key={id} className="whitespace-nowrap">
-                                        {key && <span className="font-normal pr-1">{key}:</span>}
+                                        {key && <span className="pr-1 text-muted">{key}:</span>}
                                         <Link
                                           href={`/snapshot/${id}`}
-                                          className="underline"
+                                          className="text-link transition-colors duration-150 hover:text-link-hover hover:underline"
                                           onClick={() => {
                                             stop();
                                             setTime(time.getTime() + 100);
                                           }}
                                         >
                                           {id}
+                                          <ArrowTopRightOnSquareIcon className="ml-1 inline size-3.5 align-[-2px]" />
                                         </Link>
-                                        <ArrowTopRightOnSquareIcon className="inline h-5 w-5 pl-1" />
                                       </div>
                                     ))}
                                   </td>
-                                  <td className="whitespace-nowrap py-2.5 pl-4 pr-3 text-sm font-semibold text-foreground sm:pl-0">
+                                  <td className="whitespace-nowrap py-2.5 pl-4 pr-3 font-mono text-xs tabular-nums text-foreground sm:pl-0">
                                     {slot}
                                   </td>
-                                  <td className="whitespace-nowrap py-2.5 pl-4 pr-3 text-sm font-semibold text-foreground sm:pl-0">
+                                  <td className="whitespace-nowrap py-2.5 pl-4 pr-3 font-mono text-xs tabular-nums text-foreground sm:pl-0">
                                     {epoch}
                                   </td>
-                                  <td className="whitespace-nowrap py-2.5 pl-4 pr-3 text-sm font-semibold text-foreground sm:pl-0">
+                                  <td className="whitespace-nowrap py-2.5 pl-4 pr-3 text-xs text-foreground sm:pl-0">
                                     {event.extraData.map(([key, value, color]) => {
                                       return (
                                         <div key={key} className={color}>
-                                          {key}: {value}
+                                          <span className="text-muted">{key}:</span> {value}
                                         </div>
                                       );
                                     })}
@@ -497,7 +507,7 @@ export default function Events({ open, closeTo }: { open: boolean; closeTo: stri
                           <Loading message={`${error ?? 'Loading...'}`} className="p-10" />
                         )}
                         {events.length === 0 && !isLoading && !error && (
-                          <div className="p-10 text-center text-foreground font-bold">
+                          <div className="p-10 text-center font-mono text-xs uppercase tracking-widest text-muted">
                             No events found
                           </div>
                         )}

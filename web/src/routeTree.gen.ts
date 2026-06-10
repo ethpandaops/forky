@@ -13,10 +13,9 @@ import { Route as EventsRouteImport } from './routes/events'
 import { Route as ByoRouteImport } from './routes/byo'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SnapshotFrameIdRouteImport } from './routes/snapshot.$frameId'
-import { Route as NodeNodeIdRouteImport } from './routes/node.$nodeId'
+import { Route as NodeSplatRouteImport } from './routes/node.$'
 import { Route as ByoEventsRouteImport } from './routes/byo_.events'
 import { Route as SnapshotFrameIdEventsRouteImport } from './routes/snapshot_.$frameId.events'
-import { Route as NodeNodeIdEventsRouteImport } from './routes/node_.$nodeId.events'
 
 const EventsRoute = EventsRouteImport.update({
   id: '/events',
@@ -38,9 +37,9 @@ const SnapshotFrameIdRoute = SnapshotFrameIdRouteImport.update({
   path: '/snapshot/$frameId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const NodeNodeIdRoute = NodeNodeIdRouteImport.update({
-  id: '/node/$nodeId',
-  path: '/node/$nodeId',
+const NodeSplatRoute = NodeSplatRouteImport.update({
+  id: '/node/$',
+  path: '/node/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ByoEventsRoute = ByoEventsRouteImport.update({
@@ -53,20 +52,14 @@ const SnapshotFrameIdEventsRoute = SnapshotFrameIdEventsRouteImport.update({
   path: '/snapshot/$frameId/events',
   getParentRoute: () => rootRouteImport,
 } as any)
-const NodeNodeIdEventsRoute = NodeNodeIdEventsRouteImport.update({
-  id: '/node_/$nodeId/events',
-  path: '/node/$nodeId/events',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/byo': typeof ByoRoute
   '/events': typeof EventsRoute
   '/byo/events': typeof ByoEventsRoute
-  '/node/$nodeId': typeof NodeNodeIdRoute
+  '/node/$': typeof NodeSplatRoute
   '/snapshot/$frameId': typeof SnapshotFrameIdRoute
-  '/node/$nodeId/events': typeof NodeNodeIdEventsRoute
   '/snapshot/$frameId/events': typeof SnapshotFrameIdEventsRoute
 }
 export interface FileRoutesByTo {
@@ -74,9 +67,8 @@ export interface FileRoutesByTo {
   '/byo': typeof ByoRoute
   '/events': typeof EventsRoute
   '/byo/events': typeof ByoEventsRoute
-  '/node/$nodeId': typeof NodeNodeIdRoute
+  '/node/$': typeof NodeSplatRoute
   '/snapshot/$frameId': typeof SnapshotFrameIdRoute
-  '/node/$nodeId/events': typeof NodeNodeIdEventsRoute
   '/snapshot/$frameId/events': typeof SnapshotFrameIdEventsRoute
 }
 export interface FileRoutesById {
@@ -85,9 +77,8 @@ export interface FileRoutesById {
   '/byo': typeof ByoRoute
   '/events': typeof EventsRoute
   '/byo_/events': typeof ByoEventsRoute
-  '/node/$nodeId': typeof NodeNodeIdRoute
+  '/node/$': typeof NodeSplatRoute
   '/snapshot/$frameId': typeof SnapshotFrameIdRoute
-  '/node_/$nodeId/events': typeof NodeNodeIdEventsRoute
   '/snapshot_/$frameId/events': typeof SnapshotFrameIdEventsRoute
 }
 export interface FileRouteTypes {
@@ -97,9 +88,8 @@ export interface FileRouteTypes {
     | '/byo'
     | '/events'
     | '/byo/events'
-    | '/node/$nodeId'
+    | '/node/$'
     | '/snapshot/$frameId'
-    | '/node/$nodeId/events'
     | '/snapshot/$frameId/events'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -107,9 +97,8 @@ export interface FileRouteTypes {
     | '/byo'
     | '/events'
     | '/byo/events'
-    | '/node/$nodeId'
+    | '/node/$'
     | '/snapshot/$frameId'
-    | '/node/$nodeId/events'
     | '/snapshot/$frameId/events'
   id:
     | '__root__'
@@ -117,9 +106,8 @@ export interface FileRouteTypes {
     | '/byo'
     | '/events'
     | '/byo_/events'
-    | '/node/$nodeId'
+    | '/node/$'
     | '/snapshot/$frameId'
-    | '/node_/$nodeId/events'
     | '/snapshot_/$frameId/events'
   fileRoutesById: FileRoutesById
 }
@@ -128,9 +116,8 @@ export interface RootRouteChildren {
   ByoRoute: typeof ByoRoute
   EventsRoute: typeof EventsRoute
   ByoEventsRoute: typeof ByoEventsRoute
-  NodeNodeIdRoute: typeof NodeNodeIdRoute
+  NodeSplatRoute: typeof NodeSplatRoute
   SnapshotFrameIdRoute: typeof SnapshotFrameIdRoute
-  NodeNodeIdEventsRoute: typeof NodeNodeIdEventsRoute
   SnapshotFrameIdEventsRoute: typeof SnapshotFrameIdEventsRoute
 }
 
@@ -164,11 +151,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SnapshotFrameIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/node/$nodeId': {
-      id: '/node/$nodeId'
-      path: '/node/$nodeId'
-      fullPath: '/node/$nodeId'
-      preLoaderRoute: typeof NodeNodeIdRouteImport
+    '/node/$': {
+      id: '/node/$'
+      path: '/node/$'
+      fullPath: '/node/$'
+      preLoaderRoute: typeof NodeSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/byo_/events': {
@@ -185,13 +172,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SnapshotFrameIdEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/node_/$nodeId/events': {
-      id: '/node_/$nodeId/events'
-      path: '/node/$nodeId/events'
-      fullPath: '/node/$nodeId/events'
-      preLoaderRoute: typeof NodeNodeIdEventsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -200,9 +180,8 @@ const rootRouteChildren: RootRouteChildren = {
   ByoRoute: ByoRoute,
   EventsRoute: EventsRoute,
   ByoEventsRoute: ByoEventsRoute,
-  NodeNodeIdRoute: NodeNodeIdRoute,
+  NodeSplatRoute: NodeSplatRoute,
   SnapshotFrameIdRoute: SnapshotFrameIdRoute,
-  NodeNodeIdEventsRoute: NodeNodeIdEventsRoute,
   SnapshotFrameIdEventsRoute: SnapshotFrameIdEventsRoute,
 }
 export const routeTree = rootRouteImport

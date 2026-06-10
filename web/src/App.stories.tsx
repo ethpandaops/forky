@@ -35,8 +35,8 @@ export const SourceView: Story = {
   parameters: {
     tanstack: {
       router: {
-        path: '/node/$nodeId',
-        params: { nodeId: 'syd1-lighthouse-001' },
+        path: '/node/$',
+        params: { _splat: 'syd1-lighthouse-001' },
       },
     },
   },
@@ -92,8 +92,8 @@ export const NodeEventsOverlay: Story = {
   parameters: {
     tanstack: {
       router: {
-        path: '/node/$nodeId/events',
-        params: { nodeId: 'ams3-teku-001' },
+        path: '/node/$',
+        params: { _splat: 'ams3-teku-001/events' },
       },
     },
   },

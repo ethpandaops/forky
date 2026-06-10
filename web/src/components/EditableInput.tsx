@@ -19,7 +19,10 @@ interface Props<T extends InputType> extends Omit<
   type: T;
 }
 
-function EditableInput<T extends InputType>({ value, onChange, type, id }: Props<T>) {
+const DEFAULT_CLASSES =
+  'block w-full rounded-lg border border-border-strong bg-field px-2.5 py-1.5 font-mono text-xs/5 tabular-nums text-foreground transition-colors duration-150 placeholder:text-faint focus:border-accent focus:outline-hidden';
+
+function EditableInput<T extends InputType>({ value, onChange, type, id, className }: Props<T>) {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState<ValueType[T]>(value);
 
@@ -83,7 +86,7 @@ function EditableInput<T extends InputType>({ value, onChange, type, id }: Props
           id={id}
           ref={inputRef}
           type={type}
-          className="pl-2 bg-field block w-full rounded-md border-0 py-1 text-foreground shadow-sm ring-1 ring-inset ring-border-strong placeholder:text-faint focus:ring-2 focus:ring-inset focus:ring-active text-sm leading-6"
+          className={className ?? DEFAULT_CLASSES}
           value={formattedValue(inputValue)}
           onChange={e => setInputValue(e.target.value as unknown as ValueType[T])}
           onBlur={handleSave}
@@ -94,7 +97,7 @@ function EditableInput<T extends InputType>({ value, onChange, type, id }: Props
         <input
           id={id}
           type={type}
-          className="pl-2 bg-field block w-full rounded-md border-0 py-1 text-foreground shadow-sm ring-1 ring-inset ring-border-strong placeholder:text-faint focus:ring-2 focus:ring-inset focus:ring-active text-sm leading-6"
+          className={className ?? DEFAULT_CLASSES}
           value={formattedValue(value)}
           readOnly
           step="1"

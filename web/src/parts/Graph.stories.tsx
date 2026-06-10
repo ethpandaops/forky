@@ -275,8 +275,8 @@ function singleNodeStory(data: ProcessedData[], unique: string): Story {
     parameters: {
       tanstack: {
         router: {
-          path: '/node/$nodeId',
-          params: { nodeId: data[0].frame.metadata.node },
+          path: '/node/$',
+          params: { _splat: data[0].frame.metadata.node },
         },
       },
     },
@@ -369,7 +369,7 @@ export const AggregatedSummaryCollapsed: Story = {
   ...aggregatedStory(graphScenarios.happyPath, 'summary-collapsed'),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await userEvent.click(canvas.getAllByRole('button')[0]);
-    await expect(canvas.getByText('Show Sources')).toBeVisible();
+    await userEvent.click(canvas.getByRole('button', { name: 'Collapse sources' }));
+    await expect(canvas.getByRole('button', { name: 'Show sources' })).toBeVisible();
   },
 };

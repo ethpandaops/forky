@@ -21,9 +21,9 @@ function ConcatNode({
     <div
       id={id}
       className={classNames(
-        'absolute flex flex-col items-center justify-center rounded-full gap-3 shadow-inner-xl',
-        'border-dashed border-2 border-faint',
-        'bg-field',
+        'absolute flex flex-col items-center justify-center rounded-full gap-3',
+        'border-4 border-dashed border-border-strong',
+        'bg-surface/60',
         className,
       )}
       style={{

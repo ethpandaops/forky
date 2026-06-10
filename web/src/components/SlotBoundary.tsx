@@ -34,7 +34,7 @@ function SlotBoundary({
       ></div>
       {epoch && (
         <p
-          className="absolute px-0 py-0 m-0 leading-none text-foreground pl-5 whitespace-nowrap text-2xl font-bold text-opacity-75 dark:text-opacity-75 font-mono"
+          className="absolute m-0 whitespace-nowrap px-0 py-0 pl-5 font-mono text-2xl/none font-semibold tracking-widest tabular-nums text-foreground/60"
           style={{
             left: `${x - width / 2}px`,
             top: `${y + height / 2 + textOffset + 30}px`,
@@ -45,7 +45,7 @@ function SlotBoundary({
       )}
       {slot && (
         <p
-          className="absolute px-0 py-0 m-0 leading-none text-foreground pl-5 whitespace-nowrap text-2xl font-bold text-opacity-75 dark:text-opacity-75 font-mono"
+          className="absolute m-0 whitespace-nowrap px-0 py-0 pl-5 font-mono text-2xl/none font-semibold tracking-widest tabular-nums text-foreground/60"
           style={{
             left: `${x - width / 2}px`,
             top: `${y + height / 2 + textOffset}px`,

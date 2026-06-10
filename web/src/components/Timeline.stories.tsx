@@ -30,21 +30,16 @@ export const RulerVariants: Story = {
   render: () => (
     <div className="grid min-h-screen content-center gap-8 bg-background p-8 text-foreground">
       <Ruler
-        className="h-24 rounded-lg bg-track shadow-inner-xl"
+        className="h-24 rounded-lg bg-track"
         marks={12}
         subMarks={4}
         summary="SLOT 107"
         markText
         markSuffix="s"
       />
+      <Ruler className="h-10 rounded-lg bg-track" marks={32} summary="EPOCH 3" flip />
       <Ruler
-        className="h-10 rounded-lg bg-track shadow-inner-lg"
-        marks={32}
-        summary="EPOCH 3"
-        flip
-      />
-      <Ruler
-        className="h-24 rounded-lg bg-danger-surface shadow-inner-xl"
+        className="h-24 rounded-lg bg-danger-surface/60"
         marks={12}
         subMarks={1}
         summary="SLOT ERROR"
@@ -57,7 +52,7 @@ export const RulerVariants: Story = {
 export const SnapshotMarkers: Story = {
   render: () => (
     <div className="flex min-h-screen items-center justify-center bg-background p-8 text-foreground">
-      <div className="relative h-24 w-[640px] rounded-lg bg-track shadow-inner-xl">
+      <div className="relative h-24 w-[640px] rounded-lg bg-track">
         <SnapshotMarker
           metadata={[storyAllMetadata[0]]}
           activeIds={['frame-alpha']}
@@ -77,7 +72,7 @@ export const SnapshotMarkers: Story = {
 export const SnapshotMarkerPopoverOpen: Story = {
   render: () => (
     <div className="flex min-h-screen items-center justify-center bg-background p-8 text-foreground">
-      <div className="relative h-24 w-[640px] rounded-lg bg-track shadow-inner-xl">
+      <div className="relative h-24 w-[640px] rounded-lg bg-track">
         <SnapshotMarker
           metadata={[storyAllMetadata[1], storyEventMetadata[1], storyAllMetadata[2]]}
           activeIds={['event-after-reorg-1']}

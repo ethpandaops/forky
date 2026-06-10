@@ -74,7 +74,7 @@ export default function App({
 
   if (isLoading || error || !formattedData || !initialTime || isLoadingNow)
     return (
-      <div className="w-screen h-screen bg-shell">
+      <div className="h-dvh w-screen bg-shell">
         <Loading
           textColor="text-on-shell"
           message={
@@ -99,7 +99,7 @@ export default function App({
       focus={{ initialTime, node, frameId, playing, byo }}
     >
       <ClearTimeParam />
-      <div className="relative w-screen h-screen">
+      <div className="relative h-dvh w-screen">
         <div className="absolute top-0 left-0 w-full h-full">
           <Header />
           <Selection />

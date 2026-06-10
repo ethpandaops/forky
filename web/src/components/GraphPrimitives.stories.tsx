@@ -223,7 +223,7 @@ export const EdgesBoundariesAndProgress: Story = {
         epoch={3}
         x={180}
         y={80}
-        width={8}
+        width={4}
         height={560}
         textOffset={110}
         className="column-fade"
@@ -232,13 +232,13 @@ export const EdgesBoundariesAndProgress: Story = {
         slot={105}
         x={620}
         y={80}
-        width={8}
+        width={4}
         height={560}
         textOffset={110}
         className="column-fade"
       />
-      <Edge x1={230} y1={300} x2={620} y2={220} thickness={12} className="bg-edge" />
-      <Edge x1={230} y1={300} x2={620} y2={440} thickness={12} className="bg-edge" />
+      <Edge x1={230} y1={300} x2={620} y2={220} thickness={8} className="bg-edge" />
+      <Edge x1={230} y1={300} x2={620} y2={440} thickness={8} className="bg-edge" />
       <WeightedNode
         hash={storyBlockRoots.slot104}
         weight="960"

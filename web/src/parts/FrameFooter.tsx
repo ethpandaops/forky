@@ -12,30 +12,33 @@ function FrameFooter() {
   const { data } = useFrameQuery(ids[0], ids.length > 0);
 
   return (
-    <div
-      className="fixed left-0 w-full bottom-0 bg-toolbar border-t border-border"
-      style={{ height: 148 }}
-    >
-      <div className="flex h-full items-center justify-center text-foreground gap-x-10">
-        <Link href="/" className="flex flex-col items-center">
-          <span className="flex items-center rounded transition hover:bg-overlay/5 gap-2 text-lg p-4">
-            <RectangleGroupIcon className="h-10 w-10" />
+    <div className="glass-chrome fixed bottom-0 left-0 h-24 w-full border-t border-border">
+      <div className="flex h-full items-center justify-center gap-x-8 text-foreground">
+        <Link
+          href="/"
+          className="group flex flex-col items-center gap-1 font-mono text-[10px]/4 uppercase tracking-widest text-muted transition-colors duration-150 hover:text-foreground"
+        >
+          <span className="flex items-center rounded-lg p-3 transition-colors duration-150 group-hover:bg-overlay/5">
+            <RectangleGroupIcon className="size-8" />
           </span>
           Aggregated View
         </Link>
         {data && (
           <>
-            <Link href={`/node/${data.frame.metadata.node}`} className="flex flex-col items-center">
-              <span className="flex items-center rounded transition hover:bg-overlay/5 gap-2 text-lg p-4">
-                <RectangleStackIcon className="h-10 w-10" />
+            <Link
+              href={`/node/${data.frame.metadata.node}`}
+              className="group flex flex-col items-center gap-1 font-mono text-[10px]/4 uppercase tracking-widest text-muted transition-colors duration-150 hover:text-foreground"
+            >
+              <span className="flex items-center rounded-lg p-3 transition-colors duration-150 group-hover:bg-overlay/5">
+                <RectangleStackIcon className="size-8" />
               </span>
               Source View
             </Link>
-            <span className="flex-col items-center hidden sm:flex">
+            <span className="hidden flex-col items-center gap-1 font-mono text-[10px]/4 uppercase tracking-widest text-muted sm:flex">
               <Download
                 data={JSON.stringify(data.frame)}
                 filename={`snapshot-${data.frame.metadata.id}.json`}
-                size="lg"
+                size="md"
               />
               Download
             </span>
