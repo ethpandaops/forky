@@ -250,7 +250,44 @@ const graphScenarios = {
     { key: 'canonical-104', slot: 104, parent: 'canonical-103', weight: 910 },
     { key: 'canonical-105', slot: 105, parent: 'canonical-104', weight: 890 },
   ]),
+  // Spans far more than MAX_GRAPH_SLOTS (128): the tail is truncated and the
+  // finalized (slot 100) + justified (slot 103) checkpoints are pinned into
+  // compact columns left of the window, bridged by "slots hidden" markers.
+  longTail: scenarioFrames('long-tail', [
+    { key: 'canonical-100', slot: 100, weight: 1_000, graffiti: 'finalized checkpoint' },
+    { key: 'canonical-103', slot: 103, parent: 'canonical-100', weight: 990 },
+    ...Array.from({ length: 16 }, (_, i) => ({
+      key: `canonical-${273 + i * 8}`,
+      slot: 273 + i * 8,
+      parent: i === 0 ? 'canonical-103' : `canonical-${273 + (i - 1) * 8}`,
+      weight: 980 - i * 8,
+    })),
+    { key: 'fork-396', slot: 396, parent: 'canonical-393', weight: 310 },
+    { key: 'canonical-400', slot: 400, parent: 'canonical-393', weight: 850 },
+  ]),
 };
+
+// A stuck/syncing source: its fork-choice head (slot 104) sits ~1.1k slots
+// behind its own wall clock. Stage partitions frames like this out of the
+// aggregation; the Sources panel lists them struck through with their lag.
+const stuckNodeFrame: ProcessedData = processForkChoiceData({
+  metadata: {
+    id: 'stuck-node-1',
+    node: 'fra1-nimbus-001',
+    fetched_at: fetchedAt(1208, 0),
+    wall_clock_slot: 1208,
+    wall_clock_epoch: Math.floor(1208 / storySpec.slots_per_epoch),
+    labels: ['region=fra1', 'story_graph_scenario=stuck-node'],
+    consensus_client: 'nimbus',
+    event_source: 'beacon_node',
+  },
+  data: forkChoice([
+    { key: 'canonical-100', slot: 100, weight: 1_000 },
+    { key: 'canonical-101', slot: 101, parent: 'canonical-100', weight: 980 },
+    { key: 'canonical-103', slot: 103, parent: 'canonical-101', weight: 960 },
+    { key: 'canonical-104', slot: 104, parent: 'canonical-103', weight: 940 },
+  ]),
+});
 
 const meta = {
   title: 'Parts/Graph',
@@ -371,5 +408,32 @@ export const AggregatedSummaryCollapsed: Story = {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('button', { name: 'Collapse sources' }));
     await expect(canvas.getByRole('button', { name: 'Show sources' })).toBeVisible();
+  },
+};
+
+export const SingleNodeTruncatedLongTail: Story = {
+  ...singleNodeStory(graphScenarios.longTail, 'truncated-long-tail'),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // finalized→justified gap (3 slots) and justified→window gap (169 slots)
+    await expect(canvas.getAllByText(/slots\s+hidden/i)).toHaveLength(2);
+    await expect(canvas.getByText('169')).toBeVisible();
+  },
+};
+
+export const AggregatedTruncatedLongTail: Story = {
+  ...aggregatedStory(graphScenarios.longTail, 'truncated-long-tail'),
+};
+
+export const AggregatedWithStuckNode: Story = {
+  ...aggregatedStory(graphScenarios.happyPath, 'stuck-node'),
+  args: {
+    ...aggregatedStory(graphScenarios.happyPath, 'stuck-node').args,
+    behind: [stuckNodeFrame],
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('1104 slots behind')).toBeVisible();
+    await expect(canvas.getByText('fra1-nimbus-001')).toBeVisible();
   },
 };

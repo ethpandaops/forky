@@ -5,6 +5,7 @@ import ConcatNode from '@components/ConcatNode';
 import Edge from '@components/Edge';
 import ProgressCircle from '@components/ProgressCircle';
 import SlotBoundary from '@components/SlotBoundary';
+import TruncationMarker from '@components/TruncationMarker';
 import WeightedNode from '@components/WeightedNode';
 import { storyBlockRoots } from '@app/stories/fixtures';
 import { withForkyProviders } from '@app/stories/storybook';
@@ -268,6 +269,7 @@ export const EdgesBoundariesAndProgress: Story = {
         weightPercentageComparedToHeaviestNeighbor={45}
       />
       <ConcatNode id="concat-example" slotStart={100} slotEnd={107} x={930} y={230} radius={120} />
+      <TruncationMarker x={930} y={500} radius={120} slots={1869} />
       <div className="absolute left-[950px] top-[540px] flex gap-8 text-foreground">
         <ProgressCircle
           progress={0}
