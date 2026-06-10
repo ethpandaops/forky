@@ -17,6 +17,58 @@ import {
 } from '@app/types/graph';
 import { getCheckpointType } from '@app/utils/api';
 
+// A node whose fork choice head is more than this many slots behind its own
+// metadata wall clock slot is considered "stuck" and is excluded from the
+// aggregated graph (otherwise it drags slotStart back thousands of slots and
+// the timeline tries to render every slot in between). Tweak to taste.
+export const SLOTS_BEHIND_THRESHOLD = 5 * 32; // ~5 epochs
+
+// Maximum number of slots to render in a graph. When a graph spans more than
+// this (e.g. viewing a single node whose head is thousands of slots ahead of
+// its finalized tail), only the most recent MAX_GRAPH_SLOTS worth of slots are
+// shown — the tail is truncated so the timeline stays responsive. e.g. head at
+// slot 10000 only renders 9872-10000.
+export const MAX_GRAPH_SLOTS = 128;
+
+// The slot of a frame's canonical head. Falls back to the highest slot present
+// in the graph if no canonical head was resolved.
+export function getFrameHeadSlot(graph: WeightedGraph): number {
+  try {
+    const headId = graph.getAttribute('head');
+    if (headId) return graph.getNodeAttribute(headId, 'slot');
+  } catch {
+    // no resolvable head, fall through to max slot
+  }
+  let maxSlot = 0;
+  graph.forEachNode((_node, attributes) => {
+    if (attributes.slot > maxSlot) maxSlot = attributes.slot;
+  });
+  return maxSlot;
+}
+
+// How many slots a frame's head is behind its own metadata wall clock slot.
+export function getFrameSlotsBehind(frame: ProcessedData): number {
+  return frame.frame.metadata.wall_clock_slot - getFrameHeadSlot(frame.graph);
+}
+
+// Splits frames into those that are current enough to render and those that are
+// too far behind (e.g. a syncing/stuck node) to include in the aggregated view.
+export function partitionFramesBySlotLag(
+  frames: ProcessedData[],
+  threshold: number = SLOTS_BEHIND_THRESHOLD,
+): { live: ProcessedData[]; behind: ProcessedData[] } {
+  const live: ProcessedData[] = [];
+  const behind: ProcessedData[] = [];
+  for (const frame of frames) {
+    if (getFrameSlotsBehind(frame) > threshold) {
+      behind.push(frame);
+    } else {
+      live.push(frame);
+    }
+  }
+  return { live, behind };
+}
+
 export class GraphError extends Error {
   forkChoiceNode?: ForkChoiceNode;
 
@@ -476,6 +528,13 @@ export function processForkChoiceData(frame: Required<Frame>): ProcessedData {
     }
   }
 
+  // record the finalized/justified checkpoint nodes so they can be pinned into
+  // view when the tail is truncated.
+  const finalizedId = blockRootNodeIds[data.finalized_checkpoint.root];
+  const justifiedId = blockRootNodeIds[data.justified_checkpoint.root];
+  if (finalizedId) graph.updateAttribute('finalized', () => finalizedId);
+  if (justifiedId) graph.updateAttribute('justified', () => justifiedId);
+
   return { graph, frame };
 }
 
@@ -641,6 +700,33 @@ export function aggregateProcessedData(data: ProcessedData[]): AggregatedGraph {
     }, undefined);
 
   if (head) graph.updateAttribute('head', () => head);
+
+  // resolve the consensus finalized/justified checkpoint: the node the most
+  // sources agree on for each type (tie broken by highest slot). Pinned into
+  // view when the tail is truncated.
+  const consensusCheckpoint = (type: 'finalized' | 'justified'): string | undefined => {
+    let best: string | undefined;
+    let bestVotes = 0;
+    graph.forEachNode((nodeId, attributes) => {
+      const votes = attributes.checkpoints.filter(c => c.checkpoint === type).length;
+      if (votes === 0) return;
+      if (
+        votes > bestVotes ||
+        (votes === bestVotes &&
+          best !== undefined &&
+          attributes.slot > graph.getNodeAttribute(best, 'slot'))
+      ) {
+        best = nodeId;
+        bestVotes = votes;
+      }
+    });
+    return best;
+  };
+
+  const finalized = consensusCheckpoint('finalized');
+  const justified = consensusCheckpoint('justified');
+  if (finalized) graph.updateAttribute('finalized', () => finalized);
+  if (justified) graph.updateAttribute('justified', () => justified);
 
   return graph;
 }

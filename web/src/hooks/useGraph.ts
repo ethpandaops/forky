@@ -9,7 +9,7 @@ import {
   EdgeAttributes,
   GraphAttributes,
 } from '@app/types/graph';
-import { aggregateProcessedData } from '@utils/graph';
+import { aggregateProcessedData, MAX_GRAPH_SLOTS } from '@utils/graph';
 
 interface NodeData {
   id: string;
@@ -40,63 +40,66 @@ function generateNodeData({
   graph,
   spacingX,
   spacingY,
+  slotStart,
 }: {
   graph: Graph;
   spacingX: number;
   spacingY: number;
+  slotStart: number;
 }): NodeData[] {
-  return graph.mapNodes(node => {
-    return {
-      id: node,
-      x:
-        (graph.getNodeAttribute(node, 'slot') - graph.getAttribute('slotStart')) * spacingX +
-        spacingX,
-      y: graph.getNodeAttribute(node, 'offset') * spacingY - spacingY,
-      attributes: graph.getNodeAttributes(node),
-    };
-  });
+  return graph
+    .filterNodes(node => graph.getNodeAttribute(node, 'slot') >= slotStart)
+    .map(node => {
+      return {
+        id: node,
+        x: (graph.getNodeAttribute(node, 'slot') - slotStart) * spacingX + spacingX,
+        y: graph.getNodeAttribute(node, 'offset') * spacingY - spacingY,
+        attributes: graph.getNodeAttributes(node),
+      };
+    });
 }
 
 function generateEdgeData({
   graph,
   spacingX,
   spacingY,
+  slotStart,
 }: {
   graph: Graph;
   spacingX: number;
   spacingY: number;
+  slotStart: number;
 }): EdgeData[] {
-  return graph.mapEdges(edge => {
-    return {
-      id: edge,
-      canonical: graph.getSourceAttribute(edge, 'canonical'),
-      source: {
-        id: graph.getSourceAttribute(edge, 'blockRoot'),
-        x:
-          (graph.getSourceAttribute(edge, 'slot') - graph.getAttribute('slotStart')) * spacingX +
-          spacingX,
-        y: graph.getSourceAttribute(edge, 'offset') * spacingY - spacingY,
-      },
-      target: {
-        id: graph.getTargetAttribute(edge, 'blockRoot'),
-        x:
-          (graph.getTargetAttribute(edge, 'slot') - graph.getAttribute('slotStart')) * spacingX +
-          spacingX,
-        y: graph.getTargetAttribute(edge, 'offset') * spacingY - spacingY,
-      },
-    };
-  });
+  return graph
+    .filterEdges(
+      edge =>
+        graph.getSourceAttribute(edge, 'slot') >= slotStart &&
+        graph.getTargetAttribute(edge, 'slot') >= slotStart,
+    )
+    .map(edge => {
+      return {
+        id: edge,
+        canonical: graph.getSourceAttribute(edge, 'canonical'),
+        source: {
+          id: graph.getSourceAttribute(edge, 'blockRoot'),
+          x: (graph.getSourceAttribute(edge, 'slot') - slotStart) * spacingX + spacingX,
+          y: graph.getSourceAttribute(edge, 'offset') * spacingY - spacingY,
+        },
+        target: {
+          id: graph.getTargetAttribute(edge, 'blockRoot'),
+          x: (graph.getTargetAttribute(edge, 'slot') - slotStart) * spacingX + spacingX,
+          y: graph.getTargetAttribute(edge, 'offset') * spacingY - spacingY,
+        },
+      };
+    });
 }
 
-function generateOffsetData(graph: Graph): OffsetData {
-  const minOffset =
-    graph
-      .mapNodes(node => graph.getNodeAttribute(node, 'offset'))
-      .reduce((min, offset) => Math.min(min, offset), 0) ?? 0;
-  const maxOffset =
-    graph
-      .mapNodes(node => graph.getNodeAttribute(node, 'offset'))
-      .reduce((max, offset) => Math.max(max, offset), 0) ?? 0;
+function generateOffsetData(graph: Graph, slotStart: number): OffsetData {
+  const offsets = graph
+    .filterNodes(node => graph.getNodeAttribute(node, 'slot') >= slotStart)
+    .map(node => graph.getNodeAttribute(node, 'offset'));
+  const minOffset = offsets.reduce((min, offset) => Math.min(min, offset), 0) ?? 0;
+  const maxOffset = offsets.reduce((max, offset) => Math.max(max, offset), 0) ?? 0;
   return {
     minOffset,
     maxOffset,
@@ -112,12 +115,17 @@ export default function useGraph({
   spacingX: number;
   spacingY: number;
 }) {
-  const { edges, nodes, offset, attributes, type } = useMemo<{
+  const { edges, nodes, offset, attributes, type, truncation } = useMemo<{
     edges: EdgeData[];
     nodes: NodeData[];
     offset: OffsetData;
     attributes: GraphAttributes;
     type: 'aggregated' | 'weighted' | 'concat' | 'empty';
+    truncation: {
+      markers: { slots: number; x: number; y: number }[];
+      checkpoints: { slot: number; x: number }[];
+      rail: { x1: number; y1: number; x2: number; y2: number } | null;
+    } | null;
   }>(() => {
     let graph: Graph;
     let type: 'aggregated' | 'weighted' | 'empty' = 'empty';
@@ -138,14 +146,92 @@ export default function useGraph({
       type = 'aggregated';
     }
 
+    // Truncate the tail of long graphs so the timeline stays responsive: only
+    // render the most recent MAX_GRAPH_SLOTS worth of slots up to the head.
+    const rawAttributes = graph.getAttributes();
+    const slotStart =
+      rawAttributes.slotEnd - rawAttributes.slotStart > MAX_GRAPH_SLOTS
+        ? rawAttributes.slotEnd - MAX_GRAPH_SLOTS
+        : rawAttributes.slotStart;
+
+    const nodes = generateNodeData({ graph, spacingX, spacingY, slotStart });
+
+    // When the tail was cut, keep the finalized/justified checkpoint blocks (if
+    // they fell below the window) pinned into view in compact columns just left
+    // of the window, with markers bridging the hidden gaps.
+    let truncation: {
+      markers: { slots: number; x: number; y: number }[];
+      checkpoints: { slot: number; x: number }[];
+      rail: { x1: number; y1: number; x2: number; y2: number } | null;
+    } | null = null;
+    if (slotStart > rawAttributes.slotStart && nodes.length) {
+      // oldest visible canonical node — where the chain enters the window
+      const canonical = nodes.filter(node => node.attributes.canonical);
+      const pool = canonical.length ? canonical : nodes;
+      const boundary = pool.reduce((oldest, node) =>
+        node.attributes.slot < oldest.attributes.slot ? node : oldest,
+      );
+      const railY = boundary.y;
+
+      // checkpoint nodes that fell below the window, oldest (lowest slot) first
+      const pinnedIds = [rawAttributes.finalized, rawAttributes.justified]
+        .filter(
+          (id): id is string =>
+            !!id && graph.hasNode(id) && graph.getNodeAttribute(id, 'slot') < slotStart,
+        )
+        .filter((id, index, arr) => arr.indexOf(id) === index)
+        .sort((a, b) => graph.getNodeAttribute(a, 'slot') - graph.getNodeAttribute(b, 'slot'));
+
+      const markers: { slots: number; x: number; y: number }[] = [];
+      const checkpoints: { slot: number; x: number }[] = [];
+
+      if (pinnedIds.length) {
+        // compact columns: [checkpoint][gap][checkpoint][gap][window]
+        const totalCols = pinnedIds.length * 2;
+        const colX = (col: number) => (col - totalCols) * spacingX + spacingX;
+        let col = 0;
+        pinnedIds.forEach((id, index) => {
+          const attributes = graph.getNodeAttributes(id);
+          const nodeX = colX(col);
+          nodes.push({ id, x: nodeX, y: railY, attributes });
+          checkpoints.push({ slot: attributes.slot, x: nodeX });
+          col += 1;
+          const nextSlot =
+            index + 1 < pinnedIds.length
+              ? graph.getNodeAttribute(pinnedIds[index + 1], 'slot')
+              : slotStart;
+          markers.push({ slots: nextSlot - attributes.slot, x: colX(col), y: railY });
+          col += 1;
+        });
+        truncation = {
+          markers,
+          checkpoints,
+          rail: { x1: colX(0), y1: railY, x2: boundary.x, y2: railY },
+        };
+      } else {
+        // no checkpoints to pin — just flag the hidden tail with one marker
+        markers.push({
+          slots: slotStart - rawAttributes.slotStart,
+          x: boundary.x - spacingX,
+          y: railY,
+        });
+        truncation = {
+          markers,
+          checkpoints,
+          rail: { x1: boundary.x - spacingX, y1: railY, x2: boundary.x, y2: railY },
+        };
+      }
+    }
+
     return {
-      edges: generateEdgeData({ graph, spacingX, spacingY }),
-      nodes: generateNodeData({ graph, spacingX, spacingY }),
-      offset: generateOffsetData(graph),
-      attributes: graph.getAttributes(),
+      edges: generateEdgeData({ graph, spacingX, spacingY, slotStart }),
+      nodes,
+      offset: generateOffsetData(graph, slotStart),
+      attributes: { ...rawAttributes, slotStart },
       type,
+      truncation,
     };
   }, [spacingX, spacingY, data]);
 
-  return { ...attributes, ...offset, edges, nodes, type };
+  return { ...attributes, ...offset, edges, nodes, type, truncation };
 }

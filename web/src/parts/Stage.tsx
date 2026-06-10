@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import classNames from 'clsx';
 
 import { ProcessedData } from '@app/types/graph';
+import { partitionFramesBySlotLag } from '@app/utils/graph';
 import useFocus from '@contexts/focus';
 import useActive from '@hooks/useActive';
 import { useFrameQueries } from '@hooks/useQuery';
@@ -10,7 +11,7 @@ import Graph from '@parts/Graph';
 
 export default function Stage() {
   const { ids } = useActive();
-  const { byo, stop, byoData, frameId } = useFocus();
+  const { byo, stop, byoData, frameId, node: focusedNode } = useFocus();
   const results = useFrameQueries(ids, !byo && ids.length > 0);
 
   useEffect(() => {
@@ -39,6 +40,16 @@ export default function Stage() {
     );
   }
 
+  // Exclude nodes whose head is too far behind their metadata slot (e.g. a
+  // stuck/syncing node) from the aggregated view, but keep them around so the
+  // sources panel can still list them crossed out. Single node views
+  // (/node/:name) bypass this entirely — they only render that one node, so
+  // there is nothing to compare it against.
+  const { live, behind } = focusedNode
+    ? { live: data.frames, behind: [] as ProcessedData[] }
+    : partitionFramesBySlotLag(data.frames);
+  const liveIds = live.map(frame => frame.frame.metadata.id);
+
   // The timeline footer grows to 138px when the epoch dial appears at xl;
   // the BYO/snapshot footers stay at 97px on all breakpoints.
   const hasTimelineFooter = !byo && !frameId;
@@ -50,7 +61,9 @@ export default function Stage() {
         hasTimelineFooter && 'xl:h-[calc(100dvh-138px)]',
       )}
     >
-      {!isLoading && <Graph data={data.frames} ids={ids} unique={data.loadedIds.join('_')} />}
+      {!isLoading && (
+        <Graph data={live} behind={behind} ids={liveIds} unique={data.loadedIds.join('_')} />
+      )}
     </div>
   );
 }
