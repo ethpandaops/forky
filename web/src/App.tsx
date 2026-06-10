@@ -17,10 +17,14 @@ export default function App({
   node,
   frameId,
   byo = false,
+  eventsOpen = false,
+  eventsCloseTo = '/',
 }: {
   node?: string;
   frameId?: string;
   byo?: boolean;
+  eventsOpen?: boolean;
+  eventsCloseTo?: string;
 }) {
   const { data, isLoading, error } = useSpecQuery();
   const {
@@ -99,7 +103,7 @@ export default function App({
         <div className="absolute top-0 left-0 w-full h-full">
           <Header />
           <Selection />
-          <Events />
+          <Events open={eventsOpen} closeTo={eventsCloseTo} />
           <main>
             <Stage />
           </main>

@@ -2,6 +2,8 @@ import { MouseEventHandler, ReactNode } from 'react';
 
 import { Link as RouterLink } from '@tanstack/react-router';
 
+import { parseAppRoute } from '@utils/routes';
+
 interface Props {
   href: string;
   className?: string;
@@ -10,15 +12,30 @@ interface Props {
   children?: ReactNode;
 }
 
-/**
- * The app's link primitive: forky composes paths on a single catch-all splat
- * route, so links take a plain `href` path string and route it through the
- * splat param (see hooks/useAppNavigation.ts for the programmatic version).
- */
+/** The app's link primitive: links take plain paths and route to typed targets. */
 export default function Link({ href, ...props }: Props) {
-  if (href === '/') {
-    return <RouterLink to="/" {...props} />;
-  }
+  const route = parseAppRoute(href);
 
-  return <RouterLink to="/$" params={{ _splat: href.replace(/^\//, '') }} {...props} />;
+  switch (route?.kind) {
+    case 'home':
+      return <RouterLink to="/" {...props} />;
+    case 'events':
+      return <RouterLink to="/events" {...props} />;
+    case 'byo':
+      return <RouterLink to="/byo" {...props} />;
+    case 'byoEvents':
+      return <RouterLink to="/byo/events" {...props} />;
+    case 'node':
+      return <RouterLink to="/node/$nodeId" params={{ nodeId: route.nodeId }} {...props} />;
+    case 'nodeEvents':
+      return <RouterLink to="/node/$nodeId/events" params={{ nodeId: route.nodeId }} {...props} />;
+    case 'snapshot':
+      return <RouterLink to="/snapshot/$frameId" params={{ frameId: route.frameId }} {...props} />;
+    case 'snapshotEvents':
+      return (
+        <RouterLink to="/snapshot/$frameId/events" params={{ frameId: route.frameId }} {...props} />
+      );
+    default:
+      return <a href={href} {...props} />;
+  }
 }

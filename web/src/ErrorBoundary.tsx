@@ -10,6 +10,15 @@ interface State {
   hasError: boolean;
 }
 
+export function ErrorBoundaryFallback() {
+  return (
+    <div className="w-screen h-screen flex flex-col items-center justify-center bg-shell">
+      <img src={Logo} className="object-contain w-72 h-72 rotate-180" />
+      <h1 className="mt-6 text-2xl text-danger-accent">Uhh... Something went wrong</h1>
+    </div>
+  );
+}
+
 class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
@@ -26,12 +35,7 @@ class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
-      return (
-        <div className="w-screen h-screen flex flex-col items-center justify-center bg-shell">
-          <img src={Logo} className="object-contain w-72 h-72 rotate-180" />
-          <h1 className="mt-6 text-2xl text-danger-accent">Uhh... Something went wrong</h1>
-        </div>
-      );
+      return <ErrorBoundaryFallback />;
     }
 
     return this.props.children;

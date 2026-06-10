@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from '@components/Link';
 import { usePathname } from '@hooks/useAppNavigation';
+import { eventsPathFor } from '@utils/routes';
 
 import Walker from '@app/components/Walker';
 import LogoSmall from '@assets/forky_logo_small.png';
@@ -30,14 +31,14 @@ export default function Header() {
           </div>
           <div className="flex gap-5">
             <Link
-              href={`${location}${location.endsWith('/') ? '' : '/'}byo`}
+              href="/byo"
               className="inline-flex items-center justify-center rounded-md pl-2 pr-2 text-muted transition hover:bg-overlay/5"
             >
               <span className="sr-only">Bring your own fork choice</span>
               <DocumentArrowUpIcon className="h-6 w-6" aria-hidden="true" />
             </Link>
             <Link
-              href={`${location}${location.endsWith('/') ? '' : '/'}events`}
+              href={eventsPathFor(location)}
               className="inline-flex items-center justify-center rounded-md pl-2 pr-2 text-muted transition hover:bg-overlay/5"
             >
               <span className="sr-only">Open menu</span>

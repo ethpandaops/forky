@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 
 import {
   Dialog,
@@ -18,7 +18,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import classNames from 'clsx';
 import ReactTimeAgo from 'react-time-ago';
 import Link from '@components/Link';
-import { useAppNavigate, usePathname } from '@hooks/useAppNavigation';
+import { useAppNavigate } from '@hooks/useAppNavigation';
 
 import EditableInput from '@components/EditableInput';
 import Loading from '@components/Loading';
@@ -82,7 +82,7 @@ const queryRelativeOptions = [
   { id: 1000 * 60 * 60 * 7, name: 'Last 7 days' },
 ];
 
-export default function Selection() {
+export default function Events({ open, closeTo }: { open: boolean; closeTo: string }) {
   const [queryType, setQueryType] = useState(queryOptions[0]);
   const [queryRelative, setQueryRelative] = useState(queryRelativeOptions[3]);
   const [querySlot, setQuerySlot] = useState<string>('');
@@ -94,13 +94,7 @@ export default function Selection() {
   );
   const { node, stop, setTime } = useFocus();
   const { slotsPerEpoch, secondsPerSlot, genesisTime } = useEthereum();
-  const location = usePathname();
   const setLocation = useAppNavigate();
-  const isEventRoute = location.endsWith('/events');
-  const previousLocation = useRef(isEventRoute ? '/' : location);
-  useEffect(() => {
-    if (!isEventRoute) previousLocation.current = location;
-  }, [location, isEventRoute]);
 
   // Recompute the filter at event time (in the input handlers below) rather
   // than reacting to state changes in an effect.
@@ -136,7 +130,7 @@ export default function Selection() {
       node,
       event_source: 'xatu_reorg_event',
     },
-    isEventRoute,
+    open,
   );
 
   const events = useMemo<
@@ -149,7 +143,7 @@ export default function Selection() {
       id: string;
     }[]
   >(() => {
-    if (!isEventRoute || !data) return [];
+    if (!open || !data) return [];
     const groupedEvents = data.reduce<
       Record<
         string,
@@ -208,12 +202,12 @@ export default function Selection() {
       }
       return b.time - a.time;
     });
-  }, [isEventRoute, data]);
+  }, [open, data]);
 
   return (
     <div className="bg-shell">
       <header className="absolute inset-x-0 top-0 z-20">
-        <Dialog open={isEventRoute} onClose={() => setLocation(previousLocation.current)}>
+        <Dialog open={open} onClose={() => setLocation(closeTo)}>
           <DialogBackdrop
             transition
             className="fixed inset-0 z-30 bg-scrim transition-opacity duration-100 ease-in-out data-[closed]:opacity-0"
@@ -233,12 +227,7 @@ export default function Selection() {
                           {node && (
                             <span>
                               : {node}
-                              <Link
-                                href="/events"
-                                onClick={() => {
-                                  previousLocation.current = '/';
-                                }}
-                              >
+                              <Link href="/events">
                                 <XMarkIcon className="inline w-4 h-4 hover:text-active cursor-pointer align-top" />
                               </Link>
                             </span>
@@ -248,7 +237,7 @@ export default function Selection() {
                           <button
                             type="button"
                             className="rounded-md p-1.5 text-faint transition hover:bg-overlay/5"
-                            onClick={() => setLocation(previousLocation.current)}
+                            onClick={() => setLocation(closeTo)}
                           >
                             <span className="sr-only">Close menu</span>
                             <XMarkIcon className="h-5 w-5" aria-hidden="true" />

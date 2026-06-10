@@ -9,12 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SplatRouteImport } from './routes/$'
+import { Route as EventsRouteImport } from './routes/events'
+import { Route as ByoRouteImport } from './routes/byo'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SnapshotFrameIdRouteImport } from './routes/snapshot.$frameId'
+import { Route as NodeNodeIdRouteImport } from './routes/node.$nodeId'
+import { Route as ByoEventsRouteImport } from './routes/byo_.events'
+import { Route as SnapshotFrameIdEventsRouteImport } from './routes/snapshot_.$frameId.events'
+import { Route as NodeNodeIdEventsRouteImport } from './routes/node_.$nodeId.events'
 
-const SplatRoute = SplatRouteImport.update({
-  id: '/$',
-  path: '/$',
+const EventsRoute = EventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ByoRoute = ByoRouteImport.update({
+  id: '/byo',
+  path: '/byo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -22,40 +33,121 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SnapshotFrameIdRoute = SnapshotFrameIdRouteImport.update({
+  id: '/snapshot/$frameId',
+  path: '/snapshot/$frameId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NodeNodeIdRoute = NodeNodeIdRouteImport.update({
+  id: '/node/$nodeId',
+  path: '/node/$nodeId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ByoEventsRoute = ByoEventsRouteImport.update({
+  id: '/byo_/events',
+  path: '/byo/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SnapshotFrameIdEventsRoute = SnapshotFrameIdEventsRouteImport.update({
+  id: '/snapshot_/$frameId/events',
+  path: '/snapshot/$frameId/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NodeNodeIdEventsRoute = NodeNodeIdEventsRouteImport.update({
+  id: '/node_/$nodeId/events',
+  path: '/node/$nodeId/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$': typeof SplatRoute
+  '/byo': typeof ByoRoute
+  '/events': typeof EventsRoute
+  '/byo/events': typeof ByoEventsRoute
+  '/node/$nodeId': typeof NodeNodeIdRoute
+  '/snapshot/$frameId': typeof SnapshotFrameIdRoute
+  '/node/$nodeId/events': typeof NodeNodeIdEventsRoute
+  '/snapshot/$frameId/events': typeof SnapshotFrameIdEventsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$': typeof SplatRoute
+  '/byo': typeof ByoRoute
+  '/events': typeof EventsRoute
+  '/byo/events': typeof ByoEventsRoute
+  '/node/$nodeId': typeof NodeNodeIdRoute
+  '/snapshot/$frameId': typeof SnapshotFrameIdRoute
+  '/node/$nodeId/events': typeof NodeNodeIdEventsRoute
+  '/snapshot/$frameId/events': typeof SnapshotFrameIdEventsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/$': typeof SplatRoute
+  '/byo': typeof ByoRoute
+  '/events': typeof EventsRoute
+  '/byo_/events': typeof ByoEventsRoute
+  '/node/$nodeId': typeof NodeNodeIdRoute
+  '/snapshot/$frameId': typeof SnapshotFrameIdRoute
+  '/node_/$nodeId/events': typeof NodeNodeIdEventsRoute
+  '/snapshot_/$frameId/events': typeof SnapshotFrameIdEventsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$'
+  fullPaths:
+    | '/'
+    | '/byo'
+    | '/events'
+    | '/byo/events'
+    | '/node/$nodeId'
+    | '/snapshot/$frameId'
+    | '/node/$nodeId/events'
+    | '/snapshot/$frameId/events'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$'
-  id: '__root__' | '/' | '/$'
+  to:
+    | '/'
+    | '/byo'
+    | '/events'
+    | '/byo/events'
+    | '/node/$nodeId'
+    | '/snapshot/$frameId'
+    | '/node/$nodeId/events'
+    | '/snapshot/$frameId/events'
+  id:
+    | '__root__'
+    | '/'
+    | '/byo'
+    | '/events'
+    | '/byo_/events'
+    | '/node/$nodeId'
+    | '/snapshot/$frameId'
+    | '/node_/$nodeId/events'
+    | '/snapshot_/$frameId/events'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  SplatRoute: typeof SplatRoute
+  ByoRoute: typeof ByoRoute
+  EventsRoute: typeof EventsRoute
+  ByoEventsRoute: typeof ByoEventsRoute
+  NodeNodeIdRoute: typeof NodeNodeIdRoute
+  SnapshotFrameIdRoute: typeof SnapshotFrameIdRoute
+  NodeNodeIdEventsRoute: typeof NodeNodeIdEventsRoute
+  SnapshotFrameIdEventsRoute: typeof SnapshotFrameIdEventsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/$': {
-      id: '/$'
-      path: '/$'
-      fullPath: '/$'
-      preLoaderRoute: typeof SplatRouteImport
+    '/events': {
+      id: '/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof EventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/byo': {
+      id: '/byo'
+      path: '/byo'
+      fullPath: '/byo'
+      preLoaderRoute: typeof ByoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -65,12 +157,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/snapshot/$frameId': {
+      id: '/snapshot/$frameId'
+      path: '/snapshot/$frameId'
+      fullPath: '/snapshot/$frameId'
+      preLoaderRoute: typeof SnapshotFrameIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/node/$nodeId': {
+      id: '/node/$nodeId'
+      path: '/node/$nodeId'
+      fullPath: '/node/$nodeId'
+      preLoaderRoute: typeof NodeNodeIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/byo_/events': {
+      id: '/byo_/events'
+      path: '/byo/events'
+      fullPath: '/byo/events'
+      preLoaderRoute: typeof ByoEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/snapshot_/$frameId/events': {
+      id: '/snapshot_/$frameId/events'
+      path: '/snapshot/$frameId/events'
+      fullPath: '/snapshot/$frameId/events'
+      preLoaderRoute: typeof SnapshotFrameIdEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/node_/$nodeId/events': {
+      id: '/node_/$nodeId/events'
+      path: '/node/$nodeId/events'
+      fullPath: '/node/$nodeId/events'
+      preLoaderRoute: typeof NodeNodeIdEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  SplatRoute: SplatRoute,
+  ByoRoute: ByoRoute,
+  EventsRoute: EventsRoute,
+  ByoEventsRoute: ByoEventsRoute,
+  NodeNodeIdRoute: NodeNodeIdRoute,
+  SnapshotFrameIdRoute: SnapshotFrameIdRoute,
+  NodeNodeIdEventsRoute: NodeNodeIdEventsRoute,
+  SnapshotFrameIdEventsRoute: SnapshotFrameIdEventsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

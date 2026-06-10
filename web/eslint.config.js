@@ -1,3 +1,6 @@
+// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
+import storybook from 'eslint-plugin-storybook';
+
 import js from '@eslint/js';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
@@ -18,7 +21,8 @@ export default tseslint.config(
       'node_modules',
       'coverage',
       'eslint_report.json',
-      'eslint-rules'
+      'eslint-rules',
+      'storybook-static',
     ],
   },
   // Custom color theming rules: app code may only use the semantic tokens
@@ -74,4 +78,17 @@ export default tseslint.config(
       'react/react-in-jsx-scope': 'off',
     },
   },
+  storybook.configs['flat/recommended'],
+  {
+    files: ['**/.storybook/**/*.{js,ts}'],
+    rules: {
+      'storybook/no-uninstalled-addons': [
+        'error',
+        {
+          packageJsonLocation: './package.json',
+          ignore: ['storybook/viewport'],
+        },
+      ],
+    },
+  }
 );

@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "composite": true,
+    "types": ["vite/client", "vitest/globals"]
+  },
+  "include": ["src", ".storybook/**/*.ts", ".storybook/**/*.tsx"],
+  "exclude": ["node_modules", "./src/**/__tests__/*", "./src/index.tsx"]
+}

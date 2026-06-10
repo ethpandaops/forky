@@ -1,0 +1,293 @@
+import type { Meta, StoryObj } from '@storybook/tanstack-react';
+
+import AggregatedNode from '@components/AggregatedNode';
+import ConcatNode from '@components/ConcatNode';
+import Edge from '@components/Edge';
+import ProgressCircle from '@components/ProgressCircle';
+import SlotBoundary from '@components/SlotBoundary';
+import WeightedNode from '@components/WeightedNode';
+import { storyBlockRoots } from '@app/stories/fixtures';
+import { withForkyProviders } from '@app/stories/storybook';
+
+const meta = {
+  title: 'Components/Graph Primitives',
+  parameters: {
+    layout: 'fullscreen',
+  },
+  decorators: [withForkyProviders()],
+} satisfies Meta;
+
+export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const WeightedNodeStates: Story = {
+  render: () => (
+    <div className="relative h-[920px] min-w-[1700px] bg-background">
+      <WeightedNode
+        hash={storyBlockRoots.slot107}
+        weight="910"
+        type="canonical"
+        validity="valid"
+        x={80}
+        y={80}
+        radius={120}
+      />
+      <WeightedNode
+        hash={storyBlockRoots.slot106}
+        weight="910"
+        type="canonical"
+        validity="optimistic"
+        x={430}
+        y={80}
+        radius={120}
+      />
+      <WeightedNode
+        hash={storyBlockRoots.fork105}
+        weight="430"
+        type="fork"
+        validity="valid"
+        weightPercentageComparedToHeaviestNeighbor={45}
+        x={780}
+        y={80}
+        radius={120}
+      />
+      <WeightedNode
+        hash={storyBlockRoots.justified}
+        weight="970"
+        type="justified"
+        validity="valid"
+        x={1130}
+        y={80}
+        radius={120}
+      />
+      <WeightedNode
+        hash={storyBlockRoots.finalized}
+        weight="1000"
+        type="finalized"
+        validity="valid"
+        x={80}
+        y={460}
+        radius={120}
+      />
+      <WeightedNode
+        hash={storyBlockRoots.orphan106}
+        weight="120"
+        type="detached"
+        validity="valid"
+        x={430}
+        y={460}
+        radius={120}
+      />
+      <WeightedNode
+        hash={storyBlockRoots.fork106}
+        weight="350"
+        type="fork"
+        validity="invalid"
+        weightPercentageComparedToHeaviestNeighbor={38}
+        x={780}
+        y={460}
+        radius={120}
+      />
+      <WeightedNode
+        hash={storyBlockRoots.missingParent}
+        weight="0"
+        type="fork"
+        validity="unknown"
+        weightPercentageComparedToHeaviestNeighbor={0}
+        x={1130}
+        y={460}
+        radius={120}
+      />
+    </div>
+  ),
+};
+
+export const AggregatedNodeStates: Story = {
+  render: () => (
+    <div className="relative h-[920px] min-w-[1700px] bg-background">
+      <AggregatedNode
+        hash={storyBlockRoots.slot107}
+        type="canonical"
+        seen={3}
+        canonical={2}
+        finalizedCheckpoints={0}
+        justifiedCheckpoints={0}
+        orphans={0}
+        valid={3}
+        optimistic={0}
+        total={3}
+        x={80}
+        y={80}
+        radius={120}
+      />
+      <AggregatedNode
+        hash={storyBlockRoots.fork107}
+        type="fork"
+        seen={1}
+        canonical={1}
+        finalizedCheckpoints={0}
+        justifiedCheckpoints={0}
+        orphans={0}
+        valid={1}
+        optimistic={0}
+        total={3}
+        x={430}
+        y={80}
+        radius={120}
+      />
+      <AggregatedNode
+        hash={storyBlockRoots.finalized}
+        type="canonical"
+        seen={3}
+        canonical={3}
+        finalizedCheckpoints={3}
+        justifiedCheckpoints={0}
+        orphans={0}
+        valid={3}
+        optimistic={0}
+        total={3}
+        x={780}
+        y={80}
+        radius={120}
+      />
+      <AggregatedNode
+        hash={storyBlockRoots.justified}
+        type="canonical"
+        seen={3}
+        canonical={3}
+        finalizedCheckpoints={0}
+        justifiedCheckpoints={3}
+        orphans={0}
+        valid={3}
+        optimistic={0}
+        total={3}
+        x={1130}
+        y={80}
+        radius={120}
+      />
+      <AggregatedNode
+        hash={storyBlockRoots.slot106}
+        type="canonical"
+        seen={3}
+        canonical={2}
+        finalizedCheckpoints={0}
+        justifiedCheckpoints={0}
+        orphans={0}
+        valid={3}
+        optimistic={1}
+        total={3}
+        x={80}
+        y={460}
+        radius={120}
+      />
+      <AggregatedNode
+        hash={storyBlockRoots.fork106}
+        type="fork"
+        seen={2}
+        canonical={1}
+        finalizedCheckpoints={0}
+        justifiedCheckpoints={0}
+        orphans={0}
+        valid={1}
+        optimistic={0}
+        total={3}
+        x={430}
+        y={460}
+        radius={120}
+      />
+      <AggregatedNode
+        hash={storyBlockRoots.orphan106}
+        type="fork"
+        seen={1}
+        canonical={0}
+        finalizedCheckpoints={0}
+        justifiedCheckpoints={0}
+        orphans={1}
+        valid={1}
+        optimistic={0}
+        total={3}
+        x={780}
+        y={460}
+        radius={120}
+      />
+    </div>
+  ),
+};
+
+export const EdgesBoundariesAndProgress: Story = {
+  render: () => (
+    <div className="relative h-[780px] min-w-[1300px] overflow-hidden bg-background">
+      <SlotBoundary
+        slot={104}
+        epoch={3}
+        x={180}
+        y={80}
+        width={8}
+        height={560}
+        textOffset={110}
+        className="column-fade"
+      />
+      <SlotBoundary
+        slot={105}
+        x={620}
+        y={80}
+        width={8}
+        height={560}
+        textOffset={110}
+        className="column-fade"
+      />
+      <Edge x1={230} y1={300} x2={620} y2={220} thickness={12} className="bg-edge" />
+      <Edge x1={230} y1={300} x2={620} y2={440} thickness={12} className="bg-edge" />
+      <WeightedNode
+        hash={storyBlockRoots.slot104}
+        weight="960"
+        type="canonical"
+        validity="valid"
+        x={80}
+        y={180}
+        radius={100}
+      />
+      <WeightedNode
+        hash={storyBlockRoots.slot105}
+        weight="950"
+        type="canonical"
+        validity="valid"
+        x={520}
+        y={100}
+        radius={100}
+      />
+      <WeightedNode
+        hash={storyBlockRoots.fork105}
+        weight="430"
+        type="fork"
+        validity="valid"
+        x={520}
+        y={320}
+        radius={100}
+        weightPercentageComparedToHeaviestNeighbor={45}
+      />
+      <ConcatNode id="concat-example" slotStart={100} slotEnd={107} x={930} y={230} radius={120} />
+      <div className="absolute left-[950px] top-[540px] flex gap-8 text-foreground">
+        <ProgressCircle
+          progress={0}
+          radius={48}
+          color="text-canonical-ring"
+          backgroundColor="text-canonical-deep"
+        />
+        <ProgressCircle
+          progress={45}
+          radius={48}
+          color="text-fork-ring"
+          backgroundColor="text-fork-deep"
+        />
+        <ProgressCircle
+          progress={100}
+          radius={48}
+          color="text-finalized-ring"
+          backgroundColor="text-finalized-deep"
+        />
+      </div>
+    </div>
+  ),
+};
