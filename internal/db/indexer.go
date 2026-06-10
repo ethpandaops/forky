@@ -32,9 +32,13 @@ func NewIndexer(namespace string, log logrus.FieldLogger, config IndexerConfig, 
 
 	switch config.DriverName {
 	case "postgres":
+		// Leave Config.DriverName empty so the gorm dialect connects via its
+		// bundled pgx driver; naming a driver makes gorm call
+		// sql.Open("postgres", ...), which requires a separately registered
+		// database/sql driver (the old lib/pq blank import this repo no
+		// longer has).
 		conf := postgres.Config{
-			DSN:        config.DSN,
-			DriverName: "postgres",
+			DSN: config.DSN,
 		}
 
 		dialect := postgres.New(conf)
