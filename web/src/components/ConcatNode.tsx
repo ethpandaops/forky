@@ -23,7 +23,7 @@ function ConcatNode({
       className={classNames(
         'absolute flex flex-col items-center justify-center rounded-full gap-3',
         'border-4 border-dashed border-border-strong',
-        'bg-surface/60',
+        'bg-surface',
         className,
       )}
       style={{

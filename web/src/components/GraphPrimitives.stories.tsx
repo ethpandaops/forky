@@ -10,6 +10,11 @@ import WeightedNode from '@components/WeightedNode';
 import { storyBlockRoots } from '@app/stories/fixtures';
 import { withForkyProviders } from '@app/stories/storybook';
 
+/* Always render graph nodes at the radius the real graph uses (see RADIUS in
+ * parts/Graph) — node typography is fixed, so smaller discs distort the
+ * text-to-circle proportions. */
+const RADIUS = 150;
+
 const meta = {
   title: 'Components/Graph Primitives',
   parameters: {
@@ -24,7 +29,7 @@ type Story = StoryObj<typeof meta>;
 
 export const WeightedNodeStates: Story = {
   render: () => (
-    <div className="relative h-[920px] min-w-[1700px] bg-background">
+    <div className="relative h-[1100px] min-w-[1700px] bg-background">
       <WeightedNode
         hash={storyBlockRoots.slot107}
         weight="910"
@@ -32,16 +37,16 @@ export const WeightedNodeStates: Story = {
         validity="valid"
         x={80}
         y={80}
-        radius={120}
+        radius={RADIUS}
       />
       <WeightedNode
         hash={storyBlockRoots.slot106}
         weight="910"
         type="canonical"
         validity="optimistic"
-        x={430}
+        x={480}
         y={80}
-        radius={120}
+        radius={RADIUS}
       />
       <WeightedNode
         hash={storyBlockRoots.fork105}
@@ -49,18 +54,18 @@ export const WeightedNodeStates: Story = {
         type="fork"
         validity="valid"
         weightPercentageComparedToHeaviestNeighbor={45}
-        x={780}
+        x={880}
         y={80}
-        radius={120}
+        radius={RADIUS}
       />
       <WeightedNode
         hash={storyBlockRoots.justified}
         weight="970"
         type="justified"
         validity="valid"
-        x={1130}
+        x={1280}
         y={80}
-        radius={120}
+        radius={RADIUS}
       />
       <WeightedNode
         hash={storyBlockRoots.finalized}
@@ -68,17 +73,17 @@ export const WeightedNodeStates: Story = {
         type="finalized"
         validity="valid"
         x={80}
-        y={460}
-        radius={120}
+        y={540}
+        radius={RADIUS}
       />
       <WeightedNode
         hash={storyBlockRoots.orphan106}
         weight="120"
         type="detached"
         validity="valid"
-        x={430}
-        y={460}
-        radius={120}
+        x={480}
+        y={540}
+        radius={RADIUS}
       />
       <WeightedNode
         hash={storyBlockRoots.fork106}
@@ -86,9 +91,9 @@ export const WeightedNodeStates: Story = {
         type="fork"
         validity="invalid"
         weightPercentageComparedToHeaviestNeighbor={38}
-        x={780}
-        y={460}
-        radius={120}
+        x={880}
+        y={540}
+        radius={RADIUS}
       />
       <WeightedNode
         hash={storyBlockRoots.missingParent}
@@ -96,9 +101,9 @@ export const WeightedNodeStates: Story = {
         type="fork"
         validity="unknown"
         weightPercentageComparedToHeaviestNeighbor={0}
-        x={1130}
-        y={460}
-        radius={120}
+        x={1280}
+        y={540}
+        radius={RADIUS}
       />
     </div>
   ),
@@ -106,7 +111,7 @@ export const WeightedNodeStates: Story = {
 
 export const AggregatedNodeStates: Story = {
   render: () => (
-    <div className="relative h-[920px] min-w-[1700px] bg-background">
+    <div className="relative h-[1100px] min-w-[1700px] bg-background">
       <AggregatedNode
         hash={storyBlockRoots.slot107}
         type="canonical"
@@ -120,7 +125,7 @@ export const AggregatedNodeStates: Story = {
         total={3}
         x={80}
         y={80}
-        radius={120}
+        radius={RADIUS}
       />
       <AggregatedNode
         hash={storyBlockRoots.fork107}
@@ -133,9 +138,9 @@ export const AggregatedNodeStates: Story = {
         valid={1}
         optimistic={0}
         total={3}
-        x={430}
+        x={480}
         y={80}
-        radius={120}
+        radius={RADIUS}
       />
       <AggregatedNode
         hash={storyBlockRoots.finalized}
@@ -148,9 +153,9 @@ export const AggregatedNodeStates: Story = {
         valid={3}
         optimistic={0}
         total={3}
-        x={780}
+        x={880}
         y={80}
-        radius={120}
+        radius={RADIUS}
       />
       <AggregatedNode
         hash={storyBlockRoots.justified}
@@ -163,9 +168,9 @@ export const AggregatedNodeStates: Story = {
         valid={3}
         optimistic={0}
         total={3}
-        x={1130}
+        x={1280}
         y={80}
-        radius={120}
+        radius={RADIUS}
       />
       <AggregatedNode
         hash={storyBlockRoots.slot106}
@@ -179,8 +184,8 @@ export const AggregatedNodeStates: Story = {
         optimistic={1}
         total={3}
         x={80}
-        y={460}
-        radius={120}
+        y={540}
+        radius={RADIUS}
       />
       <AggregatedNode
         hash={storyBlockRoots.fork106}
@@ -193,9 +198,9 @@ export const AggregatedNodeStates: Story = {
         valid={1}
         optimistic={0}
         total={3}
-        x={430}
-        y={460}
-        radius={120}
+        x={480}
+        y={540}
+        radius={RADIUS}
       />
       <AggregatedNode
         hash={storyBlockRoots.orphan106}
@@ -208,9 +213,9 @@ export const AggregatedNodeStates: Story = {
         valid={1}
         optimistic={0}
         total={3}
-        x={780}
-        y={460}
-        radius={120}
+        x={880}
+        y={540}
+        radius={RADIUS}
       />
     </div>
   ),
@@ -218,15 +223,15 @@ export const AggregatedNodeStates: Story = {
 
 export const EdgesBoundariesAndProgress: Story = {
   render: () => (
-    <div className="relative h-[1080px] min-w-[1300px] overflow-hidden bg-background">
+    <div className="relative h-[1180px] min-w-[1700px] overflow-hidden bg-background">
       <SlotBoundary
         slot={104}
         epoch={3}
         x={180}
         y={80}
         width={4}
-        height={560}
-        textOffset={110}
+        height={640}
+        textOffset={260}
         className="column-fade"
       />
       <SlotBoundary
@@ -234,20 +239,20 @@ export const EdgesBoundariesAndProgress: Story = {
         x={620}
         y={80}
         width={4}
-        height={560}
-        textOffset={110}
+        height={640}
+        textOffset={340}
         className="column-fade"
       />
-      <Edge x1={230} y1={300} x2={620} y2={220} thickness={8} className="bg-edge" />
-      <Edge x1={230} y1={300} x2={620} y2={440} thickness={8} className="bg-edge" />
+      <Edge x1={230} y1={390} x2={670} y2={230} thickness={8} className="bg-edge" />
+      <Edge x1={230} y1={390} x2={670} y2={570} thickness={8} className="bg-edge" />
       <WeightedNode
         hash={storyBlockRoots.slot104}
         weight="960"
         type="canonical"
         validity="valid"
         x={80}
-        y={180}
-        radius={100}
+        y={240}
+        radius={RADIUS}
       />
       <WeightedNode
         hash={storyBlockRoots.slot105}
@@ -255,8 +260,8 @@ export const EdgesBoundariesAndProgress: Story = {
         type="canonical"
         validity="valid"
         x={520}
-        y={100}
-        radius={100}
+        y={80}
+        radius={RADIUS}
       />
       <WeightedNode
         hash={storyBlockRoots.fork105}
@@ -264,13 +269,20 @@ export const EdgesBoundariesAndProgress: Story = {
         type="fork"
         validity="valid"
         x={520}
-        y={320}
-        radius={100}
+        y={420}
+        radius={RADIUS}
         weightPercentageComparedToHeaviestNeighbor={45}
       />
-      <ConcatNode id="concat-example" slotStart={100} slotEnd={107} x={930} y={230} radius={120} />
-      <TruncationMarker x={120} y={720} radius={150} slots={1869} />
-      <div className="absolute left-[950px] top-[540px] flex gap-8 text-foreground">
+      <ConcatNode
+        id="concat-example"
+        slotStart={100}
+        slotEnd={107}
+        x={1000}
+        y={180}
+        radius={RADIUS}
+      />
+      <TruncationMarker x={120} y={800} radius={RADIUS} slots={1869} />
+      <div className="absolute left-[1020px] top-[560px] flex gap-8 text-foreground">
         <ProgressCircle
           progress={0}
           radius={48}

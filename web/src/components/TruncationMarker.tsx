@@ -22,7 +22,7 @@ function TruncationMarker({
     <div
       className={classNames(
         'absolute flex flex-col items-center justify-center gap-6 rounded-full',
-        'border-8 border-dashed border-border-strong bg-surface/80',
+        'border-8 border-dashed border-border-strong bg-surface',
         className,
       )}
       style={{
