@@ -33,11 +33,11 @@ function TruncationMarker({
       }}
       title={`${slots.toLocaleString()} earlier slots hidden`}
     >
-      <div className="flex flex-col items-center leading-none">
-        <p className="font-mono text-6xl font-bold tabular-nums text-foreground-strong">
+      <div className="flex max-w-full flex-col items-center px-6 leading-none">
+        <p className="font-mono text-5xl font-bold tabular-nums text-foreground-strong">
           {slots.toLocaleString()}
         </p>
-        <p className="mt-4 font-mono text-xl font-semibold uppercase tracking-[0.3em] text-muted">
+        <p className="mt-4 font-mono text-lg font-semibold uppercase tracking-[0.25em] text-muted">
           slots&nbsp;hidden
         </p>
       </div>

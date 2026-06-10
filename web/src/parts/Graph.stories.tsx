@@ -411,6 +411,55 @@ export const AggregatedSummaryCollapsed: Story = {
   },
 };
 
+/**
+ * The graph auto-focuses the head on mount, which puts the truncated tail
+ * (pinned checkpoints + gap markers) tens of thousands of canvas pixels off
+ * screen to the left. Pan there with real pointer events so the zoom/pan
+ * library's state stays consistent and the story remains interactive.
+ */
+async function panToTruncatedTail(canvasElement: HTMLElement) {
+  // wait for the graph to mount and zoom to the head
+  await new Promise(resolve => setTimeout(resolve, 400));
+  const wrapper = canvasElement.querySelector<HTMLElement>('.react-transform-wrapper');
+  const content = canvasElement.querySelector<HTMLElement>('.react-transform-component');
+  if (!wrapper || !content) return;
+
+  const matrix = new DOMMatrixReadOnly(getComputedStyle(content).transform);
+  const scale = matrix.a || 1;
+  const rect = wrapper.getBoundingClientRect();
+  // frame the pinned finalized checkpoint (world x ≈ -1800) near the left
+  // edge and the chain rail (world y ≈ -450) vertically centered
+  const deltaX = 80 - (matrix.e + -1800 * scale);
+  const deltaY = rect.height / 2 - (matrix.f + -450 * scale);
+
+  const startX = rect.left + rect.width / 2;
+  const startY = rect.top + rect.height / 2;
+  const mouse = { bubbles: true, cancelable: true, button: 0 };
+  // react-zoom-pan-pinch pans via mouse events (mousedown on the wrapper,
+  // mousemove/mouseup on the document)
+  wrapper.dispatchEvent(
+    new MouseEvent('mousedown', { ...mouse, clientX: startX, clientY: startY }),
+  );
+  const steps = 8;
+  for (let i = 1; i <= steps; i++) {
+    document.dispatchEvent(
+      new MouseEvent('mousemove', {
+        ...mouse,
+        clientX: startX + (deltaX * i) / steps,
+        clientY: startY + (deltaY * i) / steps,
+      }),
+    );
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
+  document.dispatchEvent(
+    new MouseEvent('mouseup', {
+      ...mouse,
+      clientX: startX + deltaX,
+      clientY: startY + deltaY,
+    }),
+  );
+}
+
 export const SingleNodeTruncatedLongTail: Story = {
   ...singleNodeStory(graphScenarios.longTail, 'truncated-long-tail'),
   play: async ({ canvasElement }) => {
@@ -418,11 +467,17 @@ export const SingleNodeTruncatedLongTail: Story = {
     // finalized→justified gap (3 slots) and justified→window gap (169 slots)
     await expect(canvas.getAllByText(/slots\s+hidden/i)).toHaveLength(2);
     await expect(canvas.getByText('169')).toBeVisible();
+    await panToTruncatedTail(canvasElement);
   },
 };
 
 export const AggregatedTruncatedLongTail: Story = {
   ...aggregatedStory(graphScenarios.longTail, 'truncated-long-tail'),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getAllByText(/slots\s+hidden/i)).toHaveLength(2);
+    await panToTruncatedTail(canvasElement);
+  },
 };
 
 export const AggregatedWithStuckNode: Story = {

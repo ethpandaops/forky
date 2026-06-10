@@ -218,7 +218,7 @@ export const AggregatedNodeStates: Story = {
 
 export const EdgesBoundariesAndProgress: Story = {
   render: () => (
-    <div className="relative h-[780px] min-w-[1300px] overflow-hidden bg-background">
+    <div className="relative h-[1080px] min-w-[1300px] overflow-hidden bg-background">
       <SlotBoundary
         slot={104}
         epoch={3}
@@ -269,7 +269,7 @@ export const EdgesBoundariesAndProgress: Story = {
         weightPercentageComparedToHeaviestNeighbor={45}
       />
       <ConcatNode id="concat-example" slotStart={100} slotEnd={107} x={930} y={230} radius={120} />
-      <TruncationMarker x={930} y={500} radius={120} slots={1869} />
+      <TruncationMarker x={120} y={720} radius={150} slots={1869} />
       <div className="absolute left-[950px] top-[540px] flex gap-8 text-foreground">
         <ProgressCircle
           progress={0}
