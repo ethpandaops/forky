@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/tanstack-react';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import type { ForkChoice, ForkChoiceNode, Frame, FrameMetadata } from '@api';
 import type { ProcessedData } from '@app/types/graph';
@@ -477,6 +477,52 @@ export const AggregatedTruncatedLongTail: Story = {
     const canvas = within(canvasElement);
     await expect(canvas.getAllByText(/slots\s+hidden/i)).toHaveLength(2);
     await panToTruncatedTail(canvasElement);
+  },
+};
+
+export const SingleNodeLegendExpanded: Story = {
+  ...singleNodeStory(graphScenarios.chaosForks, 'legend-expanded'),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: 'Show legend' }));
+    await expect(canvas.getByText('Competing branch with less weight')).toBeVisible();
+    await expect(
+      canvas.getByText('Ring: weight relative to the heaviest competing branch.'),
+    ).toBeVisible();
+    // weighted views get no aggregated counter rows
+    await expect(canvas.queryByText('Sources that have seen the block')).not.toBeInTheDocument();
+  },
+};
+
+export const AggregatedLegendExpanded: Story = {
+  ...aggregatedStory(graphScenarios.chaosForks, 'legend-expanded'),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: 'Show legend' }));
+    await expect(
+      canvas.getByText('Ring: share of sources reporting the block canonical.'),
+    ).toBeVisible();
+    await expect(canvas.getByText('Sources that have seen the block')).toBeVisible();
+    await userEvent.click(canvas.getByRole('button', { name: 'Hide legend' }));
+    await expect(canvas.getByRole('button', { name: 'Show legend' })).toBeVisible();
+  },
+};
+
+export const SingleNodeHoverCard: Story = {
+  ...singleNodeStory(graphScenarios.happyPath, 'hover-card'),
+  play: async ({ canvasElement }) => {
+    // wait for the graph to mount and zoom to the head
+    await new Promise(resolve => setTimeout(resolve, 400));
+    const head = canvasElement.querySelector<HTMLElement>('#head');
+    if (!head) throw new Error('head node not rendered');
+
+    await userEvent.hover(head);
+    // the card renders through a portal outside the canvas element
+    const body = within(document.body);
+    // the card fades in (opacity 0 → 1), so retry until the entrance
+    // transition lands
+    await waitFor(() => expect(body.getByText('Click the block for full details')).toBeVisible());
+    await expect(body.getByText('Branch share')).toBeVisible();
   },
 };
 
