@@ -19,10 +19,12 @@ import { getFrameSlotsBehind } from '@app/utils/graph';
 import { truncateHash } from '@app/utils/strings';
 import AggregatedNode from '@components/AggregatedNode';
 import Edge from '@components/Edge';
+import Legend from '@components/Legend';
 import Share from '@components/Share';
 import TruncationMarker from '@components/TruncationMarker';
 import WeightedNode from '@components/WeightedNode';
 import useEthereum from '@contexts/ethereum';
+import useFocus from '@contexts/focus';
 import useSelection from '@contexts/selection';
 import useGraph from '@hooks/useGraph';
 import useWindowSize from '@hooks/useWindowSize';
@@ -53,6 +55,7 @@ function Graph({
   const { setFrameId, setAggregatedFrameIds, setFrameBlock, setAggregatedFramesBlock } =
     useSelection();
   const { slotsPerEpoch } = useEthereum();
+  const { byo, frameId } = useFocus();
   const ref = useRef<ReactZoomPanPinchRef>(null);
   const { nodes, edges, type, slotEnd, slotStart, head, truncation } = useGraph({
     data,
@@ -191,6 +194,7 @@ function Graph({
           checkpoints,
           orphaned,
           validities,
+          slot,
         } = node.attributes as AggregatedNodeAttributes;
 
         const type: 'canonical' | 'fork' = canonical ? 'canonical' : 'fork';
@@ -223,6 +227,8 @@ function Graph({
             total={data.length}
             type={type}
             hash={blockRoot}
+            slot={slot}
+            epoch={Math.floor(slot / slotsPerEpoch)}
             radius={RADIUS}
             onClick={() => {
               setAggregatedFramesBlock({
@@ -243,6 +249,8 @@ function Graph({
           weight,
           weightPercentageComparedToHeaviestNeighbor,
           blockRoot,
+          parentRoot,
+          slot,
         } = node.attributes as WeightedNodeAttributes;
 
         let type: 'canonical' | 'fork' | 'finalized' | 'justified' | 'detached' | 'invalid' =
@@ -260,6 +268,9 @@ function Graph({
             type={type}
             validity={validity}
             hash={blockRoot}
+            parentRoot={parentRoot}
+            slot={slot}
+            epoch={Math.floor(slot / slotsPerEpoch)}
             radius={RADIUS}
             onClick={() => {
               setFrameBlock({
@@ -354,6 +365,23 @@ function Graph({
             </div>
           )}
         </div>
+      )}
+      {(type === 'weighted' || type === 'aggregated') && (
+        <Legend
+          mode={type}
+          // anchored above the footer. BYO/snapshot footers are flat 97px
+          // strips; the timeline footer also floats the centered ~886px
+          // playback dock (~66px tall) on top of its strip (97px, 138px at
+          // xl with the epoch dial), so clear the dock vertically until 2xl,
+          // where the corner is wide enough for the expanded legend to flow
+          // down beside it (see parts/Timeline and components/Control)
+          className={classNames(
+            'absolute left-4 z-20 lg:left-6',
+            byo || frameId
+              ? 'bottom-[calc(97px+0.75rem)]'
+              : 'bottom-[calc(97px+66px+0.75rem)] xl:bottom-[calc(138px+66px+0.75rem)] 2xl:bottom-[calc(138px+0.75rem)]',
+          )}
+        />
       )}
       <TransformWrapper
         ref={ref}
