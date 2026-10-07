@@ -3,6 +3,7 @@ import { Attributes } from 'graphology-types';
 
 import { ForkChoiceNode, Frame } from '@api';
 import {
+  BlockPayload,
   Graph,
   WeightedGraph,
   WeightedNodeAttributes,
@@ -16,6 +17,7 @@ import {
   ForkReference,
 } from '@app/types/graph';
 import { getCheckpointType } from '@app/utils/api';
+import { payloadProgress, payloadStage } from '@app/utils/payload';
 
 // A node whose fork choice head is more than this many slots behind its own
 // metadata wall clock slot is considered "stuck" and is excluded from the
@@ -336,6 +338,63 @@ export function generateNodeId({
   return `${slot}_${blockRoot}_${parentRoot}`;
 }
 
+// Reads an optional decimal-string count.
+function optionalCount(nodes: ForkChoiceNode[], key: keyof ForkChoiceNode): number | undefined {
+  const value = nodes.map(node => node[key]).find(v => v !== undefined);
+  return typeof value === 'string' ? Number.parseInt(value) : undefined;
+}
+
+// Since Gloas a block can have a pending, an empty and a full fork-choice node,
+// which share their slot, block root and parent root. The graph draws one node
+// per block: the block's pending node, which carries the weight of all votes
+// for the block, with the empty and full nodes summarised as its payload. Frames
+// from before forky recorded payload statuses can still hold several nodes per
+// block, of which the heaviest is kept.
+export function groupBlockNodes(
+  nodes: ForkChoiceNode[],
+): { node: ForkChoiceNode; payload?: BlockPayload }[] {
+  const blocks = new Map<string, ForkChoiceNode[]>();
+  for (const node of nodes) {
+    const variants = blocks.get(node.block_root);
+    if (variants) variants.push(node);
+    else blocks.set(node.block_root, [node]);
+  }
+
+  return [...blocks.values()].map(variants => {
+    const pending = variants.find(n => n.payload_status === 'pending');
+    const node =
+      pending ?? variants.reduce((a, b) => (BigInt(b.weight) > BigInt(a.weight) ? b : a));
+    // Every Gloas block has an empty node; a pre-Gloas block is a single
+    // node (full per the spec, pending on some clients) with no payload.
+    const empty = variants.find(n => n.payload_status === 'empty');
+    if (!empty) return { node };
+
+    // The full node only exists once the payload has been received.
+    const full = variants.find(n => n.payload_status === 'full');
+    const emptyWeight = BigInt(empty.weight);
+    const fullWeight = full ? BigInt(full.weight) : undefined;
+
+    let status: BlockPayload['status'];
+    if (fullWeight !== undefined && fullWeight > emptyWeight) status = 'full';
+    else if (emptyWeight > (fullWeight ?? 0n)) status = 'empty';
+
+    const parent = node.parent_payload_status;
+
+    return {
+      node,
+      payload: {
+        status,
+        emptyWeight,
+        fullWeight,
+        parentPayloadStatus: parent === 'empty' || parent === 'full' ? parent : undefined,
+        attesterCount: optionalCount(variants, 'payload_attester_count'),
+        availabilityYesCount: optionalCount(variants, 'payload_availability_yes_count'),
+        dataAvailabilityYesCount: optionalCount(variants, 'payload_data_availability_yes_count'),
+      },
+    };
+  });
+}
+
 export function processForkChoiceData(frame: Required<Frame>): ProcessedData {
   const { data, metadata } = frame;
   const graph = new Graphology<WeightedNodeAttributes, EdgeAttributes, WeightedGraphAttributes>();
@@ -360,8 +419,8 @@ export function processForkChoiceData(frame: Required<Frame>): ProcessedData {
 
   // reverse sort data by highest slot first to later iterate over it
   // and stop when hitting the finalized checkpoint
-  const sortedData = data.fork_choice_nodes.sort((a, b) => {
-    return Number.parseInt(b.slot) - Number.parseInt(a.slot);
+  const sortedData = groupBlockNodes(data.fork_choice_nodes).sort((a, b) => {
+    return Number.parseInt(b.node.slot) - Number.parseInt(a.node.slot);
   });
 
   // map block roots to fork choice nodes
@@ -371,7 +430,7 @@ export function processForkChoiceData(frame: Required<Frame>): ProcessedData {
   const blockRootNodeIds: Record<string, string> = {};
 
   // iterate over nodes and add them to the graph
-  for (const forkChoiceNode of sortedData) {
+  for (const { node: forkChoiceNode, payload } of sortedData) {
     const slot = Number.parseInt(forkChoiceNode.slot);
     if (isNaN(slot) || slot < 0) {
       throw new GraphError('Invalid slot', forkChoiceNode);
@@ -408,6 +467,7 @@ export function processForkChoiceData(frame: Required<Frame>): ProcessedData {
       offset: 0,
       weight: BigInt(forkChoiceNode.weight),
       weightPercentageComparedToHeaviestNeighbor: 100,
+      payload,
     });
 
     // don't bother with nodes that are earlier than the finalized slot
@@ -443,6 +503,7 @@ export function processForkChoiceData(frame: Required<Frame>): ProcessedData {
         graph.addEdge(parentNodeId, nodeId, {
           distance:
             Number.parseInt(forkChoiceNode.slot) - Number.parseInt(parentForkChoiceNode.slot),
+          builtOnEmpty: forkChoiceNode.parent_payload_status === 'empty',
         });
       } catch (e: unknown) {
         // handle orphaned nodes
@@ -568,6 +629,11 @@ export function aggregateProcessedData(data: ProcessedData[]): AggregatedGraph {
 
       const nodeId = generateNodeId(node);
       nodeMap[node.blockRoot] = { id: nodeId, slot: node.slot };
+      const stage = node.payload ? payloadStage(node.payload) : undefined;
+      const payloads =
+        node.payload && stage
+          ? [{ node: metadata.node, stage, progress: payloadProgress(node.payload, stage) }]
+          : [];
 
       // handle duplicate nodes
       if (graph.hasNode(nodeId)) {
@@ -585,6 +651,7 @@ export function aggregateProcessedData(data: ProcessedData[]): AggregatedGraph {
             ? [...attributes.canonicalForNodes, metadata.node]
             : attributes.canonicalForNodes,
           seenByNodes: [...attributes.seenByNodes, metadata.node],
+          payloads: [...attributes.payloads, ...payloads],
         }));
       } else {
         graph.setAttribute('slotEnd', Math.max(graph.getAttribute('slotEnd'), node.slot));
@@ -607,14 +674,23 @@ export function aggregateProcessedData(data: ProcessedData[]): AggregatedGraph {
           highestWeight: node.weight,
           canonicalForNodes: node.canonical ? [metadata.node] : [],
           seenByNodes: [metadata.node],
+          payloads,
         });
       }
       // check if parent exists to add edge
       if (node.parentRoot && nodeMap[node.parentRoot]) {
-        if (!graph.hasEdge(nodeMap[node.parentRoot].id, nodeId)) {
-          graph.addEdge(nodeMap[node.parentRoot].id, nodeId, {
+        const parentId = nodeMap[node.parentRoot].id;
+        // node ids are derived from the block, so they match across graphs.
+        const builtOnEmpty =
+          weightedGraph.hasEdge(parentId, nodeId) &&
+          weightedGraph.getEdgeAttribute(parentId, nodeId, 'builtOnEmpty') === true;
+        if (!graph.hasEdge(parentId, nodeId)) {
+          graph.addEdge(parentId, nodeId, {
             distance: node.slot - nodeMap[node.parentRoot].slot,
+            builtOnEmpty,
           });
+        } else if (builtOnEmpty) {
+          graph.setEdgeAttribute(parentId, nodeId, 'builtOnEmpty', true);
         }
       } else {
         orphanedNodes.push({

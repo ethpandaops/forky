@@ -11,6 +11,7 @@ import SlotBoundary from '@components/SlotBoundary';
 import TruncationMarker from '@components/TruncationMarker';
 import WeightedNode from '@components/WeightedNode';
 import { storyBlockRoots } from '@app/stories/fixtures';
+import { BlockPayload, PayloadStage } from '@app/types/graph';
 import { withForkyProviders } from '@app/stories/storybook';
 
 /* Always render graph nodes at the radius the real graph uses (see RADIUS in
@@ -108,6 +109,194 @@ export const WeightedNodeStates: Story = {
         y={540}
         radius={RADIUS}
       />
+    </div>
+  ),
+};
+
+/* Tide across every state a block can be in: one row per node status, one
+ * column per Gloas payload stage (plus a block without payload data, as from
+ * a pre-Gloas frame or a client without the v2 fork choice endpoint), then
+ * aggregated nodes summarising several sources. Drawn at half size. */
+const PAYLOAD_STAGE_EXAMPLES: { label: string; payload?: BlockPayload }[] = [
+  { label: 'no payload data' },
+  { label: 'awaiting', payload: { emptyWeight: 0n } },
+  { label: 'voting', payload: { emptyWeight: 0n, fullWeight: 0n, attesterCount: 357 } },
+  {
+    label: 'timely',
+    payload: { emptyWeight: 0n, fullWeight: 0n, attesterCount: 512, availabilityYesCount: 498 },
+  },
+  {
+    label: 'late',
+    payload: { emptyWeight: 0n, fullWeight: 0n, attesterCount: 512, availabilityYesCount: 120 },
+  },
+  { label: 'undecided', payload: { emptyWeight: 0n, fullWeight: 0n } },
+  {
+    label: 'full',
+    payload: {
+      status: 'full',
+      emptyWeight: 0n,
+      fullWeight: 756n,
+      parentPayloadStatus: 'full',
+      attesterCount: 512,
+      availabilityYesCount: 512,
+      dataAvailabilityYesCount: 512,
+    },
+  },
+  {
+    label: 'empty',
+    payload: { status: 'empty', emptyWeight: 64n, fullWeight: 0n, parentPayloadStatus: 'full' },
+  },
+];
+
+const NODE_STATUS_EXAMPLES: {
+  label: string;
+  type: 'canonical' | 'fork' | 'finalized' | 'justified' | 'detached';
+  validity: string;
+}[] = [
+  { label: 'canonical', type: 'canonical', validity: 'valid' },
+  { label: 'fork', type: 'fork', validity: 'valid' },
+  { label: 'finalized', type: 'finalized', validity: 'valid' },
+  { label: 'justified', type: 'justified', validity: 'valid' },
+  { label: 'optimistic', type: 'canonical', validity: 'optimistic' },
+  { label: 'invalid', type: 'canonical', validity: 'invalid' },
+  { label: 'detached', type: 'detached', validity: 'valid' },
+];
+
+const AGGREGATED_PAYLOAD_EXAMPLES: {
+  label: string;
+  payloads: { stage: PayloadStage; progress: number }[];
+}[] = [
+  { label: 'no payload data', payloads: [] },
+  {
+    label: 'awaiting 3/3',
+    payloads: [
+      { stage: 'awaiting', progress: 0 },
+      { stage: 'awaiting', progress: 0 },
+      { stage: 'awaiting', progress: 0 },
+    ],
+  },
+  {
+    label: 'voting 3/3',
+    payloads: [
+      { stage: 'voting', progress: 58 },
+      { stage: 'voting', progress: 70 },
+      { stage: 'voting', progress: 64 },
+    ],
+  },
+  {
+    label: 'timely 2/3',
+    payloads: [
+      { stage: 'timely', progress: 97 },
+      { stage: 'timely', progress: 96 },
+      { stage: 'voting', progress: 90 },
+    ],
+  },
+  {
+    label: 'late 3/3',
+    payloads: [
+      { stage: 'late', progress: 22 },
+      { stage: 'late', progress: 25 },
+      { stage: 'late', progress: 20 },
+    ],
+  },
+  {
+    label: 'full 2/3',
+    payloads: [
+      { stage: 'full', progress: 100 },
+      { stage: 'full', progress: 100 },
+      { stage: 'timely', progress: 97 },
+    ],
+  },
+  {
+    label: 'full 3/3',
+    payloads: [
+      { stage: 'full', progress: 100 },
+      { stage: 'full', progress: 100 },
+      { stage: 'full', progress: 100 },
+    ],
+  },
+  {
+    label: 'empty 3/3',
+    payloads: [
+      { stage: 'empty', progress: 100 },
+      { stage: 'empty', progress: 100 },
+      { stage: 'empty', progress: 100 },
+    ],
+  },
+];
+
+const MATRIX_COLUMN = 360;
+const MATRIX_ROW = 400;
+
+export const PayloadStages: Story = {
+  render: () => (
+    <div className="bg-background p-8">
+      <div
+        className="relative"
+        style={{
+          zoom: 0.5,
+          width: 200 + PAYLOAD_STAGE_EXAMPLES.length * MATRIX_COLUMN,
+          height: 120 + (NODE_STATUS_EXAMPLES.length + 1) * MATRIX_ROW,
+        }}
+      >
+        {PAYLOAD_STAGE_EXAMPLES.map(({ label }, column) => (
+          <p
+            key={label}
+            className="absolute w-[300px] text-center font-mono text-2xl uppercase tracking-widest text-muted"
+            style={{ left: 200 + column * MATRIX_COLUMN, top: 0 }}
+          >
+            {label}
+          </p>
+        ))}
+        {NODE_STATUS_EXAMPLES.map(({ label, type, validity }, row) => (
+          <div key={label}>
+            <p
+              className="absolute w-[180px] font-mono text-2xl uppercase tracking-widest text-muted"
+              style={{ left: 0, top: 80 + row * MATRIX_ROW + 135 }}
+            >
+              {label}
+            </p>
+            {PAYLOAD_STAGE_EXAMPLES.map(({ label: stage, payload }, column) => (
+              <WeightedNode
+                key={stage}
+                hash={storyBlockRoots.slot107}
+                weight="756512500000"
+                type={type}
+                validity={validity}
+                payload={payload}
+                x={200 + column * MATRIX_COLUMN}
+                y={80 + row * MATRIX_ROW}
+                radius={RADIUS}
+              />
+            ))}
+          </div>
+        ))}
+        <p
+          className="absolute w-[180px] font-mono text-2xl uppercase tracking-widest text-muted"
+          style={{ left: 0, top: 80 + NODE_STATUS_EXAMPLES.length * MATRIX_ROW + 135 }}
+        >
+          aggregated
+        </p>
+        {AGGREGATED_PAYLOAD_EXAMPLES.map(({ label, payloads }, column) => (
+          <AggregatedNode
+            key={label}
+            hash={storyBlockRoots.slot107}
+            type="canonical"
+            seen={5}
+            canonical={5}
+            finalizedCheckpoints={0}
+            justifiedCheckpoints={0}
+            orphans={0}
+            valid={5}
+            optimistic={0}
+            total={5}
+            payloads={payloads}
+            x={200 + column * MATRIX_COLUMN}
+            y={80 + NODE_STATUS_EXAMPLES.length * MATRIX_ROW}
+            radius={RADIUS}
+          />
+        ))}
+      </div>
     </div>
   ),
 };

@@ -17,3 +17,12 @@ export function convertToHexColor(str: string): string {
   }
   return color;
 }
+
+// Formats a client-specific extra_data value for display. Checkpoints render
+// as "epoch · root"; other objects as JSON.
+export function formatExtraDataValue(value: unknown): string {
+  if (value === null || value === undefined) return '—';
+  if (typeof value !== 'object') return `${value}`;
+  if ('epoch' in value && 'root' in value) return `${value.epoch} · ${value.root}`;
+  return JSON.stringify(value);
+}

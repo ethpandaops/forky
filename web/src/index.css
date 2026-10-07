@@ -126,6 +126,13 @@
   --color-optimistic-edge: var(--optimistic-edge-value);
   --color-optimistic-ring: var(--optimistic-ring-value);
 
+  /* Gloas execution payload: the Tide liquid inside graph nodes. A hue of
+   * its own (blue, between the accent cyan and justified indigo) so a
+   * block's payload never reads as a block status. `-surface` = the wave
+   * crest drawn over the liquid body. */
+  --color-payload: var(--payload-value);
+  --color-payload-surface: var(--payload-surface-value);
+
   /* Timeline markers */
   --color-marker: var(--marker-value);
   --color-marker-active: var(--marker-active-value);
@@ -178,6 +185,94 @@ html:not(.dark) .hero-gradient-text {
   background-size: 28px 28px;
 }
 
+/* Tide: a Gloas block's execution payload drawn as liquid inside its graph
+ * node. Each wave is a rounded square far larger than the node, turning
+ * slowly, so its top edge reads as a moving surface; the inline `top` sets
+ * the level and eases to each new snapshot's level, rising or draining as
+ * frames arrive or the timeline is scrubbed. Decided payloads pause the
+ * turn (rather than dropping it, which would snap the wave's angle). */
+.tide-wave {
+  position: absolute;
+  left: -60%;
+  width: 220%;
+  aspect-ratio: 1;
+  border-radius: 43%;
+  animation: tide-spin 7s linear infinite;
+  transition:
+    top 1.1s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.6s ease,
+    border-color 0.6s ease;
+}
+.tide-wave-back {
+  border-radius: 40%;
+  animation: tide-spin 11s linear infinite reverse;
+}
+.tide-still {
+  animation-play-state: paused;
+}
+.tide-blink {
+  animation: tide-blink 1.6s ease-in-out infinite;
+}
+@keyframes tide-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes tide-blink {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+/* Spray thrown off a Tide's crest when its slosh peaks (see useTideSlosh):
+ * each drop leaps up and over (easing out), then falls back into the liquid
+ * (easing in, like gravity) and fades. Margins in % track the node's width,
+ * which is also its height. */
+.tide-spray {
+  position: absolute;
+  border-radius: 9999px;
+  opacity: 0;
+  animation: tide-spray var(--tide-spray-duration, 0.9s) linear var(--tide-spray-delay, 0s)
+    forwards;
+}
+@keyframes tide-spray {
+  0% {
+    margin-left: 0;
+    margin-top: 0;
+    opacity: 0;
+    transform: scale(0.6);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
+  }
+  12% {
+    opacity: 0.95;
+  }
+  45% {
+    margin-left: calc(var(--tide-spray-dx) * 0.55);
+    margin-top: var(--tide-spray-rise);
+    transform: scale(1);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.85, 0.45);
+  }
+  100% {
+    margin-left: var(--tide-spray-dx);
+    margin-top: var(--tide-spray-fall);
+    opacity: 0;
+    transform: scale(0.45);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tide-wave,
+  .tide-blink {
+    animation: none;
+    transition: none;
+  }
+  .tide-spray {
+    display: none;
+  }
+}
+
 /* Glass chrome: the floating console dock + blurred header. Glass is for
  * chrome only — content panels stay solid for readability. */
 .glass-chrome {
@@ -216,6 +311,12 @@ html:not(.dark) .hero-gradient-text {
     --accent-brighter: oklch(85% 0.12 198);
     --accent-deep: oklch(55% 0.12 205);
     --accent-deeper: oklch(48% 0.11 207);
+
+    /* Execution payload family (Gloas), hue ~240. */
+    --payload-bright: oklch(72% 0.14 240);
+    --payload-brighter: oklch(84% 0.1 238);
+    --payload-strong: oklch(52% 0.14 245);
+    --payload-deep: oklch(42% 0.13 248);
 
     /* Status families. Hues: canonical 163, fork 60, finalized 322,
      * justified 277, invalid 25, optimistic 100. Bands (shared L/C per
@@ -293,6 +394,8 @@ html:not(.dark) .hero-gradient-text {
     --faint-value: var(--ink-400);
     --accent-value: var(--accent-deep);
     --accent-hover-value: var(--accent-deeper);
+    --payload-value: var(--payload-strong);
+    --payload-surface-value: var(--payload-deep);
     --track-value: oklch(0% 0 0 / 5%);
     --active-value: var(--accent-deep);
     --active-hover-value: var(--accent-deeper);
@@ -376,6 +479,8 @@ html:not(.dark) .hero-gradient-text {
     --faint-value: var(--ink-500);
     --accent-value: var(--accent-bright);
     --accent-hover-value: var(--accent-brighter);
+    --payload-value: var(--payload-bright);
+    --payload-surface-value: var(--payload-brighter);
     --track-value: oklch(100% 0 0 / 6%);
     --active-value: var(--accent-bright);
     --active-hover-value: var(--accent-brighter);

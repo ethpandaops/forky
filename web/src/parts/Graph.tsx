@@ -16,6 +16,7 @@ import { useAppNavigate, usePathname } from '@hooks/useAppNavigation';
 import SlotBoundary from '@app/components/SlotBoundary';
 import { AggregatedNodeAttributes, ProcessedData, WeightedNodeAttributes } from '@app/types/graph';
 import { getFrameSlotsBehind } from '@app/utils/graph';
+import { endCanvasPan, reportCanvasPan } from '@app/utils/slosh';
 import { truncateHash } from '@app/utils/strings';
 import AggregatedNode from '@components/AggregatedNode';
 import Edge from '@components/Edge';
@@ -30,6 +31,9 @@ import useGraph from '@hooks/useGraph';
 import useWindowSize from '@hooks/useWindowSize';
 
 const RADIUS = 150;
+// Nodes in the newest this-many slots (the graph's leading edge) slosh their
+// Tide when the canvas is panned.
+const LEAD_SLOTS = 4;
 const SPACING_X = 3 * RADIUS;
 const SPACING_Y = 4 * RADIUS;
 
@@ -179,7 +183,7 @@ function Graph({
         y1={edge.source.y + RADIUS}
         x2={edge.target.x + RADIUS}
         y2={edge.target.y + RADIUS}
-        className="bg-edge"
+        className={edge.builtOnEmpty ? 'bg-warning' : 'bg-edge'}
         thickness={8}
       />
     ));
@@ -195,6 +199,7 @@ function Graph({
           orphaned,
           validities,
           slot,
+          payloads,
         } = node.attributes as AggregatedNodeAttributes;
 
         const type: 'canonical' | 'fork' = canonical ? 'canonical' : 'fork';
@@ -215,6 +220,7 @@ function Graph({
           <AggregatedNode
             key={node.id}
             id={node.id === head ? 'head' : undefined}
+            lead={slot > slotEnd - LEAD_SLOTS}
             x={node.x}
             y={node.y}
             seen={seenByNodes.length}
@@ -225,6 +231,7 @@ function Graph({
             valid={validities.filter(v => ['valid', 'optimistic'].includes(v.validity)).length}
             optimistic={validities.filter(v => v.validity === 'optimistic').length}
             total={data.length}
+            payloads={payloads}
             type={type}
             hash={blockRoot}
             slot={slot}
@@ -251,6 +258,7 @@ function Graph({
           blockRoot,
           parentRoot,
           slot,
+          payload,
         } = node.attributes as WeightedNodeAttributes;
 
         let type: 'canonical' | 'fork' | 'finalized' | 'justified' | 'detached' | 'invalid' =
@@ -261,6 +269,7 @@ function Graph({
           <WeightedNode
             key={node.id}
             id={node.id === head ? 'head' : undefined}
+            lead={slot > slotEnd - LEAD_SLOTS}
             x={node.x}
             y={node.y}
             weight={`${weight}`}
@@ -269,6 +278,7 @@ function Graph({
             validity={validity}
             hash={blockRoot}
             parentRoot={parentRoot}
+            payload={payload}
             slot={slot}
             epoch={Math.floor(slot / slotsPerEpoch)}
             radius={RADIUS}
@@ -405,9 +415,11 @@ function Graph({
           setScale(ref.state.scale);
         }}
         maxScale={10}
-        onPanning={() => {
+        onPanning={ref => {
           if (focused) setFocused(false);
+          reportCanvasPan(ref.state.positionX);
         }}
+        onPanningStop={() => endCanvasPan()}
       >
         {() => {
           return (

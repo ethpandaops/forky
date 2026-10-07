@@ -5,6 +5,7 @@ import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 import classNames from 'clsx';
 
 import { NODE_STYLES, NodeStyleKey } from '@utils/nodeStyles';
+import { PAYLOAD_STAGE_ORDER, PAYLOAD_STAGES } from '@utils/payload';
 
 /* Stage legend for the fork-choice graph's visual vocabulary. Collapsed to
  * a compact pill by default (mobile stays clean); expands into a glass
@@ -176,6 +177,39 @@ function Legend({
           <span className="hidden text-muted sm:inline">
             Older slots collapsed; checkpoints stay pinned
           </span>
+        </li>
+      </ul>
+      <span className="mt-2 block border-t border-border pt-2 font-mono text-[10px]/4 font-semibold uppercase tracking-widest text-faint">
+        Payload (Gloas)
+      </span>
+      <ul className="mt-1.5 flex flex-col gap-1.5">
+        {PAYLOAD_STAGE_ORDER.map(stage => {
+          const style = PAYLOAD_STAGES[stage];
+          return (
+            <li key={stage} className="flex items-center gap-2 text-xs">
+              {/* the stage's typical payload level */}
+              <span
+                className={classNames(
+                  'relative size-3.5 shrink-0 overflow-hidden rounded-full border bg-surface',
+                  stage === 'empty' && 'border-dashed border-payload',
+                  stage === 'awaiting' && 'border-dashed border-muted',
+                  stage !== 'empty' && stage !== 'awaiting' && 'border-border-strong',
+                )}
+              >
+                <span
+                  className={classNames('absolute inset-x-0 bottom-0', style.swatch)}
+                  style={{ height: `${style.sampleLevel}%` }}
+                />
+              </span>
+              <span className="w-16 shrink-0 font-medium text-foreground">{style.name}</span>
+              <span className="hidden text-muted sm:inline">{style.description}</span>
+            </li>
+          );
+        })}
+        <li className="flex items-center gap-2 text-xs">
+          <span className="h-1 w-3 shrink-0 rounded-full bg-warning" />
+          <span className="w-16 shrink-0 font-medium text-foreground">Edge</span>
+          <span className="hidden text-muted sm:inline">Built on the parent's empty payload</span>
         </li>
       </ul>
       <p className="mt-2 hidden border-t border-border pt-2 text-xs text-faint sm:block">

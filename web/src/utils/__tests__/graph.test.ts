@@ -14,6 +14,7 @@ import {
   applyNodeAttributeToAllChildren,
   applyNodeOffsetToAllChildren,
   processForkChoiceData,
+  aggregateProcessedData,
   GraphError,
   generateNodeId,
 } from '@utils/graph';
@@ -957,6 +958,170 @@ describe('graph', () => {
 
       expect(graph.nodes().length).toBe(data.fork_choice_nodes.length - 1);
       expect(graph.edges().length).toBe(data.fork_choice_nodes.length - 2);
+    });
+  });
+
+  describe('Gloas payload nodes', () => {
+    const rootA = '0xaa';
+    const rootB = '0xbb';
+    const rootC = '0xcc';
+
+    function gloasNode(
+      slot: number,
+      blockRoot: string,
+      parentRoot: string,
+      payloadStatus: 'pending' | 'empty' | 'full',
+      weight: string,
+      parentPayloadStatus?: 'pending' | 'empty' | 'full',
+    ): Required<Frame>['data']['fork_choice_nodes'][number] {
+      return {
+        slot: `${slot}`,
+        block_root: blockRoot,
+        parent_root: parentRoot,
+        weight,
+        validity: 'valid',
+        execution_block_hash: '0x00',
+        payload_status: payloadStatus,
+        parent_payload_status: parentPayloadStatus,
+        payload_attester_count: payloadStatus === 'full' ? '512' : undefined,
+        payload_availability_yes_count: payloadStatus === 'full' ? '500' : undefined,
+        payload_data_availability_yes_count: payloadStatus === 'full' ? '490' : undefined,
+      };
+    }
+
+    function frame(nodes: Required<Frame>['data']['fork_choice_nodes']): Required<Frame> {
+      return {
+        data: {
+          finalized_checkpoint: { epoch: '0', root: rootA },
+          justified_checkpoint: { epoch: '0', root: rootA },
+          fork_choice_nodes: nodes,
+        },
+        metadata: {
+          id: '1',
+          node: 'node1',
+          fetched_at: new Date().toISOString(),
+          wall_clock_slot: 0,
+          wall_clock_epoch: 0,
+          labels: [],
+          consensus_client: 'lodestar',
+          event_source: 'beacon_node',
+        },
+      };
+    }
+
+    // B was built on A's full payload and C on B's empty payload.
+    const nodes = [
+      gloasNode(1, rootA, '0x00', 'pending', '300'),
+      gloasNode(1, rootA, '0x00', 'empty', '0', 'pending'),
+      gloasNode(1, rootA, '0x00', 'full', '200', 'pending'),
+      gloasNode(2, rootB, rootA, 'pending', '200', 'full'),
+      gloasNode(2, rootB, rootA, 'empty', '100', 'pending'),
+      gloasNode(2, rootB, rootA, 'full', '0', 'pending'),
+      gloasNode(3, rootC, rootB, 'pending', '100', 'empty'),
+      gloasNode(3, rootC, rootB, 'empty', '0', 'pending'),
+      gloasNode(3, rootC, rootB, 'full', '0', 'pending'),
+    ];
+
+    it('should draw one node per block with its payload', () => {
+      const { graph } = processForkChoiceData(frame(nodes));
+      expect(graph.order).toBe(3);
+
+      const idB = generateNodeId({ slot: 2, blockRoot: rootB, parentRoot: rootA });
+      expect(graph.getNodeAttribute(idB, 'weight')).toBe(200n);
+      expect(graph.getNodeAttribute(idB, 'payload')).toEqual({
+        status: 'empty',
+        emptyWeight: 100n,
+        fullWeight: 0n,
+        parentPayloadStatus: 'full',
+        attesterCount: 512,
+        availabilityYesCount: 500,
+        dataAvailabilityYesCount: 490,
+      });
+
+      const idC = generateNodeId({ slot: 3, blockRoot: rootC, parentRoot: rootB });
+      expect(graph.getNodeAttribute(idC, 'payload')?.status).toBeUndefined();
+    });
+
+    it('should mark edges to blocks built on an empty parent payload', () => {
+      const { graph } = processForkChoiceData(frame(nodes));
+      const idA = generateNodeId({ slot: 1, blockRoot: rootA, parentRoot: '0x00' });
+      const idB = generateNodeId({ slot: 2, blockRoot: rootB, parentRoot: rootA });
+      const idC = generateNodeId({ slot: 3, blockRoot: rootC, parentRoot: rootB });
+
+      expect(graph.getEdgeAttribute(graph.edge(idA, idB), 'builtOnEmpty')).toBe(false);
+      expect(graph.getEdgeAttribute(graph.edge(idB, idC), 'builtOnEmpty')).toBe(true);
+    });
+
+    it('should aggregate payload stages and empty-parent edges across sources', () => {
+      const graph = aggregateProcessedData([
+        processForkChoiceData(frame(nodes)),
+        processForkChoiceData({
+          ...frame(nodes),
+          metadata: { ...frame(nodes).metadata, id: '2', node: 'node2' },
+        }),
+      ]);
+      const idA = generateNodeId({ slot: 1, blockRoot: rootA, parentRoot: '0x00' });
+      const idB = generateNodeId({ slot: 2, blockRoot: rootB, parentRoot: rootA });
+      const idC = generateNodeId({ slot: 3, blockRoot: rootC, parentRoot: rootB });
+
+      expect(graph.getNodeAttribute(idB, 'payloads')).toEqual([
+        { node: 'node1', stage: 'empty', progress: 100 },
+        { node: 'node2', stage: 'empty', progress: 100 },
+      ]);
+      // C's weights are tied but the PTC voted its payload timely.
+      expect(graph.getNodeAttribute(idC, 'payloads').map(p => p.stage)).toEqual([
+        'timely',
+        'timely',
+      ]);
+      expect(graph.getEdgeAttribute(graph.edge(idA, idB), 'builtOnEmpty')).toBe(false);
+      expect(graph.getEdgeAttribute(graph.edge(idB, idC), 'builtOnEmpty')).toBe(true);
+    });
+
+    it('should await the payload until the block has a full node', () => {
+      const { graph } = processForkChoiceData(
+        frame([
+          gloasNode(1, rootA, '0x00', 'pending', '300'),
+          gloasNode(1, rootA, '0x00', 'empty', '0', 'pending'),
+        ]),
+      );
+      const idA = generateNodeId({ slot: 1, blockRoot: rootA, parentRoot: '0x00' });
+      const payload = graph.getNodeAttribute(idA, 'payload');
+      expect(payload?.status).toBeUndefined();
+      expect(payload?.fullWeight).toBeUndefined();
+    });
+
+    it('should treat a payload that never arrived but drew votes as empty', () => {
+      const { graph } = processForkChoiceData(
+        frame([
+          gloasNode(1, rootA, '0x00', 'pending', '300'),
+          gloasNode(1, rootA, '0x00', 'empty', '64', 'pending'),
+        ]),
+      );
+      const idA = generateNodeId({ slot: 1, blockRoot: rootA, parentRoot: '0x00' });
+      expect(graph.getNodeAttribute(idA, 'payload')?.status).toBe('empty');
+    });
+
+    it.each<['pending' | 'full']>([['full'], ['pending']])(
+      'should not give a pre-Gloas block reported as a single %s node a payload',
+      payloadStatus => {
+        const { graph } = processForkChoiceData(
+          frame([gloasNode(1, rootA, '0x00', payloadStatus, '300')]),
+        );
+        const idA = generateNodeId({ slot: 1, blockRoot: rootA, parentRoot: '0x00' });
+        expect(graph.getNodeAttribute(idA, 'payload')).toBeUndefined();
+      },
+    );
+
+    // Frames stored before payload statuses were recorded hold up to three
+    // indistinguishable nodes per block.
+    it('should keep the heaviest node of blocks without payload statuses', () => {
+      const legacy = nodes.map(({ payload_status, parent_payload_status, ...node }) => node);
+      const { graph } = processForkChoiceData(frame(legacy));
+      expect(graph.order).toBe(3);
+
+      const idB = generateNodeId({ slot: 2, blockRoot: rootB, parentRoot: rootA });
+      expect(graph.getNodeAttribute(idB, 'weight')).toBe(200n);
+      expect(graph.getNodeAttribute(idB, 'payload')).toBeUndefined();
     });
   });
 });
