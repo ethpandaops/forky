@@ -467,14 +467,25 @@ components:
         root:
           $ref: "#/components/schemas/Root"
 
+    PayloadStatus:
+      type: string
+      description: |
+        The Gloas payload status of a fork-choice node. A Gloas block has a
+        `pending` node, which is the parent of its `empty` node (the block
+        without its execution payload) and its `full` node (the block with it).
+      enum: [pending, empty, full]
+
     ForkChoiceNode:
       type: object
+      description: |
+        A fork-choice node. Pre-Gloas, and for beacon nodes without the v2
+        fork-choice endpoint, there is one node per block. Post-Gloas a block can
+        have a `pending`, an `empty` and a `full` node, which share `slot`,
+        `block_root` and `parent_root`.
       required:
         - slot
         - block_root
         - parent_root
-        - justified_epoch
-        - finalized_epoch
         - weight
         - validity
         - execution_block_hash
@@ -498,6 +509,24 @@ components:
           enum: [valid, invalid, optimistic, unknown]
         execution_block_hash:
           $ref: "#/components/schemas/Root"
+        payload_status:
+          $ref: "#/components/schemas/PayloadStatus"
+        parent_payload_status:
+          $ref: "#/components/schemas/PayloadStatus"
+          description: |
+            The payload status of the parent fork-choice node: for a `pending`
+            node, whether the block was built on its parent block's `empty` or
+            `full` payload; for `empty` and `full` nodes, `pending`. Absent if
+            unknown.
+        payload_attester_count:
+          type: string
+          description: Number of Payload Timeliness Committee positions with a recorded vote.
+        payload_availability_yes_count:
+          type: string
+          description: Number of PTC positions voting that the payload was received on time.
+        payload_data_availability_yes_count:
+          type: string
+          description: Number of PTC positions voting that the blob data is available.
         extra_data:
           type: object
           additionalProperties: true
@@ -515,6 +544,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ForkChoiceNode"
+        extra_data:
+          type: object
+          description: |
+            Client-specific values of the fork-choice store, such as the
+            unrealized justified checkpoint.
+          additionalProperties: true
 
     Frame:
       type: object

@@ -2,6 +2,7 @@ package source
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	eth2v1 "github.com/attestantio/go-eth2-client/api/v1"
-	"github.com/attestantio/go-eth2-client/spec/phase0"
+	eth2v1 "github.com/ethpandaops/go-eth2-client/api/v1"
+	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/xatu/pkg/proto/xatu"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -423,10 +424,15 @@ func (x *XatuHTTP) handleForkChoiceReorgV2Event(ctx context.Context, event *xatu
 
 func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 	event *xatu.DecoratedEvent,
-	data *eth2v1.ForkChoice,
+	data json.Marshaler,
 	snapshot *xatu.ClientMeta_ForkChoiceSnapshot,
 	timing string,
 ) error {
+	forkChoice, err := forkChoiceFromXatu(data)
+	if err != nil {
+		return err
+	}
+
 	frame := &types.Frame{
 		Metadata: types.FrameMetadata{
 			ID:   uuid.New().String(),
@@ -443,7 +449,7 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 
 			Labels: []string{},
 		},
-		Data: data,
+		Data: forkChoice,
 	}
 
 	if event.GetEvent().GetName() == xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG {
@@ -475,10 +481,15 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 
 func (x *XatuHTTP) createFrameFromSnapshotV2AndData(ctx context.Context,
 	event *xatu.DecoratedEvent,
-	data *eth2v1.ForkChoice,
+	data json.Marshaler,
 	snapshot *xatu.ClientMeta_ForkChoiceSnapshotV2,
 	timing string,
 ) error {
+	forkChoice, err := forkChoiceFromXatu(data)
+	if err != nil {
+		return err
+	}
+
 	frame := &types.Frame{
 		Metadata: types.FrameMetadata{
 			ID:   uuid.New().String(),
@@ -495,7 +506,7 @@ func (x *XatuHTTP) createFrameFromSnapshotV2AndData(ctx context.Context,
 
 			Labels: []string{},
 		},
-		Data: data,
+		Data: forkChoice,
 	}
 
 	if event.GetEvent().GetName() == xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2 {
@@ -523,4 +534,20 @@ func (x *XatuHTTP) createFrameFromSnapshotV2AndData(ctx context.Context,
 	}
 
 	return nil
+}
+
+// forkChoiceFromXatu converts a fork choice dump decoded by xatu, which uses
+// attestantio/go-eth2-client types, via their shared beacon API JSON encoding.
+func forkChoiceFromXatu(data json.Marshaler) (*types.ForkChoice, error) {
+	raw, err := data.MarshalJSON()
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal xatu fork choice: %w", err)
+	}
+
+	var forkChoice eth2v1.ForkChoice
+	if err := json.Unmarshal(raw, &forkChoice); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal xatu fork choice: %w", err)
+	}
+
+	return types.ForkChoiceFromV1(&forkChoice), nil
 }

@@ -9,8 +9,8 @@ import (
 	"math/rand"
 	"time"
 
-	v1 "github.com/attestantio/go-eth2-client/api/v1"
-	"github.com/attestantio/go-eth2-client/spec/phase0"
+	v1 "github.com/ethpandaops/go-eth2-client/api/v1"
+	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/google/uuid"
 )
 
@@ -54,7 +54,7 @@ func (f *FrameMetadata) Validate() error {
 // Frame holds a fork choice dump with a timestamp.
 type Frame struct {
 	// Data is the fork choice dump.
-	Data *v1.ForkChoice `json:"data"`
+	Data *ForkChoice `json:"data"`
 	// Metadata is the metadata of the frame.
 	Metadata FrameMetadata `json:"metadata"`
 }
@@ -140,7 +140,7 @@ func GenerateFakeFrame() *Frame {
 	}
 }
 
-func GenerateFakeForkChoice() *v1.ForkChoice {
+func GenerateFakeForkChoice() *ForkChoice {
 	justifiedCheckpoint := phase0.Checkpoint{
 		//nolint:gosec // This is a test function.
 		Epoch: phase0.Epoch(rand.Uint64()),
@@ -179,9 +179,9 @@ func GenerateFakeForkChoice() *v1.ForkChoice {
 		}
 	}
 
-	return &v1.ForkChoice{
+	return ForkChoiceFromV1(&v1.ForkChoice{
 		JustifiedCheckpoint: justifiedCheckpoint,
 		FinalizedCheckpoint: finalizedCheckpoint,
 		ForkChoiceNodes:     nodes,
-	}
+	})
 }

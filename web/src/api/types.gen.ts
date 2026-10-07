@@ -111,12 +111,27 @@ export type Checkpoint = {
   root: Root;
 };
 
+/**
+ * The Gloas payload status of a fork-choice node. A Gloas block has a
+ * `pending` node, which is the parent of its `empty` node (the block
+ * without its execution payload) and its `full` node (the block with it).
+ *
+ */
+export type PayloadStatus = 'pending' | 'empty' | 'full';
+
+/**
+ * A fork-choice node. Pre-Gloas, and for beacon nodes without the v2
+ * fork-choice endpoint, there is one node per block. Post-Gloas a block can
+ * have a `pending`, an `empty` and a `full` node, which share `slot`,
+ * `block_root` and `parent_root`.
+ *
+ */
 export type ForkChoiceNode = {
   slot: SlotString;
   block_root: Root;
   parent_root: Root;
-  justified_epoch: EpochString;
-  finalized_epoch: EpochString;
+  justified_epoch?: EpochString;
+  finalized_epoch?: EpochString;
   /**
    * The node's fork-choice weight, serialized as a string.
    */
@@ -126,6 +141,27 @@ export type ForkChoiceNode = {
    */
   validity: 'valid' | 'invalid' | 'optimistic' | 'unknown';
   execution_block_hash: Root;
+  payload_status?: PayloadStatus;
+  /**
+   * The payload status of the parent fork-choice node: for a `pending`
+   * node, whether the block was built on its parent block's `empty` or
+   * `full` payload; for `empty` and `full` nodes, `pending`. Absent if
+   * unknown.
+   *
+   */
+  parent_payload_status?: PayloadStatus;
+  /**
+   * Number of Payload Timeliness Committee positions with a recorded vote.
+   */
+  payload_attester_count?: string;
+  /**
+   * Number of PTC positions voting that the payload was received on time.
+   */
+  payload_availability_yes_count?: string;
+  /**
+   * Number of PTC positions voting that the blob data is available.
+   */
+  payload_data_availability_yes_count?: string;
   extra_data?: {
     [key: string]: unknown;
   };
@@ -138,6 +174,14 @@ export type ForkChoice = {
   justified_checkpoint: Checkpoint;
   finalized_checkpoint: Checkpoint;
   fork_choice_nodes: Array<ForkChoiceNode>;
+  /**
+   * Client-specific values of the fork-choice store, such as the
+   * unrealized justified checkpoint.
+   *
+   */
+  extra_data?: {
+    [key: string]: unknown;
+  };
 };
 
 export type Frame = {

@@ -4,15 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	nethttp "net/http"
+	"sync/atomic"
 	"time"
 
-	eth2client "github.com/attestantio/go-eth2-client"
-	api "github.com/attestantio/go-eth2-client/api"
-	v1 "github.com/attestantio/go-eth2-client/api/v1"
-	"github.com/attestantio/go-eth2-client/http"
-	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/ethpandaops/ethwallclock"
+	eth2client "github.com/ethpandaops/go-eth2-client"
+	api "github.com/ethpandaops/go-eth2-client/api"
+	v1 "github.com/ethpandaops/go-eth2-client/api/v1"
+	"github.com/ethpandaops/go-eth2-client/http"
+	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/go-co-op/gocron"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
@@ -45,7 +47,15 @@ type BeaconNode struct {
 	secondsPerSlot time.Duration
 	slotsPerEpoch  uint64
 	wallclock      *ethwallclock.EthereumBeaconChain
+
+	// forkChoiceV2RetryAt is when to next try the v2 fork choice endpoint, in
+	// unix nanoseconds, after the node reported it as unsupported.
+	forkChoiceV2RetryAt atomic.Int64
 }
+
+// forkChoiceV2RetryInterval is how long to use the v1 fork choice endpoint
+// before checking whether a node has started supporting v2.
+const forkChoiceV2RetryInterval = time.Hour
 
 type BeaconNodeConfig struct {
 	Address         string       `yaml:"address"`
@@ -272,38 +282,82 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 
 	fetchedAt := time.Now()
 
-	if provider, isProvider := b.client.(eth2client.ForkChoiceProvider); isProvider {
-		rsp, err := provider.ForkChoice(ctx, &api.ForkChoiceOpts{})
-		if err != nil {
-			return fmt.Errorf("failed to get fork choice dump: %w", err)
-		}
-
-		dump := rsp.Data
-
-		b.metrics.ObserveItemFetched(string(DataFrame))
-
-		frame := &types.Frame{
-			Metadata: types.FrameMetadata{
-				Node:            b.Name(),
-				FetchedAt:       fetchedAt,
-				WallClockSlot:   phase0.Slot(slot.Number()),
-				WallClockEpoch:  phase0.Epoch(epoch.Number()),
-				ID:              uuid.New().String(),
-				Labels:          b.config.Labels,
-				EventSource:     types.BeaconNodeEventSource.String(),
-				ConsensusClient: string(ethereum.ClientFromString(nodeVersion)),
-			},
-			Data: dump,
-		}
-
-		b.publishFrame(ctx, frame)
-
-		b.log.WithFields(logrus.Fields{
-			"wallclock_slot":  slot.Number(),
-			"wallclock_epoch": epoch.Number(),
-			"fetchedAt":       frame.Metadata.FetchedAt,
-		}).Debug("Fetched frame")
+	forkChoice, err := b.fetchForkChoice(ctx)
+	if err != nil {
+		return err
 	}
 
+	b.metrics.ObserveItemFetched(string(DataFrame))
+
+	frame := &types.Frame{
+		Metadata: types.FrameMetadata{
+			Node:            b.Name(),
+			FetchedAt:       fetchedAt,
+			WallClockSlot:   phase0.Slot(slot.Number()),
+			WallClockEpoch:  phase0.Epoch(epoch.Number()),
+			ID:              uuid.New().String(),
+			Labels:          b.config.Labels,
+			EventSource:     types.BeaconNodeEventSource.String(),
+			ConsensusClient: string(ethereum.ClientFromString(nodeVersion)),
+		},
+		Data: forkChoice,
+	}
+
+	b.publishFrame(ctx, frame)
+
+	b.log.WithFields(logrus.Fields{
+		"wallclock_slot":  slot.Number(),
+		"wallclock_epoch": epoch.Number(),
+		"fetchedAt":       frame.Metadata.FetchedAt,
+	}).Debug("Fetched frame")
+
 	return nil
+}
+
+// fetchForkChoice fetches the node's fork choice dump, preferring the
+// Gloas-aware v2 endpoint and falling back to v1 for nodes that do not
+// support it.
+func (b *BeaconNode) fetchForkChoice(ctx context.Context) (*types.ForkChoice, error) {
+	if provider, isProvider := b.client.(eth2client.ForkChoiceV2Provider); isProvider &&
+		time.Now().UnixNano() >= b.forkChoiceV2RetryAt.Load() {
+		rsp, err := provider.ForkChoiceV2(ctx, &api.ForkChoiceOpts{})
+		if err == nil {
+			return types.ForkChoiceFromV2(rsp.Data), nil
+		}
+
+		if isUnsupportedEndpoint(err) {
+			b.log.WithError(err).Debug("Beacon node does not support the v2 fork choice endpoint, falling back to v1")
+			b.forkChoiceV2RetryAt.Store(time.Now().Add(forkChoiceV2RetryInterval).UnixNano())
+		} else {
+			b.log.WithError(err).Warn("Failed to get v2 fork choice dump, falling back to v1")
+		}
+	}
+
+	provider, isProvider := b.client.(eth2client.ForkChoiceProvider)
+	if !isProvider {
+		return nil, errors.New("client does not support fork choice provider")
+	}
+
+	rsp, err := provider.ForkChoice(ctx, &api.ForkChoiceOpts{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get fork choice dump: %w", err)
+	}
+
+	return types.ForkChoiceFromV1(rsp.Data), nil
+}
+
+// isUnsupportedEndpoint reports whether err is a beacon node rejecting an
+// endpoint it does not implement.
+func isUnsupportedEndpoint(err error) bool {
+	var apiErr *api.Error
+	if !errors.As(err, &apiErr) {
+		return false
+	}
+
+	switch apiErr.StatusCode {
+	case nethttp.StatusBadRequest, nethttp.StatusNotFound, nethttp.StatusMethodNotAllowed, nethttp.StatusNotImplemented:
+		return true
+	default:
+		return false
+	}
 }
