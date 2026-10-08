@@ -315,8 +315,12 @@ func (b *BeaconNode) fetchFrame(ctx context.Context) error {
 }
 
 // fetchForkChoice fetches the node's fork choice dump, preferring the
-// Gloas-aware v2 endpoint and falling back to v1 for nodes that do not
-// support it.
+// Gloas-aware v2 endpoint and falling back to v1.
+//
+// A node without the endpoint, or whose v2 response does not follow the spec
+// (ethereum/beacon-APIs#615), cannot serve v2 until it is upgraded, so v1 is
+// used for forkChoiceV2RetryInterval before v2 is tried again. Any other v2
+// failure falls back to v1 for this fetch only.
 func (b *BeaconNode) fetchForkChoice(ctx context.Context) (*types.ForkChoice, error) {
 	if provider, isProvider := b.client.(eth2client.ForkChoiceV2Provider); isProvider &&
 		time.Now().UnixNano() >= b.forkChoiceV2RetryAt.Load() {
@@ -325,11 +329,20 @@ func (b *BeaconNode) fetchForkChoice(ctx context.Context) (*types.ForkChoice, er
 			return types.ForkChoiceFromV2(rsp.Data), nil
 		}
 
-		if isUnsupportedEndpoint(err) {
-			b.log.WithError(err).Debug("Beacon node does not support the v2 fork choice endpoint, falling back to v1")
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return nil, ctxErr
+		}
+
+		switch {
+		case isUnsupportedEndpoint(err):
 			b.forkChoiceV2RetryAt.Store(time.Now().Add(forkChoiceV2RetryInterval).UnixNano())
-		} else {
-			b.log.WithError(err).Warn("Failed to get v2 fork choice dump, falling back to v1")
+			b.log.WithError(err).Debug("Beacon node does not support the v2 fork choice endpoint, using v1")
+		case errors.Is(err, eth2client.ErrInvalidResponse):
+			b.forkChoiceV2RetryAt.Store(time.Now().Add(forkChoiceV2RetryInterval).UnixNano())
+			b.log.WithError(err).WithField("retry_in", forkChoiceV2RetryInterval).
+				Warn("Beacon node's v2 fork choice does not follow the spec, using v1")
+		default:
+			b.log.WithError(err).Warn("Failed to get v2 fork choice dump, falling back to v1 for this fetch")
 		}
 	}
 

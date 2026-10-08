@@ -8,6 +8,7 @@ import (
 	eth2v1 "github.com/ethpandaops/go-eth2-client/api/v1"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	xatuethv1 "github.com/ethpandaops/xatu/pkg/proto/eth/v1"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/ethpandaops/forky/internal/types"
 )
@@ -33,7 +34,7 @@ func forkChoiceFromXatu(fc *xatuethv1.ForkChoiceV2) (*types.ForkChoice, error) {
 		return nil, err
 	}
 
-	return types.ForkChoiceFromV2(data), nil
+	return types.NormalizeV2(data), nil
 }
 
 // hasPayloadStatuses returns true if every node of the fork choice has a
@@ -52,9 +53,10 @@ func hasPayloadStatuses(fc *xatuethv1.ForkChoiceV2) bool {
 	return true
 }
 
-// forkChoiceV2FromXatu converts a Xatu fork choice into a v2 debug fork choice
-// response, as the sentry received it.
-func forkChoiceV2FromXatu(fc *xatuethv1.ForkChoiceV2) (*eth2v1.ForkChoiceV2, error) {
+// forkChoiceV2FromXatu converts a Xatu fork choice with payload statuses into
+// forky's fork choice. Values a node does not carry stay unset, for
+// NormalizeV2 to fill in where it can.
+func forkChoiceV2FromXatu(fc *xatuethv1.ForkChoiceV2) (*types.ForkChoice, error) {
 	justifiedCheckpoint, err := checkpointFromXatu(fc.GetJustifiedCheckpoint())
 	if err != nil {
 		return nil, fmt.Errorf("invalid justified checkpoint: %w", err)
@@ -70,10 +72,10 @@ func forkChoiceV2FromXatu(fc *xatuethv1.ForkChoiceV2) (*eth2v1.ForkChoiceV2, err
 		return nil, fmt.Errorf("invalid extra data: %w", err)
 	}
 
-	nodes := make([]*eth2v1.ForkChoiceNodeV2, 0, len(fc.GetForkChoiceNodes()))
+	nodes := make([]*types.ForkChoiceNode, 0, len(fc.GetForkChoiceNodes()))
 
 	for i, node := range fc.GetForkChoiceNodes() {
-		converted, err := forkChoiceNodeV2FromXatu(node)
+		converted, err := forkChoiceNodeFromXatu(node)
 		if err != nil {
 			return nil, fmt.Errorf("invalid fork choice node %d: %w", i, err)
 		}
@@ -81,7 +83,7 @@ func forkChoiceV2FromXatu(fc *xatuethv1.ForkChoiceV2) (*eth2v1.ForkChoiceV2, err
 		nodes = append(nodes, converted)
 	}
 
-	return &eth2v1.ForkChoiceV2{
+	return &types.ForkChoice{
 		JustifiedCheckpoint: justifiedCheckpoint,
 		FinalizedCheckpoint: finalizedCheckpoint,
 		ForkChoiceNodes:     nodes,
@@ -89,7 +91,7 @@ func forkChoiceV2FromXatu(fc *xatuethv1.ForkChoiceV2) (*eth2v1.ForkChoiceV2, err
 	}, nil
 }
 
-func forkChoiceNodeV2FromXatu(node *xatuethv1.ForkChoiceNodeV2) (*eth2v1.ForkChoiceNodeV2, error) {
+func forkChoiceNodeFromXatu(node *xatuethv1.ForkChoiceNodeV2) (*types.ForkChoiceNode, error) {
 	blockRoot, err := xatuethv1.StringToRoot(node.GetBlockRoot())
 	if err != nil {
 		return nil, fmt.Errorf("invalid block root: %w", err)
@@ -118,24 +120,24 @@ func forkChoiceNodeV2FromXatu(node *xatuethv1.ForkChoiceNodeV2) (*eth2v1.ForkCho
 		return nil, fmt.Errorf("invalid extra data: %w", err)
 	}
 
-	// The sentry keeps validities the spec does not define under extra_data,
-	// so the validity itself is always one go-eth2-client recognises.
 	validity, err := eth2v1.ForkChoiceNodeValidityFromString(node.GetValidity())
 	if err != nil {
 		return nil, fmt.Errorf("invalid validity: %w", err)
 	}
 
-	converted := &eth2v1.ForkChoiceNodeV2{
+	converted := &types.ForkChoiceNode{
 		Slot:                            phase0.Slot(node.GetSlot().GetValue()),
 		BlockRoot:                       blockRoot,
-		PayloadStatus:                   payloadStatus,
 		ParentRoot:                      parentRoot,
+		JustifiedEpoch:                  epochFromXatu(node.GetJustifiedCheckpoint(), node.GetJustifiedEpoch()),
+		FinalizedEpoch:                  epochFromXatu(node.GetFinalizedCheckpoint(), node.GetFinalizedEpoch()),
 		Weight:                          node.GetWeight().GetValue(),
 		Validity:                        validity,
-		ExecutionBlockHash:              phase0.Hash32(executionBlockHash),
-		PayloadAttesterCount:            optionalUint64(node.GetPayloadAttesterCount() != nil, node.GetPayloadAttesterCount().GetValue()),
-		PayloadAvailabilityYesCount:     optionalUint64(node.GetPayloadAvailabilityYesCount() != nil, node.GetPayloadAvailabilityYesCount().GetValue()),
-		PayloadDataAvailabilityYesCount: optionalUint64(node.GetPayloadDataAvailabilityYesCount() != nil, node.GetPayloadDataAvailabilityYesCount().GetValue()),
+		ExecutionBlockHash:              executionBlockHash,
+		PayloadStatus:                   payloadStatus,
+		PayloadAttesterCount:            uint64FromXatu(node.GetPayloadAttesterCount()),
+		PayloadAvailabilityYesCount:     uint64FromXatu(node.GetPayloadAvailabilityYesCount()),
+		PayloadDataAvailabilityYesCount: uint64FromXatu(node.GetPayloadDataAvailabilityYesCount()),
 		ExtraData:                       extraData,
 	}
 
@@ -148,15 +150,35 @@ func forkChoiceNodeV2FromXatu(node *xatuethv1.ForkChoiceNodeV2) (*eth2v1.ForkCho
 		converted.ParentPayloadStatus = &parentPayloadStatus
 	}
 
-	if node.GetJustifiedEpoch() != nil {
-		converted.JustifiedEpoch = (*phase0.Epoch)(optionalUint64(true, node.GetJustifiedEpoch().GetValue()))
-	}
-
-	if node.GetFinalizedEpoch() != nil {
-		converted.FinalizedEpoch = (*phase0.Epoch)(optionalUint64(true, node.GetFinalizedEpoch().GetValue()))
-	}
-
 	return converted, nil
+}
+
+// epochFromXatu returns a node's checkpoint epoch: from its checkpoint, which
+// sentries since ethpandaops/xatu#900 send, else from the epoch field.
+func epochFromXatu(checkpoint *xatuethv1.CheckpointV2, epoch *wrapperspb.UInt64Value) *phase0.Epoch {
+	switch {
+	case checkpoint.GetEpoch() != nil:
+		value := phase0.Epoch(checkpoint.GetEpoch().GetValue())
+
+		return &value
+	case epoch != nil:
+		value := phase0.Epoch(epoch.GetValue())
+
+		return &value
+	default:
+		return nil
+	}
+}
+
+// uint64FromXatu returns a wrapped value, nil if unset.
+func uint64FromXatu(value *wrapperspb.UInt64Value) *uint64 {
+	if value == nil {
+		return nil
+	}
+
+	v := value.GetValue()
+
+	return &v
 }
 
 func checkpointFromXatu(checkpoint *xatuethv1.CheckpointV2) (phase0.Checkpoint, error) {
@@ -203,12 +225,4 @@ func extraDataFromXatu(input string) (map[string]any, error) {
 	}
 
 	return extraData, nil
-}
-
-func optionalUint64(set bool, value uint64) *uint64 {
-	if !set {
-		return nil
-	}
-
-	return &value
 }

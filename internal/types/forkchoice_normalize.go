@@ -54,58 +54,108 @@ func ForkChoiceFromV1(fc *v1.ForkChoice) *ForkChoice {
 }
 
 // v1Validity is a v1 node's validity. Lighthouse reports a Gloas block whose
-// payload has not been revealed yet as not_yet_revealed, which go-eth2-client
-// decodes as unknown, keeping the original under extra_data["validity"] (and
-// Lighthouse mirrors it in extra_data["execution_status"]); its execution is
-// simply not verified yet, i.e. optimistic.
+// payload has not been revealed yet as not_yet_revealed (and mirrors it in
+// extra_data["execution_status"]); its execution is simply not verified yet,
+// i.e. optimistic. go-eth2-client decodes it as
+// ForkChoiceNodeValidityNotYetRevealed; older versions decoded it as unknown,
+// keeping the original under extra_data["validity"], as fork choices already
+// stored or received from older sentries may still have it.
 func v1Validity(node *v1.ForkChoiceNode) v1.ForkChoiceNodeValidity {
-	if node.Validity == v1.ForkChoiceNodeValidityUnknown &&
-		(node.ExtraData["validity"] == "not_yet_revealed" || node.ExtraData["execution_status"] == "not_yet_revealed") {
+	switch {
+	case node.Validity == v1.ForkChoiceNodeValidityNotYetRevealed:
 		return v1.ForkChoiceNodeValidityOptimistic
+	case node.Validity == v1.ForkChoiceNodeValidityUnknown &&
+		(node.ExtraData["validity"] == "not_yet_revealed" || node.ExtraData["execution_status"] == "not_yet_revealed"):
+		return v1.ForkChoiceNodeValidityOptimistic
+	default:
+		return node.Validity
 	}
-
-	return node.Validity
 }
 
-// ForkChoiceFromV2 normalizes a GET /eth/v2/debug/fork_choice response.
-//
-// Clients implement the still-unfinalized endpoint differently, so values
-// that some clients only provide in extra_data, or only on a block's pending
-// node, are filled in, and parent payload statuses are inferred where the
-// client does not provide them.
+// ForkChoiceFromV2 normalizes a GET /eth/v2/debug/fork_choice response, which
+// go-eth2-client has checked against the spec (ethereum/beacon-APIs#615), so
+// every node carries all of its values.
 func ForkChoiceFromV2(fc *v1.ForkChoiceV2) *ForkChoice {
 	nodes := make([]*ForkChoiceNode, 0, len(fc.ForkChoiceNodes))
-	blocks := make(map[phase0.Root]map[v1.ForkChoicePayloadStatus]*ForkChoiceNode, len(fc.ForkChoiceNodes))
 
 	for _, node := range fc.ForkChoiceNodes {
+		var (
+			justifiedEpoch                  = node.JustifiedCheckpoint.Epoch
+			finalizedEpoch                  = node.FinalizedCheckpoint.Epoch
+			payloadAttesterCount            = node.PayloadAttesterCount
+			payloadAvailabilityYesCount     = node.PayloadAvailabilityYesCount
+			payloadDataAvailabilityYesCount = node.PayloadDataAvailabilityYesCount
+		)
+
 		normalized := &ForkChoiceNode{
 			Slot:                            node.Slot,
 			BlockRoot:                       node.BlockRoot,
 			ParentRoot:                      node.ParentRoot,
-			JustifiedEpoch:                  node.JustifiedEpoch,
-			FinalizedEpoch:                  node.FinalizedEpoch,
-			Weight:                          node.Weight,
+			JustifiedEpoch:                  &justifiedEpoch,
+			FinalizedEpoch:                  &finalizedEpoch,
+			Weight:                          uint64(node.Weight),
 			Validity:                        node.Validity,
 			ExecutionBlockHash:              phase0.Root(node.ExecutionBlockHash),
 			PayloadStatus:                   node.PayloadStatus,
-			ParentPayloadStatus:             node.ParentPayloadStatus,
-			PayloadAttesterCount:            node.PayloadAttesterCount,
-			PayloadAvailabilityYesCount:     node.PayloadAvailabilityYesCount,
-			PayloadDataAvailabilityYesCount: node.PayloadDataAvailabilityYesCount,
+			PayloadAttesterCount:            &payloadAttesterCount,
+			PayloadAvailabilityYesCount:     &payloadAvailabilityYesCount,
+			PayloadDataAvailabilityYesCount: &payloadDataAvailabilityYesCount,
 			ExtraData:                       node.ExtraData,
 		}
 
-		fillFromExtraData(normalized)
+		if node.ParentPayloadStatus != nil {
+			parentPayloadStatus := *node.ParentPayloadStatus
+			normalized.ParentPayloadStatus = &parentPayloadStatus
+		}
+
+		nodes = append(nodes, normalized)
+	}
+
+	return NormalizeV2(&ForkChoice{
+		JustifiedCheckpoint: fc.JustifiedCheckpoint,
+		FinalizedCheckpoint: fc.FinalizedCheckpoint,
+		ForkChoiceNodes:     nodes,
+		ExtraData:           fc.ExtraData,
+	})
+}
+
+// nilIfEmpty returns nil for an empty extra data map. The spec requires
+// extra_data, so clients send an empty object when they have none; forky
+// represents (and encodes) no extra data as nil, however it was received.
+func nilIfEmpty(extraData map[string]any) map[string]any {
+	if len(extraData) == 0 {
+		return nil
+	}
+
+	return extraData
+}
+
+// NormalizeV2 normalizes, in place, a fork choice with one node per (block
+// root, payload status) pair.
+//
+// Empty and full nodes, which the spec points at their own block's pending
+// node, keep the parent block's root as their parent root. Values a node
+// lacks, as nodes received through Xatu from older sentries or from a client
+// predating the spec may, are filled in from its extra_data or its block's
+// other nodes, and missing parent payload statuses are inferred where possible.
+// Empty extra data is set to nil.
+func NormalizeV2(fc *ForkChoice) *ForkChoice {
+	blocks := make(map[phase0.Root]map[v1.ForkChoicePayloadStatus]*ForkChoiceNode, len(fc.ForkChoiceNodes))
+
+	fc.ExtraData = nilIfEmpty(fc.ExtraData)
+
+	for _, node := range fc.ForkChoiceNodes {
+		node.ExtraData = nilIfEmpty(node.ExtraData)
+		fillFromExtraData(node)
 
 		if blocks[node.BlockRoot] == nil {
 			blocks[node.BlockRoot] = make(map[v1.ForkChoicePayloadStatus]*ForkChoiceNode, 3)
 		}
 
-		blocks[node.BlockRoot][node.PayloadStatus] = normalized
-		nodes = append(nodes, normalized)
+		blocks[node.BlockRoot][node.PayloadStatus] = node
 	}
 
-	for _, node := range nodes {
+	for _, node := range fc.ForkChoiceNodes {
 		block := blocks[node.BlockRoot]
 
 		// The spec points empty and full nodes at their own block's pending
@@ -125,12 +175,7 @@ func ForkChoiceFromV2(fc *v1.ForkChoiceV2) *ForkChoice {
 		}
 	}
 
-	return &ForkChoice{
-		JustifiedCheckpoint: fc.JustifiedCheckpoint,
-		FinalizedCheckpoint: fc.FinalizedCheckpoint,
-		ForkChoiceNodes:     nodes,
-		ExtraData:           fc.ExtraData,
-	}
+	return fc
 }
 
 // fillFromExtraData fills values that some clients only provide in extra_data.
