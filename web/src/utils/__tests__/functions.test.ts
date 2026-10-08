@@ -64,9 +64,9 @@ describe('functions', () => {
     it('should return different numbers for multiple calls within the same range', () => {
       const min = 1;
       const max = 100;
-      const result1 = randomInt(min, max);
-      const result2 = randomInt(min, max);
-      expect(result1).not.toBe(result2);
+      // Two draws collide 1% of the time; 50 draws all being equal is negligible.
+      const results = new Set(Array.from({ length: 50 }, () => randomInt(min, max)));
+      expect(results.size).toBeGreaterThan(1);
     });
   });
 
