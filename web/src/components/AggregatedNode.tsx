@@ -5,8 +5,10 @@ import classNames from 'clsx';
 
 import HoverCard from '@components/HoverCard';
 import { AggregatedNodeCard } from '@components/NodeCards';
+import PayloadTide, { PayloadChip } from '@components/PayloadTide';
 import ProgressCircle from '@components/ProgressCircle';
 import { NODE_STYLES, NodeStyleKey } from '@utils/nodeStyles';
+import { PayloadStage, summarizePayloads } from '@utils/payload';
 
 function AggregatedNode({
   id,
@@ -20,6 +22,8 @@ function AggregatedNode({
   valid,
   optimistic,
   total,
+  payloads = [],
+  lead = false,
   x,
   y,
   radius,
@@ -39,6 +43,10 @@ function AggregatedNode({
   valid: number;
   optimistic: number;
   total: number;
+  // payload stage and progress per source, for sources reporting payloads.
+  payloads?: { stage: PayloadStage; progress: number }[];
+  // a lead node (the newest slots) sloshes its Tide as the canvas is panned.
+  lead?: boolean;
   x: number;
   y: number;
   radius: number;
@@ -67,6 +75,10 @@ function AggregatedNode({
 
   const handleActivate = () => onClick?.(hash);
 
+  const payload = summarizePayloads(payloads);
+  const payloadStages: Partial<Record<PayloadStage, number>> = {};
+  for (const { stage } of payloads) payloadStages[stage] = (payloadStages[stage] ?? 0) + 1;
+
   return (
     <HoverCard
       accent={styleKey}
@@ -85,6 +97,7 @@ function AggregatedNode({
           valid={valid}
           optimistic={optimistic}
           total={total}
+          payloadStages={payloadStages}
         />
       }
       referenceProps={{
@@ -116,6 +129,7 @@ function AggregatedNode({
             height: `${radius * 2}px`,
           }}
         >
+          {payload && <PayloadTide stage={payload.stage} level={payload.level} slosh={lead} />}
           <ProgressCircle
             progress={(canonical / total) * 100}
             radius={radius}
@@ -125,16 +139,22 @@ function AggregatedNode({
           />
           <p
             className={classNames(
-              'h-16 pt-6 font-mono text-xl font-semibold uppercase tracking-widest',
+              'relative font-mono text-xl font-semibold uppercase tracking-widest',
+              payload ? 'pt-2' : 'h-16 pt-6',
               styles.label,
             )}
           >
             {title}
           </p>
-          <p className="font-mono text-3xl font-semibold text-foreground-strong">
+          <p className="relative font-mono text-3xl font-semibold text-foreground-strong">
             {hash.substring(0, 6)}…{hash.substring(hash.length - 4)}
           </p>
-          <p className="flex h-16 gap-6 pt-2 font-mono text-xl tabular-nums text-foreground/70">
+          <p
+            className={classNames(
+              'relative flex gap-6 font-mono text-xl tabular-nums text-foreground/70',
+              payload ? 'pt-4' : 'h-16 pt-2',
+            )}
+          >
             <span className="flex flex-col items-center gap-1">
               {finalizedCheckpoints > 0 || justifiedCheckpoints > 0 ? (
                 <>
@@ -151,6 +171,9 @@ function AggregatedNode({
               <EyeIcon className="size-5" /> {seen}/{total}
             </span>
           </p>
+          {payload && (
+            <PayloadChip stage={payload.stage} value={`${payload.count}/${payload.reporting}`} />
+          )}
         </div>
       )}
     </HoverCard>

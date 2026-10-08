@@ -5,6 +5,7 @@ import Loading from '@components/Loading';
 import { SummaryCard, SummaryLink, SummaryRow, SummarySection } from '@components/Summary';
 import useSelection from '@contexts/selection';
 import { useFrameQuery } from '@hooks/useQuery';
+import { formatExtraDataValue } from '@utils/strings';
 
 function parseLabel(label: string): [string, string | undefined] {
   const [key, value] = label.split('=', 2);
@@ -43,6 +44,18 @@ export default function FrameSummary({ id }: { id: string }) {
         </SummaryRow>
         <SummaryRow label="Wall clock epoch">{data.frame.metadata.wall_clock_epoch}</SummaryRow>
         <SummaryRow label="Wall clock slot">{data.frame.metadata.wall_clock_slot}</SummaryRow>
+        <SummarySection title="Fork choice store" />
+        <SummaryRow label="Justified checkpoint" mono>
+          {formatExtraDataValue(data.frame.data.justified_checkpoint)}
+        </SummaryRow>
+        <SummaryRow label="Finalized checkpoint" mono>
+          {formatExtraDataValue(data.frame.data.finalized_checkpoint)}
+        </SummaryRow>
+        {Object.entries(data.frame.data.extra_data ?? {}).map(([key, value]) => (
+          <SummaryRow key={key} label={key.replaceAll('_', ' ')} mono>
+            {formatExtraDataValue(value)}
+          </SummaryRow>
+        ))}
         {data.frame.metadata.labels && data.frame.metadata.labels.length > 0 && (
           <>
             <SummarySection title="Labels" />

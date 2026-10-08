@@ -10,8 +10,7 @@ import (
 	"strings"
 	"time"
 
-	eth2v1 "github.com/attestantio/go-eth2-client/api/v1"
-	"github.com/attestantio/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/xatu/pkg/proto/xatu"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -172,6 +171,11 @@ func (x *XatuHTTP) registerHandler(ctx context.Context, mux *http.ServeMux) {
 	})
 }
 
+// xatuEventUnmarshalOptions decode Xatu events ignoring fields this build does
+// not know, so that a Xatu server on a newer version than forky's does not get
+// every event rejected.
+var xatuEventUnmarshalOptions = protojson.UnmarshalOptions{DiscardUnknown: true}
+
 func (x *XatuHTTP) handleNDJSONRequest(ctx context.Context, body []byte) error {
 	s := string(body)
 
@@ -185,7 +189,7 @@ func (x *XatuHTTP) handleNDJSONRequest(ctx context.Context, body []byte) error {
 		}
 
 		var v xatu.DecoratedEvent
-		if err := protojson.Unmarshal([]byte(line), &v); err != nil {
+		if err := xatuEventUnmarshalOptions.Unmarshal([]byte(line), &v); err != nil {
 			return err
 		}
 
@@ -209,7 +213,7 @@ func (x *XatuHTTP) handleJSONRequest(ctx context.Context, body []byte) error {
 
 	event := xatu.DecoratedEvent{}
 
-	err := protojson.Unmarshal(body, &event)
+	err := xatuEventUnmarshalOptions.Unmarshal(body, &event)
 	if err != nil {
 		return err
 	}
@@ -290,7 +294,7 @@ func (x *XatuHTTP) handleForkChoiceEvent(ctx context.Context, event *xatu.Decora
 		return errors.New("event is not a fork choice event")
 	}
 
-	data, err := fc.AsGoEth2ClientV1ForkChoice()
+	data, err := forkChoiceFromXatu(fc)
 	if err != nil {
 		return fmt.Errorf("failed to convert event to fork choice: %w", err)
 	}
@@ -310,7 +314,7 @@ func (x *XatuHTTP) handleForkChoiceV2Event(ctx context.Context, event *xatu.Deco
 		return errors.New("event is not a fork choice event")
 	}
 
-	data, err := fc.AsGoEth2ClientV1ForkChoice()
+	data, err := forkChoiceFromXatu(fc)
 	if err != nil {
 		return fmt.Errorf("failed to convert event to fork choice: %w", err)
 	}
@@ -346,7 +350,7 @@ func (x *XatuHTTP) handleForkChoiceReorgEvent(ctx context.Context, event *xatu.D
 	}
 
 	if fcr.After != nil && additionalData.After != nil {
-		data, err := fcr.After.AsGoEth2ClientV1ForkChoice()
+		data, err := forkChoiceFromXatu(fcr.After)
 		if err != nil {
 			x.log.WithError(err).Error("failed to convert fork_choice_reorg.after to fork choice")
 		} else {
@@ -358,7 +362,7 @@ func (x *XatuHTTP) handleForkChoiceReorgEvent(ctx context.Context, event *xatu.D
 	}
 
 	if fcr.Before != nil && additionalData.Before != nil {
-		data, err := fcr.Before.AsGoEth2ClientV1ForkChoice()
+		data, err := forkChoiceFromXatu(fcr.Before)
 		if err != nil {
 			x.log.WithError(err).Error("failed to convert fork_choice_reorg.before to fork choice")
 		} else {
@@ -395,7 +399,7 @@ func (x *XatuHTTP) handleForkChoiceReorgV2Event(ctx context.Context, event *xatu
 	}
 
 	if fcr.After != nil && additionalData.After != nil {
-		data, err := fcr.After.AsGoEth2ClientV1ForkChoice()
+		data, err := forkChoiceFromXatu(fcr.After)
 		if err != nil {
 			x.log.WithError(err).Error("failed to convert fork_choice_reorg.after to fork choice")
 		} else {
@@ -407,7 +411,7 @@ func (x *XatuHTTP) handleForkChoiceReorgV2Event(ctx context.Context, event *xatu
 	}
 
 	if fcr.Before != nil && additionalData.Before != nil {
-		data, err := fcr.Before.AsGoEth2ClientV1ForkChoice()
+		data, err := forkChoiceFromXatu(fcr.Before)
 		if err != nil {
 			x.log.WithError(err).Error("failed to convert fork_choice_reorg.before to fork choice")
 		} else {
@@ -423,7 +427,7 @@ func (x *XatuHTTP) handleForkChoiceReorgV2Event(ctx context.Context, event *xatu
 
 func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 	event *xatu.DecoratedEvent,
-	data *eth2v1.ForkChoice,
+	forkChoice *types.ForkChoice,
 	snapshot *xatu.ClientMeta_ForkChoiceSnapshot,
 	timing string,
 ) error {
@@ -443,7 +447,7 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 
 			Labels: []string{},
 		},
-		Data: data,
+		Data: forkChoice,
 	}
 
 	if event.GetEvent().GetName() == xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG {
@@ -475,7 +479,7 @@ func (x *XatuHTTP) createFrameFromSnapshotAndData(ctx context.Context,
 
 func (x *XatuHTTP) createFrameFromSnapshotV2AndData(ctx context.Context,
 	event *xatu.DecoratedEvent,
-	data *eth2v1.ForkChoice,
+	forkChoice *types.ForkChoice,
 	snapshot *xatu.ClientMeta_ForkChoiceSnapshotV2,
 	timing string,
 ) error {
@@ -495,7 +499,7 @@ func (x *XatuHTTP) createFrameFromSnapshotV2AndData(ctx context.Context,
 
 			Labels: []string{},
 		},
-		Data: data,
+		Data: forkChoice,
 	}
 
 	if event.GetEvent().GetName() == xatu.Event_BEACON_API_ETH_V1_DEBUG_FORK_CHOICE_REORG_V2 {

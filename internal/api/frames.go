@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strconv"
 
-	v1 "github.com/attestantio/go-eth2-client/api/v1"
-	"github.com/attestantio/go-eth2-client/spec/phase0"
+	v1 "github.com/ethpandaops/go-eth2-client/api/v1"
+	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/go-faster/jx"
 
 	"github.com/ethpandaops/forky/api/rest"
@@ -88,44 +88,103 @@ func frameMetadataToRest(m *types.FrameMetadata) rest.FrameMetadata {
 // forkChoiceToRest maps a beacon node fork-choice dump onto the spec's
 // ForkChoice schema, following the beacon-API string serialization for
 // slots, epochs and weights.
-func forkChoiceToRest(fc *v1.ForkChoice) (rest.ForkChoice, error) {
+func forkChoiceToRest(fc *types.ForkChoice) (rest.ForkChoice, error) {
 	nodes := make([]rest.ForkChoiceNode, 0, len(fc.ForkChoiceNodes))
 
 	for _, node := range fc.ForkChoiceNodes {
-		restNode := rest.ForkChoiceNode{
-			Slot:               rest.SlotString(strconv.FormatUint(uint64(node.Slot), 10)),
-			BlockRoot:          rest.Root(node.BlockRoot.String()),
-			ParentRoot:         rest.Root(node.ParentRoot.String()),
-			JustifiedEpoch:     rest.EpochString(strconv.FormatUint(uint64(node.JustifiedEpoch), 10)),
-			FinalizedEpoch:     rest.EpochString(strconv.FormatUint(uint64(node.FinalizedEpoch), 10)),
-			Weight:             strconv.FormatUint(node.Weight, 10),
-			Validity:           rest.ForkChoiceNodeValidity(node.Validity.String()),
-			ExecutionBlockHash: rest.Root(node.ExecutionBlockHash.String()),
-		}
-
-		if len(node.ExtraData) > 0 {
-			extra := make(rest.ForkChoiceNodeExtraData, len(node.ExtraData))
-
-			for key, value := range node.ExtraData {
-				raw, err := json.Marshal(value)
-				if err != nil {
-					return rest.ForkChoice{}, fmt.Errorf("failed to marshal extra_data %q: %w", key, err)
-				}
-
-				extra[key] = jx.Raw(raw)
-			}
-
-			restNode.ExtraData = rest.NewOptForkChoiceNodeExtraData(extra)
+		restNode, err := forkChoiceNodeToRest(node)
+		if err != nil {
+			return rest.ForkChoice{}, err
 		}
 
 		nodes = append(nodes, restNode)
 	}
 
-	return rest.ForkChoice{
+	restFC := rest.ForkChoice{
 		JustifiedCheckpoint: checkpointToRest(fc.JustifiedCheckpoint),
 		FinalizedCheckpoint: checkpointToRest(fc.FinalizedCheckpoint),
 		ForkChoiceNodes:     nodes,
-	}, nil
+	}
+
+	if len(fc.ExtraData) > 0 {
+		extra, err := extraDataToRest(fc.ExtraData)
+		if err != nil {
+			return rest.ForkChoice{}, err
+		}
+
+		restFC.ExtraData = rest.NewOptForkChoiceExtraData(extra)
+	}
+
+	return restFC, nil
+}
+
+// forkChoiceNodeToRest maps a fork-choice node onto the spec's
+// ForkChoiceNode schema.
+func forkChoiceNodeToRest(node *types.ForkChoiceNode) (rest.ForkChoiceNode, error) {
+	restNode := rest.ForkChoiceNode{
+		Slot:                            rest.SlotString(strconv.FormatUint(uint64(node.Slot), 10)),
+		BlockRoot:                       rest.Root(node.BlockRoot.String()),
+		ParentRoot:                      rest.Root(node.ParentRoot.String()),
+		Weight:                          strconv.FormatUint(node.Weight, 10),
+		Validity:                        rest.ForkChoiceNodeValidity(node.Validity.String()),
+		ExecutionBlockHash:              rest.Root(node.ExecutionBlockHash.String()),
+		PayloadAttesterCount:            optUint64String(node.PayloadAttesterCount),
+		PayloadAvailabilityYesCount:     optUint64String(node.PayloadAvailabilityYesCount),
+		PayloadDataAvailabilityYesCount: optUint64String(node.PayloadDataAvailabilityYesCount),
+	}
+
+	if node.JustifiedEpoch != nil {
+		restNode.JustifiedEpoch = rest.NewOptEpochString(rest.EpochString(strconv.FormatUint(uint64(*node.JustifiedEpoch), 10)))
+	}
+
+	if node.FinalizedEpoch != nil {
+		restNode.FinalizedEpoch = rest.NewOptEpochString(rest.EpochString(strconv.FormatUint(uint64(*node.FinalizedEpoch), 10)))
+	}
+
+	if node.PayloadStatus != v1.ForkChoicePayloadStatusUnknown {
+		restNode.PayloadStatus = rest.NewOptPayloadStatus(rest.PayloadStatus(node.PayloadStatus.String()))
+	}
+
+	if node.ParentPayloadStatus != nil {
+		restNode.ParentPayloadStatus = rest.NewOptPayloadStatus(rest.PayloadStatus(node.ParentPayloadStatus.String()))
+	}
+
+	if len(node.ExtraData) > 0 {
+		extra, err := extraDataToRest(node.ExtraData)
+		if err != nil {
+			return rest.ForkChoiceNode{}, err
+		}
+
+		restNode.ExtraData = rest.NewOptForkChoiceNodeExtraData(rest.ForkChoiceNodeExtraData(extra))
+	}
+
+	return restNode, nil
+}
+
+// extraDataToRest maps client-specific extra data onto raw JSON values.
+func extraDataToRest(extraData map[string]any) (map[string]jx.Raw, error) {
+	extra := make(map[string]jx.Raw, len(extraData))
+
+	for key, value := range extraData {
+		raw, err := json.Marshal(value)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal extra_data %q: %w", key, err)
+		}
+
+		extra[key] = jx.Raw(raw)
+	}
+
+	return extra, nil
+}
+
+// optUint64String maps an optional value onto the spec's decimal string
+// serialization.
+func optUint64String(value *uint64) rest.OptString {
+	if value == nil {
+		return rest.OptString{}
+	}
+
+	return rest.NewOptString(strconv.FormatUint(*value, 10))
 }
 
 // checkpointToRest maps a beacon checkpoint onto the spec's Checkpoint

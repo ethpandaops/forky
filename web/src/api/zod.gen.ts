@@ -100,15 +100,35 @@ export const zCheckpoint = z.object({
   root: zRoot,
 });
 
+/**
+ * The Gloas payload status of a fork-choice node. A Gloas block has a
+ * `pending` node, which is the parent of its `empty` node (the block
+ * without its execution payload) and its `full` node (the block with it).
+ *
+ */
+export const zPayloadStatus = z.enum(['pending', 'empty', 'full']);
+
+/**
+ * A fork-choice node. Pre-Gloas, and for beacon nodes without the v2
+ * fork-choice endpoint, there is one node per block. Post-Gloas a block can
+ * have a `pending`, an `empty` and a `full` node, which share `slot`,
+ * `block_root` and `parent_root`.
+ *
+ */
 export const zForkChoiceNode = z.object({
   slot: zSlotString,
   block_root: zRoot,
   parent_root: zRoot,
-  justified_epoch: zEpochString,
-  finalized_epoch: zEpochString,
+  justified_epoch: z.optional(zEpochString),
+  finalized_epoch: z.optional(zEpochString),
   weight: z.string(),
   validity: z.enum(['valid', 'invalid', 'optimistic', 'unknown']),
   execution_block_hash: zRoot,
+  payload_status: z.optional(zPayloadStatus),
+  parent_payload_status: z.optional(zPayloadStatus),
+  payload_attester_count: z.optional(z.string()),
+  payload_availability_yes_count: z.optional(z.string()),
+  payload_data_availability_yes_count: z.optional(z.string()),
   extra_data: z.optional(z.record(z.string(), z.unknown())),
 });
 
@@ -119,6 +139,7 @@ export const zForkChoice = z.object({
   justified_checkpoint: zCheckpoint,
   finalized_checkpoint: zCheckpoint,
   fork_choice_nodes: z.array(zForkChoiceNode),
+  extra_data: z.optional(z.record(z.string(), z.unknown())),
 });
 
 export const zFrame = z.object({

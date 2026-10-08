@@ -69,6 +69,7 @@ export type {
   MetadataQuery2,
   PaginationCursor,
   PaginationResponse,
+  PayloadStatus,
   Root,
   Slot,
   SlotString,

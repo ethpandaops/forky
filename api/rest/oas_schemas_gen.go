@@ -176,6 +176,9 @@ type ForkChoice struct {
 	JustifiedCheckpoint Checkpoint       `json:"justified_checkpoint"`
 	FinalizedCheckpoint Checkpoint       `json:"finalized_checkpoint"`
 	ForkChoiceNodes     []ForkChoiceNode `json:"fork_choice_nodes"`
+	// Client-specific values of the fork-choice store, such as the
+	// unrealized justified checkpoint.
+	ExtraData OptForkChoiceExtraData `json:"extra_data"`
 }
 
 // GetJustifiedCheckpoint returns the value of JustifiedCheckpoint.
@@ -193,6 +196,11 @@ func (s *ForkChoice) GetForkChoiceNodes() []ForkChoiceNode {
 	return s.ForkChoiceNodes
 }
 
+// GetExtraData returns the value of ExtraData.
+func (s *ForkChoice) GetExtraData() OptForkChoiceExtraData {
+	return s.ExtraData
+}
+
 // SetJustifiedCheckpoint sets the value of JustifiedCheckpoint.
 func (s *ForkChoice) SetJustifiedCheckpoint(val Checkpoint) {
 	s.JustifiedCheckpoint = val
@@ -208,19 +216,53 @@ func (s *ForkChoice) SetForkChoiceNodes(val []ForkChoiceNode) {
 	s.ForkChoiceNodes = val
 }
 
+// SetExtraData sets the value of ExtraData.
+func (s *ForkChoice) SetExtraData(val OptForkChoiceExtraData) {
+	s.ExtraData = val
+}
+
+// Client-specific values of the fork-choice store, such as the
+// unrealized justified checkpoint.
+type ForkChoiceExtraData map[string]jx.Raw
+
+func (s *ForkChoiceExtraData) init() ForkChoiceExtraData {
+	m := *s
+	if m == nil {
+		m = map[string]jx.Raw{}
+		*s = m
+	}
+	return m
+}
+
+// A fork-choice node. Pre-Gloas, and for beacon nodes without the v2
+// fork-choice endpoint, there is one node per block. Post-Gloas a block can
+// have a `pending`, an `empty` and a `full` node, which share `slot`,
+// `block_root` and `parent_root`.
 // Ref: #/components/schemas/ForkChoiceNode
 type ForkChoiceNode struct {
-	Slot           SlotString  `json:"slot"`
-	BlockRoot      Root        `json:"block_root"`
-	ParentRoot     Root        `json:"parent_root"`
-	JustifiedEpoch EpochString `json:"justified_epoch"`
-	FinalizedEpoch EpochString `json:"finalized_epoch"`
+	Slot           SlotString     `json:"slot"`
+	BlockRoot      Root           `json:"block_root"`
+	ParentRoot     Root           `json:"parent_root"`
+	JustifiedEpoch OptEpochString `json:"justified_epoch"`
+	FinalizedEpoch OptEpochString `json:"finalized_epoch"`
 	// The node's fork-choice weight, serialized as a string.
 	Weight string `json:"weight"`
 	// The node's validity status.
-	Validity           ForkChoiceNodeValidity     `json:"validity"`
-	ExecutionBlockHash Root                       `json:"execution_block_hash"`
-	ExtraData          OptForkChoiceNodeExtraData `json:"extra_data"`
+	Validity           ForkChoiceNodeValidity `json:"validity"`
+	ExecutionBlockHash Root                   `json:"execution_block_hash"`
+	PayloadStatus      OptPayloadStatus       `json:"payload_status"`
+	// The payload status of the parent fork-choice node: for a `pending`
+	// node, whether the block was built on its parent block's `empty` or
+	// `full` payload; for `empty` and `full` nodes, `pending`. Absent if
+	// unknown.
+	ParentPayloadStatus OptPayloadStatus `json:"parent_payload_status"`
+	// Number of Payload Timeliness Committee positions with a recorded vote.
+	PayloadAttesterCount OptString `json:"payload_attester_count"`
+	// Number of PTC positions voting that the payload was received on time.
+	PayloadAvailabilityYesCount OptString `json:"payload_availability_yes_count"`
+	// Number of PTC positions voting that the blob data is available.
+	PayloadDataAvailabilityYesCount OptString                  `json:"payload_data_availability_yes_count"`
+	ExtraData                       OptForkChoiceNodeExtraData `json:"extra_data"`
 }
 
 // GetSlot returns the value of Slot.
@@ -239,12 +281,12 @@ func (s *ForkChoiceNode) GetParentRoot() Root {
 }
 
 // GetJustifiedEpoch returns the value of JustifiedEpoch.
-func (s *ForkChoiceNode) GetJustifiedEpoch() EpochString {
+func (s *ForkChoiceNode) GetJustifiedEpoch() OptEpochString {
 	return s.JustifiedEpoch
 }
 
 // GetFinalizedEpoch returns the value of FinalizedEpoch.
-func (s *ForkChoiceNode) GetFinalizedEpoch() EpochString {
+func (s *ForkChoiceNode) GetFinalizedEpoch() OptEpochString {
 	return s.FinalizedEpoch
 }
 
@@ -261,6 +303,31 @@ func (s *ForkChoiceNode) GetValidity() ForkChoiceNodeValidity {
 // GetExecutionBlockHash returns the value of ExecutionBlockHash.
 func (s *ForkChoiceNode) GetExecutionBlockHash() Root {
 	return s.ExecutionBlockHash
+}
+
+// GetPayloadStatus returns the value of PayloadStatus.
+func (s *ForkChoiceNode) GetPayloadStatus() OptPayloadStatus {
+	return s.PayloadStatus
+}
+
+// GetParentPayloadStatus returns the value of ParentPayloadStatus.
+func (s *ForkChoiceNode) GetParentPayloadStatus() OptPayloadStatus {
+	return s.ParentPayloadStatus
+}
+
+// GetPayloadAttesterCount returns the value of PayloadAttesterCount.
+func (s *ForkChoiceNode) GetPayloadAttesterCount() OptString {
+	return s.PayloadAttesterCount
+}
+
+// GetPayloadAvailabilityYesCount returns the value of PayloadAvailabilityYesCount.
+func (s *ForkChoiceNode) GetPayloadAvailabilityYesCount() OptString {
+	return s.PayloadAvailabilityYesCount
+}
+
+// GetPayloadDataAvailabilityYesCount returns the value of PayloadDataAvailabilityYesCount.
+func (s *ForkChoiceNode) GetPayloadDataAvailabilityYesCount() OptString {
+	return s.PayloadDataAvailabilityYesCount
 }
 
 // GetExtraData returns the value of ExtraData.
@@ -284,12 +351,12 @@ func (s *ForkChoiceNode) SetParentRoot(val Root) {
 }
 
 // SetJustifiedEpoch sets the value of JustifiedEpoch.
-func (s *ForkChoiceNode) SetJustifiedEpoch(val EpochString) {
+func (s *ForkChoiceNode) SetJustifiedEpoch(val OptEpochString) {
 	s.JustifiedEpoch = val
 }
 
 // SetFinalizedEpoch sets the value of FinalizedEpoch.
-func (s *ForkChoiceNode) SetFinalizedEpoch(val EpochString) {
+func (s *ForkChoiceNode) SetFinalizedEpoch(val OptEpochString) {
 	s.FinalizedEpoch = val
 }
 
@@ -306,6 +373,31 @@ func (s *ForkChoiceNode) SetValidity(val ForkChoiceNodeValidity) {
 // SetExecutionBlockHash sets the value of ExecutionBlockHash.
 func (s *ForkChoiceNode) SetExecutionBlockHash(val Root) {
 	s.ExecutionBlockHash = val
+}
+
+// SetPayloadStatus sets the value of PayloadStatus.
+func (s *ForkChoiceNode) SetPayloadStatus(val OptPayloadStatus) {
+	s.PayloadStatus = val
+}
+
+// SetParentPayloadStatus sets the value of ParentPayloadStatus.
+func (s *ForkChoiceNode) SetParentPayloadStatus(val OptPayloadStatus) {
+	s.ParentPayloadStatus = val
+}
+
+// SetPayloadAttesterCount sets the value of PayloadAttesterCount.
+func (s *ForkChoiceNode) SetPayloadAttesterCount(val OptString) {
+	s.PayloadAttesterCount = val
+}
+
+// SetPayloadAvailabilityYesCount sets the value of PayloadAvailabilityYesCount.
+func (s *ForkChoiceNode) SetPayloadAvailabilityYesCount(val OptString) {
+	s.PayloadAvailabilityYesCount = val
+}
+
+// SetPayloadDataAvailabilityYesCount sets the value of PayloadDataAvailabilityYesCount.
+func (s *ForkChoiceNode) SetPayloadDataAvailabilityYesCount(val OptString) {
+	s.PayloadDataAvailabilityYesCount = val
 }
 
 // SetExtraData sets the value of ExtraData.
@@ -1162,6 +1254,98 @@ func (o OptEpoch) Or(d Epoch) Epoch {
 	return d
 }
 
+// NewOptEpochString returns new OptEpochString with value set to v.
+func NewOptEpochString(v EpochString) OptEpochString {
+	return OptEpochString{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptEpochString is optional EpochString.
+type OptEpochString struct {
+	Value EpochString
+	Set   bool
+}
+
+// IsSet returns true if OptEpochString was set.
+func (o OptEpochString) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptEpochString) Reset() {
+	var v EpochString
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptEpochString) SetTo(v EpochString) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptEpochString) Get() (v EpochString, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptEpochString) Or(d EpochString) EpochString {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptForkChoiceExtraData returns new OptForkChoiceExtraData with value set to v.
+func NewOptForkChoiceExtraData(v ForkChoiceExtraData) OptForkChoiceExtraData {
+	return OptForkChoiceExtraData{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptForkChoiceExtraData is optional ForkChoiceExtraData.
+type OptForkChoiceExtraData struct {
+	Value ForkChoiceExtraData
+	Set   bool
+}
+
+// IsSet returns true if OptForkChoiceExtraData was set.
+func (o OptForkChoiceExtraData) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptForkChoiceExtraData) Reset() {
+	var v ForkChoiceExtraData
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptForkChoiceExtraData) SetTo(v ForkChoiceExtraData) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptForkChoiceExtraData) Get() (v ForkChoiceExtraData, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptForkChoiceExtraData) Or(d ForkChoiceExtraData) ForkChoiceExtraData {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptForkChoiceNodeExtraData returns new OptForkChoiceNodeExtraData with value set to v.
 func NewOptForkChoiceNodeExtraData(v ForkChoiceNodeExtraData) OptForkChoiceNodeExtraData {
 	return OptForkChoiceNodeExtraData{
@@ -1346,6 +1530,52 @@ func (o OptPaginationCursor) Or(d PaginationCursor) PaginationCursor {
 	return d
 }
 
+// NewOptPayloadStatus returns new OptPayloadStatus with value set to v.
+func NewOptPayloadStatus(v PayloadStatus) OptPayloadStatus {
+	return OptPayloadStatus{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptPayloadStatus is optional PayloadStatus.
+type OptPayloadStatus struct {
+	Value PayloadStatus
+	Set   bool
+}
+
+// IsSet returns true if OptPayloadStatus was set.
+func (o OptPayloadStatus) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptPayloadStatus) Reset() {
+	var v PayloadStatus
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptPayloadStatus) SetTo(v PayloadStatus) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptPayloadStatus) Get() (v PayloadStatus, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptPayloadStatus) Or(d PayloadStatus) PayloadStatus {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptSlot returns new OptSlot with value set to v.
 func NewOptSlot(v Slot) OptSlot {
 	return OptSlot{
@@ -1481,6 +1711,58 @@ func (s *PaginationResponse) GetTotal() int64 {
 // SetTotal sets the value of Total.
 func (s *PaginationResponse) SetTotal(val int64) {
 	s.Total = val
+}
+
+// The Gloas payload status of a fork-choice node. A Gloas block has a
+// `pending` node, which is the parent of its `empty` node (the block
+// without its execution payload) and its `full` node (the block with it).
+// Ref: #/components/schemas/PayloadStatus
+type PayloadStatus string
+
+const (
+	PayloadStatusPending PayloadStatus = "pending"
+	PayloadStatusEmpty   PayloadStatus = "empty"
+	PayloadStatusFull    PayloadStatus = "full"
+)
+
+// AllValues returns all PayloadStatus values.
+func (PayloadStatus) AllValues() []PayloadStatus {
+	return []PayloadStatus{
+		PayloadStatusPending,
+		PayloadStatusEmpty,
+		PayloadStatusFull,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s PayloadStatus) MarshalText() ([]byte, error) {
+	switch s {
+	case PayloadStatusPending:
+		return []byte(s), nil
+	case PayloadStatusEmpty:
+		return []byte(s), nil
+	case PayloadStatusFull:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *PayloadStatus) UnmarshalText(data []byte) error {
+	switch PayloadStatus(data) {
+	case PayloadStatusPending:
+		*s = PayloadStatusPending
+		return nil
+	case PayloadStatusEmpty:
+		*s = PayloadStatusEmpty
+		return nil
+	case PayloadStatusFull:
+		*s = PayloadStatusFull
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
 }
 
 type Root string

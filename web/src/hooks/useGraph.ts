@@ -27,6 +27,7 @@ interface EdgeRelationship {
 interface EdgeData {
   id: string;
   canonical: boolean;
+  builtOnEmpty: boolean;
   source: EdgeRelationship;
   target: EdgeRelationship;
 }
@@ -80,6 +81,7 @@ function generateEdgeData({
       return {
         id: edge,
         canonical: graph.getSourceAttribute(edge, 'canonical'),
+        builtOnEmpty: graph.getEdgeAttribute(edge, 'builtOnEmpty') ?? false,
         source: {
           id: graph.getSourceAttribute(edge, 'blockRoot'),
           x: (graph.getSourceAttribute(edge, 'slot') - slotStart) * spacingX + spacingX,

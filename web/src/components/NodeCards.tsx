@@ -3,8 +3,16 @@ import { ReactNode, useState } from 'react';
 import { CheckIcon, DocumentDuplicateIcon, EyeIcon, FlagIcon } from '@heroicons/react/20/solid';
 import classNames from 'clsx';
 
+import { BlockPayload } from '@app/types/graph';
 import { truncateHash } from '@app/utils/strings';
 import { NODE_STYLES, NodeStyleKey } from '@utils/nodeStyles';
+import {
+  PAYLOAD_STAGE_ORDER,
+  PAYLOAD_STAGES,
+  PTC_SIZE,
+  PayloadStage,
+  payloadStage,
+} from '@utils/payload';
 
 /* Read-only content for the graph hover cards (see HoverCard). One variant
  * per graph primitive; all of them stay presentational so Storybook can
@@ -243,6 +251,7 @@ export function WeightedNodeCard({
   validity,
   weight,
   weightPercentage,
+  payload,
 }: {
   styleKey: NodeStyleKey;
   status: string;
@@ -253,6 +262,7 @@ export function WeightedNodeCard({
   validity: string;
   weight: string;
   weightPercentage: number;
+  payload?: BlockPayload;
 }) {
   const formattedWeight = weight && weight !== '0' ? formatWeight(weight) : undefined;
 
@@ -275,8 +285,73 @@ export function WeightedNodeCard({
           <ValidityBadge validity={validity} />
         </CardRow>
         {parentRoot && <CardRow label="Parent">{truncateHash(parentRoot)}</CardRow>}
+        {payload && <PayloadRows payload={payload} />}
       </dl>
     </CardShell>
+  );
+}
+
+function payloadWeight(weight?: bigint): string {
+  if (weight === undefined) return '—';
+  return weight === 0n ? '0' : formatWeight(weight.toString()).display;
+}
+
+function PayloadStageBadge({ stage }: { stage: PayloadStage }) {
+  const style = PAYLOAD_STAGES[stage];
+  return (
+    <span
+      title={style.description}
+      className={classNames(
+        'rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+        style.chip,
+      )}
+    >
+      {style.name}
+    </span>
+  );
+}
+
+function PayloadRows({ payload }: { payload: BlockPayload }) {
+  const stage = payloadStage(payload);
+  return (
+    <>
+      <CardRow label="Payload">
+        <PayloadStageBadge stage={stage} />
+      </CardRow>
+      <CardRow label="Empty / full weight">
+        {payloadWeight(payload.emptyWeight)} / {payloadWeight(payload.fullWeight)}
+      </CardRow>
+      {payload.attesterCount !== undefined && (
+        <CardRow label="PTC timely / data / voted">
+          {payload.availabilityYesCount ?? '—'} / {payload.dataAvailabilityYesCount ?? '—'} /{' '}
+          {payload.attesterCount} of {PTC_SIZE}
+        </CardRow>
+      )}
+      <CardRow label="Built on parent">
+        <span className="uppercase">{payload.parentPayloadStatus ?? 'unknown'}</span>
+      </CardRow>
+    </>
+  );
+}
+
+// Payload stages reported by the sources of an aggregated block, in lifecycle
+// order.
+export function PayloadStageCounts({
+  stages,
+  total,
+}: {
+  stages: Partial<Record<PayloadStage, number>>;
+  total: number;
+}) {
+  return (
+    <span className="flex flex-wrap justify-end gap-1">
+      {PAYLOAD_STAGE_ORDER.filter(stage => stages[stage]).map(stage => (
+        <span key={stage} className="flex items-center gap-1">
+          <PayloadStageBadge stage={stage} />
+          {stages[stage]}/{total}
+        </span>
+      ))}
+    </span>
   );
 }
 
@@ -294,12 +369,14 @@ export function AggregatedNodeCard({
   valid,
   optimistic,
   total,
+  payloadStages = {},
 }: {
   styleKey: NodeStyleKey;
   status: string;
   blockRoot: string;
   slot?: number;
   epoch?: number;
+  payloadStages?: Partial<Record<PayloadStage, number>>;
   seen: number;
   canonical: number;
   finalizedCheckpoints: number;
@@ -334,6 +411,16 @@ export function AggregatedNodeCard({
           {seen}/{total}
         </CardStat>
       </div>
+      {Object.keys(payloadStages).length > 0 && (
+        <dl className="flex flex-col gap-1">
+          <CardRow label="Payload">
+            <PayloadStageCounts
+              stages={payloadStages}
+              total={Object.values(payloadStages).reduce((sum, n) => sum + n, 0)}
+            />
+          </CardRow>
+        </dl>
+      )}
       {(finalizedCheckpoints > 0 ||
         justifiedCheckpoints > 0 ||
         notValid > 0 ||

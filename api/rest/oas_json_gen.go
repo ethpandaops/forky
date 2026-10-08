@@ -690,12 +690,19 @@ func (s *ForkChoice) encodeFields(e *jx.Encoder) {
 		}
 		e.ArrEnd()
 	}
+	{
+		if s.ExtraData.Set {
+			e.FieldStart("extra_data")
+			s.ExtraData.Encode(e)
+		}
+	}
 }
 
-var jsonFieldsNameOfForkChoice = [3]string{
+var jsonFieldsNameOfForkChoice = [4]string{
 	0: "justified_checkpoint",
 	1: "finalized_checkpoint",
 	2: "fork_choice_nodes",
+	3: "extra_data",
 }
 
 // Decode decodes ForkChoice from json.
@@ -744,6 +751,16 @@ func (s *ForkChoice) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"fork_choice_nodes\"")
+			}
+		case "extra_data":
+			if err := func() error {
+				s.ExtraData.Reset()
+				if err := s.ExtraData.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"extra_data\"")
 			}
 		default:
 			return d.Skip()
@@ -802,6 +819,64 @@ func (s *ForkChoice) UnmarshalJSON(data []byte) error {
 }
 
 // Encode implements json.Marshaler.
+func (s ForkChoiceExtraData) Encode(e *jx.Encoder) {
+	e.ObjStart()
+	s.encodeFields(e)
+	e.ObjEnd()
+}
+
+// encodeFields implements json.Marshaler.
+func (s ForkChoiceExtraData) encodeFields(e *jx.Encoder) {
+	for k, elem := range s {
+		e.FieldStart(k)
+
+		if len(elem) != 0 {
+			e.Raw(elem)
+		}
+	}
+}
+
+// Decode decodes ForkChoiceExtraData from json.
+func (s *ForkChoiceExtraData) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode ForkChoiceExtraData to nil")
+	}
+	m := s.init()
+	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
+		var elem jx.Raw
+		if err := func() error {
+			v, err := d.RawAppend(nil)
+			elem = jx.Raw(v)
+			if err != nil {
+				return err
+			}
+			return nil
+		}(); err != nil {
+			return errors.Wrapf(err, "decode field %q", k)
+		}
+		m[string(k)] = elem
+		return nil
+	}); err != nil {
+		return errors.Wrap(err, "decode ForkChoiceExtraData")
+	}
+
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s ForkChoiceExtraData) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *ForkChoiceExtraData) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode implements json.Marshaler.
 func (s *ForkChoiceNode) Encode(e *jx.Encoder) {
 	e.ObjStart()
 	s.encodeFields(e)
@@ -823,12 +898,16 @@ func (s *ForkChoiceNode) encodeFields(e *jx.Encoder) {
 		s.ParentRoot.Encode(e)
 	}
 	{
-		e.FieldStart("justified_epoch")
-		s.JustifiedEpoch.Encode(e)
+		if s.JustifiedEpoch.Set {
+			e.FieldStart("justified_epoch")
+			s.JustifiedEpoch.Encode(e)
+		}
 	}
 	{
-		e.FieldStart("finalized_epoch")
-		s.FinalizedEpoch.Encode(e)
+		if s.FinalizedEpoch.Set {
+			e.FieldStart("finalized_epoch")
+			s.FinalizedEpoch.Encode(e)
+		}
 	}
 	{
 		e.FieldStart("weight")
@@ -843,6 +922,36 @@ func (s *ForkChoiceNode) encodeFields(e *jx.Encoder) {
 		s.ExecutionBlockHash.Encode(e)
 	}
 	{
+		if s.PayloadStatus.Set {
+			e.FieldStart("payload_status")
+			s.PayloadStatus.Encode(e)
+		}
+	}
+	{
+		if s.ParentPayloadStatus.Set {
+			e.FieldStart("parent_payload_status")
+			s.ParentPayloadStatus.Encode(e)
+		}
+	}
+	{
+		if s.PayloadAttesterCount.Set {
+			e.FieldStart("payload_attester_count")
+			s.PayloadAttesterCount.Encode(e)
+		}
+	}
+	{
+		if s.PayloadAvailabilityYesCount.Set {
+			e.FieldStart("payload_availability_yes_count")
+			s.PayloadAvailabilityYesCount.Encode(e)
+		}
+	}
+	{
+		if s.PayloadDataAvailabilityYesCount.Set {
+			e.FieldStart("payload_data_availability_yes_count")
+			s.PayloadDataAvailabilityYesCount.Encode(e)
+		}
+	}
+	{
 		if s.ExtraData.Set {
 			e.FieldStart("extra_data")
 			s.ExtraData.Encode(e)
@@ -850,16 +959,21 @@ func (s *ForkChoiceNode) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfForkChoiceNode = [9]string{
-	0: "slot",
-	1: "block_root",
-	2: "parent_root",
-	3: "justified_epoch",
-	4: "finalized_epoch",
-	5: "weight",
-	6: "validity",
-	7: "execution_block_hash",
-	8: "extra_data",
+var jsonFieldsNameOfForkChoiceNode = [14]string{
+	0:  "slot",
+	1:  "block_root",
+	2:  "parent_root",
+	3:  "justified_epoch",
+	4:  "finalized_epoch",
+	5:  "weight",
+	6:  "validity",
+	7:  "execution_block_hash",
+	8:  "payload_status",
+	9:  "parent_payload_status",
+	10: "payload_attester_count",
+	11: "payload_availability_yes_count",
+	12: "payload_data_availability_yes_count",
+	13: "extra_data",
 }
 
 // Decode decodes ForkChoiceNode from json.
@@ -902,8 +1016,8 @@ func (s *ForkChoiceNode) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"parent_root\"")
 			}
 		case "justified_epoch":
-			requiredBitSet[0] |= 1 << 3
 			if err := func() error {
+				s.JustifiedEpoch.Reset()
 				if err := s.JustifiedEpoch.Decode(d); err != nil {
 					return err
 				}
@@ -912,8 +1026,8 @@ func (s *ForkChoiceNode) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"justified_epoch\"")
 			}
 		case "finalized_epoch":
-			requiredBitSet[0] |= 1 << 4
 			if err := func() error {
+				s.FinalizedEpoch.Reset()
 				if err := s.FinalizedEpoch.Decode(d); err != nil {
 					return err
 				}
@@ -953,6 +1067,56 @@ func (s *ForkChoiceNode) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"execution_block_hash\"")
 			}
+		case "payload_status":
+			if err := func() error {
+				s.PayloadStatus.Reset()
+				if err := s.PayloadStatus.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"payload_status\"")
+			}
+		case "parent_payload_status":
+			if err := func() error {
+				s.ParentPayloadStatus.Reset()
+				if err := s.ParentPayloadStatus.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"parent_payload_status\"")
+			}
+		case "payload_attester_count":
+			if err := func() error {
+				s.PayloadAttesterCount.Reset()
+				if err := s.PayloadAttesterCount.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"payload_attester_count\"")
+			}
+		case "payload_availability_yes_count":
+			if err := func() error {
+				s.PayloadAvailabilityYesCount.Reset()
+				if err := s.PayloadAvailabilityYesCount.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"payload_availability_yes_count\"")
+			}
+		case "payload_data_availability_yes_count":
+			if err := func() error {
+				s.PayloadDataAvailabilityYesCount.Reset()
+				if err := s.PayloadDataAvailabilityYesCount.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"payload_data_availability_yes_count\"")
+			}
 		case "extra_data":
 			if err := func() error {
 				s.ExtraData.Reset()
@@ -973,7 +1137,7 @@ func (s *ForkChoiceNode) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [2]uint8{
-		0b11111111,
+		0b11100111,
 		0b00000000,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
@@ -3252,6 +3416,73 @@ func (s *OptEpoch) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
+// Encode encodes EpochString as json.
+func (o OptEpochString) Encode(e *jx.Encoder) {
+	if !o.Set {
+		return
+	}
+	o.Value.Encode(e)
+}
+
+// Decode decodes EpochString from json.
+func (o *OptEpochString) Decode(d *jx.Decoder) error {
+	if o == nil {
+		return errors.New("invalid: unable to decode OptEpochString to nil")
+	}
+	o.Set = true
+	if err := o.Value.Decode(d); err != nil {
+		return err
+	}
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s OptEpochString) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *OptEpochString) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode encodes ForkChoiceExtraData as json.
+func (o OptForkChoiceExtraData) Encode(e *jx.Encoder) {
+	if !o.Set {
+		return
+	}
+	o.Value.Encode(e)
+}
+
+// Decode decodes ForkChoiceExtraData from json.
+func (o *OptForkChoiceExtraData) Decode(d *jx.Decoder) error {
+	if o == nil {
+		return errors.New("invalid: unable to decode OptForkChoiceExtraData to nil")
+	}
+	o.Set = true
+	o.Value = make(ForkChoiceExtraData)
+	if err := o.Value.Decode(d); err != nil {
+		return err
+	}
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s OptForkChoiceExtraData) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *OptForkChoiceExtraData) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
 // Encode encodes ForkChoiceNodeExtraData as json.
 func (o OptForkChoiceNodeExtraData) Encode(e *jx.Encoder) {
 	if !o.Set {
@@ -3383,6 +3614,39 @@ func (s OptPaginationCursor) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
 func (s *OptPaginationCursor) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode encodes PayloadStatus as json.
+func (o OptPayloadStatus) Encode(e *jx.Encoder) {
+	if !o.Set {
+		return
+	}
+	e.Str(string(o.Value))
+}
+
+// Decode decodes PayloadStatus from json.
+func (o *OptPayloadStatus) Decode(d *jx.Decoder) error {
+	if o == nil {
+		return errors.New("invalid: unable to decode OptPayloadStatus to nil")
+	}
+	o.Set = true
+	if err := o.Value.Decode(d); err != nil {
+		return err
+	}
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s OptPayloadStatus) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *OptPayloadStatus) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
@@ -3628,6 +3892,48 @@ func (s *PaginationResponse) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
 func (s *PaginationResponse) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode encodes PayloadStatus as json.
+func (s PayloadStatus) Encode(e *jx.Encoder) {
+	e.Str(string(s))
+}
+
+// Decode decodes PayloadStatus from json.
+func (s *PayloadStatus) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode PayloadStatus to nil")
+	}
+	v, err := d.StrBytes()
+	if err != nil {
+		return err
+	}
+	// Try to use constant string.
+	switch PayloadStatus(v) {
+	case PayloadStatusPending:
+		*s = PayloadStatusPending
+	case PayloadStatusEmpty:
+		*s = PayloadStatusEmpty
+	case PayloadStatusFull:
+		*s = PayloadStatusFull
+	default:
+		*s = PayloadStatus(v)
+	}
+
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s PayloadStatus) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *PayloadStatus) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
