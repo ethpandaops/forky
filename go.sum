@@ -196,6 +196,8 @@ github.com/ethpandaops/xatu v1.24.4-0.20261007033258-20c9c651e62c h1:BqblsGPJvC9
 github.com/ethpandaops/xatu v1.24.4-0.20261007033258-20c9c651e62c/go.mod h1:dUHUlJktAVaFBPN6zYSWgakJov/jcnpRYSZzGQwq8ug=
 github.com/ethpandaops/xatu v1.24.4-0.20261008044555-a71a264dc8d7 h1:KcSI+WZ/kbEEGQIc5L6pqTGM/3QGJomPQrPZSI1GM3I=
 github.com/ethpandaops/xatu v1.24.4-0.20261008044555-a71a264dc8d7/go.mod h1:ntnC7nu9jGEguwMSn/36cfwYQZMgtku/AuMgkma03xs=
+github.com/ethpandaops/xatu v1.25.0 h1:i5lz6wqVCikc28CKlyhteKiPeCA0WRrL3/qnTsGSIV4=
+github.com/ethpandaops/xatu v1.25.0/go.mod h1:ntnC7nu9jGEguwMSn/36cfwYQZMgtku/AuMgkma03xs=
 github.com/failsafe-go/failsafe-go v0.9.6 h1:vPSH2cry0Ee5cnR9wc9qshCDO6jdrMA9elBJNwyo4Uk=
 github.com/failsafe-go/failsafe-go v0.9.6/go.mod h1:IeRpglkcwzKagjDMh90ZhN2l4Ovt3+jemQBUbThag54=
 github.com/fatih/color v1.19.0 h1:Zp3PiM21/9Ld6FzSKyL5c/BULoe/ONr9KlbYVOfG8+w=

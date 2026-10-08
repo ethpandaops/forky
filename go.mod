@@ -12,7 +12,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/creasty/defaults v1.8.0
 	github.com/ethpandaops/ethwallclock v0.4.0
-	github.com/ethpandaops/xatu v1.24.4-0.20261008044555-a71a264dc8d7
+	github.com/ethpandaops/xatu v1.25.0
 	github.com/glebarez/sqlite v1.10.0
 	github.com/go-co-op/gocron v1.37.0
 	github.com/go-faster/errors v0.7.1
