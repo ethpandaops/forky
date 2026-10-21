@@ -1,6 +1,6 @@
 module github.com/ethpandaops/forky
 
-go 1.26.8
+go 1.26.10
 
 replace github.com/probe-lab/hermes => github.com/ethpandaops/hermes v0.0.4-0.20250715094801-db6021d1c703
 
