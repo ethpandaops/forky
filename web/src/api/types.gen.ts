@@ -195,9 +195,11 @@ export type EthereumNow = {
 };
 
 export type EthereumSpec = {
-  seconds_per_slot: number;
+  slot_duration_ms: number;
   slots_per_epoch: number;
   genesis_time: string;
+  heze_fork_epoch?: number;
+  slot_duration_ms_heze?: number;
 };
 
 export type EthereumSpecResult = {

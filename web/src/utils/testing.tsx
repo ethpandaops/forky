@@ -19,7 +19,7 @@ interface Props {
 export function ProviderWrapper({ ethereum, focus, selection }: Props | undefined = {}) {
   const ethereumProps = ethereum || {
     genesisTime: new Date(spec.genesis_time).getTime(),
-    secondsPerSlot: spec.seconds_per_slot,
+    slotDurationMs: spec.slot_duration_ms,
     slotsPerEpoch: spec.slots_per_epoch,
     networkName: networkName,
   };
@@ -27,10 +27,7 @@ export function ProviderWrapper({ ethereum, focus, selection }: Props | undefine
   const focusProps = focus || {
     playing: true,
     byo: false,
-    initialTime:
-      ethereumProps.genesisTime +
-      100 * (ethereumProps.secondsPerSlot * 1000) -
-      ethereumProps.secondsPerSlot * 1000,
+    initialTime: ethereumProps.genesisTime + 99 * ethereumProps.slotDurationMs,
   };
 
   return function Provider({ children }: { children: ReactNode }) {

@@ -54,7 +54,7 @@ export function useValue(props: ValueProps): State {
   const [frameId, setFrameId] = useState(props.frameId);
   const [byo, setBYO] = useState(props.byo);
   const [byoData, setBYODataInternal] = useState<ProcessedData | undefined>();
-  const { secondsPerSlot, slotsPerEpoch, genesisTime } = useEthereum();
+  const { slotsPerEpoch, genesisTime, slotStartTime, slotAtTime } = useEthereum();
   const timer = useRef<number | null>(null);
   const initialPlayTime = useRef<number | undefined>(undefined);
   const [playing, setPlaying] = useState(props.playing);
@@ -84,11 +84,10 @@ export function useValue(props: ValueProps): State {
     [genesisTime, setTime],
   );
 
-  const timeDiff = (time - genesisTime) / 1000;
-  const slot = Math.floor(timeDiff / secondsPerSlot);
+  const slot = slotAtTime(time);
   const epoch = Math.floor(slot / slotsPerEpoch);
-  const timeIntoSlot = Math.ceil((timeDiff % secondsPerSlot) * 1000);
-  const timeIntoEpoch = (slot % slotsPerEpoch) * secondsPerSlot * 1000 + timeIntoSlot;
+  const timeIntoSlot = Math.ceil(time - slotStartTime(slot));
+  const timeIntoEpoch = Math.ceil(time - slotStartTime(epoch * slotsPerEpoch));
 
   const shiftTime = useCallback(
     (delta: number) => {
@@ -133,10 +132,10 @@ export function useValue(props: ValueProps): State {
       if (targetSlot < 0) return;
       if (playing && timer.current) cancelAnimationFrame(timer.current);
       initialPlayTime.current = undefined;
-      setTime(genesisTime + targetSlot * secondsPerSlot * 1000);
+      setTime(slotStartTime(targetSlot));
       if (playing) timer.current = requestAnimationFrame(step);
     },
-    [setTime, genesisTime, secondsPerSlot, step, playing],
+    [setTime, slotStartTime, step, playing],
   );
 
   const setEpoch = useCallback(
@@ -144,10 +143,10 @@ export function useValue(props: ValueProps): State {
       if (targetEpoch < 0) return;
       if (playing && timer.current) cancelAnimationFrame(timer.current);
       initialPlayTime.current = undefined;
-      setTime(genesisTime + targetEpoch * slotsPerEpoch * secondsPerSlot * 1000);
+      setTime(slotStartTime(targetEpoch * slotsPerEpoch));
       if (playing) timer.current = requestAnimationFrame(step);
     },
-    [setTime, genesisTime, secondsPerSlot, slotsPerEpoch, step, playing],
+    [setTime, slotStartTime, slotsPerEpoch, step, playing],
   );
 
   const setBYOData = useCallback(

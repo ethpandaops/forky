@@ -20,13 +20,13 @@ const storyGenesisTime = new Date(storySpec.genesis_time).getTime();
 
 export const defaultEthereumProps = {
   genesisTime: storyGenesisTime,
-  secondsPerSlot: storySpec.seconds_per_slot,
+  slotDurationMs: storySpec.slot_duration_ms,
   slotsPerEpoch: storySpec.slots_per_epoch,
   networkName: storyNetworkName,
 };
 
 export const defaultFocusProps = {
-  initialTime: storyGenesisTime + (storyNow.slot - 2) * storySpec.seconds_per_slot * 1000,
+  initialTime: storyGenesisTime + (storyNow.slot - 2) * storySpec.slot_duration_ms,
   playing: false,
   byo: false,
 };

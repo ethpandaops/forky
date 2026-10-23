@@ -2,6 +2,7 @@ package ethereum
 
 import (
 	"testing"
+	"time"
 
 	"github.com/ethpandaops/ethwallclock"
 	"github.com/sirupsen/logrus"
@@ -15,7 +16,7 @@ func TestNewBeaconChain_ValidConfig_ReturnsBeaconChain(t *testing.T) {
 			Name: "TestNet",
 			Spec: SpecConfig{
 				SlotsPerEpoch:  32,
-				SecondsPerSlot: 12,
+				SlotDurationMs: 12000,
 				GenesisTime:    1590832934,
 			},
 		},
@@ -40,7 +41,7 @@ func TestBeaconChain_Wallclock_ReturnsEthereumBeaconChain(t *testing.T) {
 			Name: "TestNet",
 			Spec: SpecConfig{
 				SlotsPerEpoch:  32,
-				SecondsPerSlot: 12,
+				SlotDurationMs: 12000,
 				GenesisTime:    1590832934,
 			},
 		},
@@ -58,7 +59,7 @@ func TestBeaconChain_SlotsPerEpoch_ReturnsSlotsPerEpoch(t *testing.T) {
 			Name: "TestNet",
 			Spec: SpecConfig{
 				SlotsPerEpoch:  32,
-				SecondsPerSlot: 12,
+				SlotDurationMs: 12000,
 				GenesisTime:    1590832934,
 			},
 		},
@@ -69,19 +70,43 @@ func TestBeaconChain_SlotsPerEpoch_ReturnsSlotsPerEpoch(t *testing.T) {
 	assert.Equal(t, uint64(32), slotsPerEpoch)
 }
 
-func TestBeaconChain_SecondsPerSlot_ReturnsSecondsPerSlot(t *testing.T) {
+func TestBeaconChain_SlotDurationMs_ReturnsSlotDurationMs(t *testing.T) {
 	config := &Config{
 		Network: NetworkConfig{
 			Name: "TestNet",
 			Spec: SpecConfig{
 				SlotsPerEpoch:  32,
-				SecondsPerSlot: 12,
+				SlotDurationMs: 12000,
 				GenesisTime:    1590832934,
 			},
 		},
 	}
 	log := logrus.New()
 	beaconchain, _ := NewBeaconChain(log, config)
-	secondsPerSlot := beaconchain.SecondsPerSlot()
-	assert.Equal(t, uint64(12), secondsPerSlot)
+	slotDurationMs := beaconchain.SlotDurationMs()
+	assert.Equal(t, uint64(12000), slotDurationMs)
+}
+
+func TestBeaconChain_Wallclock_FollowsHezeSlotDuration(t *testing.T) {
+	config := &Config{
+		Network: NetworkConfig{
+			Name: "TestNet",
+			Spec: SpecConfig{
+				SlotsPerEpoch:      32,
+				SlotDurationMs:     12000,
+				GenesisTime:        1590832934,
+				HezeForkEpoch:      5,
+				SlotDurationMsHeze: 9000,
+			},
+		},
+	}
+	log := logrus.New()
+	beaconchain, err := NewBeaconChain(log, config)
+	require.NoError(t, err)
+
+	forkTime := beaconchain.GenesisTime().Add(160 * 12 * time.Second)
+	slot, epoch, err := beaconchain.Wallclock().FromTime(forkTime.Add(18799 * 9 * time.Second))
+	require.NoError(t, err)
+	assert.Equal(t, uint64(18959), slot.Number())
+	assert.Equal(t, uint64(592), epoch.Number())
 }

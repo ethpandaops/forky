@@ -42,10 +42,10 @@ function TimelineControl() {
     stop: stopTimer,
     playing,
   } = useFocus();
-  const { genesisTime, secondsPerSlot } = useEthereum();
+  const { slotAtTime } = useEthereum();
   const now = useNow();
 
-  const slotDiff = Math.floor((now - genesisTime) / 1000 / secondsPerSlot) - focusedSlot;
+  const slotDiff = slotAtTime(now) - focusedSlot;
   const isCloseToLiveSlot = slotDiff <= 3 && slotDiff >= -1;
   const isLive = playing && isCloseToLiveSlot;
 
@@ -63,7 +63,7 @@ function TimelineControl() {
 
   const handleLive = () => {
     if (!isCloseToLiveSlot) {
-      setCurrentSlot(Math.floor((Date.now() - genesisTime) / 1000 / secondsPerSlot) - 2);
+      setCurrentSlot(slotAtTime(Date.now()) - 2);
       playTimer();
     } else if (!playing) {
       playTimer();

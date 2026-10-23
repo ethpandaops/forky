@@ -11,7 +11,7 @@ require (
 	github.com/aws/smithy-go v1.23.2
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/creasty/defaults v1.8.0
-	github.com/ethpandaops/ethwallclock v0.4.0
+	github.com/ethpandaops/ethwallclock v0.5.0
 	github.com/ethpandaops/xatu v1.25.0
 	github.com/glebarez/sqlite v1.10.0
 	github.com/go-co-op/gocron v1.37.0

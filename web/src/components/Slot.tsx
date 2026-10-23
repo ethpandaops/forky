@@ -18,13 +18,12 @@ type Props = {
 };
 
 function Slot({ subMarks, slot, shouldFetch = false, segments }: Props) {
-  const { secondsPerSlot, genesisTime } = useEthereum();
+  const { slotDuration, slotStartTime } = useEthereum();
+  const slotDurationMs = slotDuration(slot);
   const { node } = useFocus();
   const { ids } = useActive();
 
-  const slotStart = useMemo<number>(() => {
-    return genesisTime + slot * (secondsPerSlot * 1000);
-  }, [genesisTime, slot, secondsPerSlot]);
+  const slotStart = useMemo<number>(() => slotStartTime(slot), [slotStartTime, slot]);
 
   const { data, isLoading, error } = useMetadataQuery({ slot }, shouldFetch);
   // prefetch framess
@@ -37,7 +36,7 @@ function Slot({ subMarks, slot, shouldFetch = false, segments }: Props) {
         if (node && frame.node !== node) return acc;
         const timeIntoSlot = new Date(frame.fetched_at).getTime() - slotStart;
 
-        const leftPercentage = (timeIntoSlot / (secondsPerSlot * 1000)) * 100;
+        const leftPercentage = (timeIntoSlot / slotDurationMs) * 100;
         const groupIndex = Math.floor(leftPercentage / groupSize);
         const group = groupIndex * groupSize + groupSize / 2;
         if (!acc[group]) {
@@ -50,7 +49,7 @@ function Slot({ subMarks, slot, shouldFetch = false, segments }: Props) {
     return Object.entries(groups).map(([group, metadata]) => (
       <SnapshotMarker key={`${group}`} percentage={group} metadata={metadata} activeIds={ids} />
     ));
-  }, [data, slotStart, secondsPerSlot, segments, node, ids]);
+  }, [data, slotStart, slotDurationMs, segments, node, ids]);
 
   return (
     <Ruler
@@ -59,7 +58,7 @@ function Slot({ subMarks, slot, shouldFetch = false, segments }: Props) {
         isLoading && shouldFetch && 'animate-pulse',
         isLoading ? 'bg-surface-raised/60' : error ? 'bg-danger-surface/60' : 'bg-track',
       )}
-      marks={secondsPerSlot}
+      marks={slotDurationMs / 1000}
       subMarks={subMarks}
       summary={`SLOT ${slot}`}
       markText

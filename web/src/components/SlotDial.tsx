@@ -11,51 +11,61 @@ const PADDING = 2;
 const MARKER_WIDTH = 4;
 
 const SlotDial = () => {
-  const { secondsPerSlot } = useEthereum();
+  const { slotDuration } = useEthereum();
   const { slot: focusedSlot, timeIntoSlot } = useFocus();
   const [width] = useWindowSize();
 
-  const slotWidth = secondsPerSlot * MARKER_WIDTH * (SUB_MARKS + 1);
-  const segments = slotWidth / MARKER_WIDTH;
-  const slotPadding = Math.ceil(((width / slotWidth) * 1.25) / 2);
+  const slotWidth = (slot: number) => (slotDuration(slot) / 1000) * MARKER_WIDTH * (SUB_MARKS + 1);
+  const focusedSlotWidth = slotWidth(focusedSlot);
+  const slotPadding = Math.ceil(((width / focusedSlotWidth) * 1.25) / 2);
   const multiplier = 250 / (SUB_MARKS + 1);
-  const middleSlotX = width / 2 - (slotWidth / (secondsPerSlot * 1000)) * timeIntoSlot;
+  const middleSlotX = width / 2 - (MARKER_WIDTH * (SUB_MARKS + 1) * timeIntoSlot) / 1000;
 
-  const leftSideRulers = Array.from(
-    { length: focusedSlot < slotPadding ? focusedSlot : slotPadding },
-    (_, i) => {
-      return (
-        <div key={i} className="fixed" style={{ left: middleSlotX - (i + 1) * slotWidth }}>
-          <Slot
-            slot={focusedSlot - i - 1}
-            subMarks={SUB_MARKS}
-            shouldFetch={i < PADDING}
-            segments={segments}
-          />
-        </div>
-      );
-    },
-  );
-
-  const rightSideRulers = Array.from({ length: slotPadding }, (_, i) => {
-    return (
-      <div key={i} className="fixed" style={{ left: middleSlotX + (i + 1) * slotWidth }}>
+  const leftSideRulers: React.ReactNode[] = [];
+  let leftX = middleSlotX;
+  for (let i = 0; i < Math.min(focusedSlot, slotPadding); i++) {
+    const slot = focusedSlot - i - 1;
+    leftX -= slotWidth(slot);
+    leftSideRulers.push(
+      <div key={i} className="fixed" style={{ left: leftX }}>
         <Slot
-          slot={focusedSlot + i + 1}
+          slot={slot}
           subMarks={SUB_MARKS}
           shouldFetch={i < PADDING}
-          segments={segments}
+          segments={slotWidth(slot) / MARKER_WIDTH}
         />
-      </div>
+      </div>,
     );
-  });
+  }
+
+  const rightSideRulers: React.ReactNode[] = [];
+  let rightX = middleSlotX + focusedSlotWidth;
+  for (let i = 0; i < slotPadding; i++) {
+    const slot = focusedSlot + i + 1;
+    rightSideRulers.push(
+      <div key={i} className="fixed" style={{ left: rightX }}>
+        <Slot
+          slot={slot}
+          subMarks={SUB_MARKS}
+          shouldFetch={i < PADDING}
+          segments={slotWidth(slot) / MARKER_WIDTH}
+        />
+      </div>,
+    );
+    rightX += slotWidth(slot);
+  }
 
   return (
     <div className="cursor-col-resize select-none relative flex items-center justify-center w-screen overflow-hidden bg-dial h-24">
       <TimeDrag multiplier={multiplier}>
         {leftSideRulers}
         <div className="absolute" style={{ left: middleSlotX }}>
-          <Slot slot={focusedSlot} subMarks={SUB_MARKS} segments={segments} shouldFetch />
+          <Slot
+            slot={focusedSlot}
+            subMarks={SUB_MARKS}
+            segments={focusedSlotWidth / MARKER_WIDTH}
+            shouldFetch
+          />
         </div>
         {rightSideRulers}
       </TimeDrag>

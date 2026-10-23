@@ -188,6 +188,8 @@ github.com/ethpandaops/ethcore v0.0.0-20260807105509-b0a20c27b6e7 h1:BpbY4wxDlLH
 github.com/ethpandaops/ethcore v0.0.0-20260807105509-b0a20c27b6e7/go.mod h1:my+mlolmidi2VzoaGhchtcxDVbp1ZNVQJtnkk3oe6+M=
 github.com/ethpandaops/ethwallclock v0.4.0 h1:+sgnhf4pk6hLPukP076VxkiLloE4L0Yk1yat+ZyHh1g=
 github.com/ethpandaops/ethwallclock v0.4.0/go.mod h1:y0Cu+mhGLlem19vnAV2x0hpFS5KZ7oOi2SWYayv9l24=
+github.com/ethpandaops/ethwallclock v0.5.0 h1:UZmH3uKHZTZczMGz0ZMTIHTY5q5vNkczfo7eZgOGn5o=
+github.com/ethpandaops/ethwallclock v0.5.0/go.mod h1:y0Cu+mhGLlem19vnAV2x0hpFS5KZ7oOi2SWYayv9l24=
 github.com/ethpandaops/go-eth2-client v0.1.9-0.20261007031839-0b35f0981d55 h1:W1Tc0Vd2JTQheYcKhTQJUzjJgdSqq9GTd1aTfj2f8jE=
 github.com/ethpandaops/go-eth2-client v0.1.9-0.20261007031839-0b35f0981d55/go.mod h1:sIVbaug0GsltsJS+hj8ID4dmWBIt8TXoNIesvuBCGt0=
 github.com/ethpandaops/go-eth2-client v0.1.10 h1:AGROjkS5jMkveL1E46wyWNv5JLJNWWyZE/hIVBibIrg=

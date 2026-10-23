@@ -571,9 +571,9 @@ components:
 
     EthereumSpec:
       type: object
-      required: [seconds_per_slot, slots_per_epoch, genesis_time]
+      required: [slot_duration_ms, slots_per_epoch, genesis_time]
       properties:
-        seconds_per_slot:
+        slot_duration_ms:
           type: integer
           format: int64
         slots_per_epoch:
@@ -582,6 +582,12 @@ components:
         genesis_time:
           type: string
           format: date-time
+        heze_fork_epoch:
+          type: integer
+          format: int64
+        slot_duration_ms_heze:
+          type: integer
+          format: int64
 
     EthereumSpecResult:
       type: object

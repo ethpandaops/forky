@@ -20,7 +20,7 @@ import { processForkChoiceData } from '@utils/graph';
 export const storyNetworkName = 'hoodi-story';
 
 export const storySpec = {
-  seconds_per_slot: 12,
+  slot_duration_ms: 12_000,
   slots_per_epoch: 32,
   genesis_time: '2024-01-01T00:00:00.000Z',
 };
@@ -38,7 +38,7 @@ function root(value: number): string {
 }
 
 function atSlot(slot: number, offsetMs = 0): string {
-  return new Date(baseGenesis + slot * storySpec.seconds_per_slot * 1000 + offsetMs).toISOString();
+  return new Date(baseGenesis + slot * storySpec.slot_duration_ms + offsetMs).toISOString();
 }
 
 function forkChoiceNode({
@@ -324,7 +324,7 @@ function frameMetadata({
   eventSource?: string;
 }): FrameMetadata {
   const slot = Math.floor(
-    (new Date(fetchedAt).getTime() - baseGenesis) / 1000 / storySpec.seconds_per_slot,
+    (new Date(fetchedAt).getTime() - baseGenesis) / storySpec.slot_duration_ms,
   );
 
   return {

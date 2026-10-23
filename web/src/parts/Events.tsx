@@ -93,7 +93,7 @@ export default function Events({ open, closeTo }: { open: boolean; closeTo: stri
     }),
   );
   const { node, stop, setTime } = useFocus();
-  const { slotsPerEpoch, secondsPerSlot, genesisTime } = useEthereum();
+  const { slotsPerEpoch, slotAtTime } = useEthereum();
   const setLocation = useAppNavigate();
 
   // Recompute the filter at event time (in the input handlers below) rather
@@ -430,8 +430,7 @@ export default function Events({ open, closeTo }: { open: boolean; closeTo: stri
                             {events.map(event => {
                               if (!event) return null;
                               const time = new Date(event.time);
-                              const timeDiff = (time.getTime() - genesisTime) / 1000;
-                              const slot = Math.floor(timeDiff / secondsPerSlot);
+                              const slot = slotAtTime(time.getTime());
                               const epoch = Math.floor(slot / slotsPerEpoch);
                               return (
                                 <tr

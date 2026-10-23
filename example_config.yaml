@@ -49,18 +49,26 @@ forky:
     network:
       # name: "mainnet"
       # spec:
-      #   seconds_per_slot: 12
+      #   slot_duration_ms: 12000
       #   slots_per_epoch: 32
       #   genesis_time: 1606824023
 
       # name: "goerli"
       # spec:
-      #   seconds_per_slot: 12
+      #   slot_duration_ms: 12000
       #   slots_per_epoch: 32
       #   genesis_time: 1616508000   
 
       # name: "sepolia"
       # spec:
-      #   seconds_per_slot: 12
+      #   slot_duration_ms: 12000
       #   slots_per_epoch: 32
       #   genesis_time: 1655733600
+
+      # name: "heze-devnet-3"
+      # spec:
+      #   slot_duration_ms: 12000
+      #   slots_per_epoch: 32
+      #   genesis_time: 1792577902
+      #   heze_fork_epoch: 5
+      #   slot_duration_ms_heze: 9000
