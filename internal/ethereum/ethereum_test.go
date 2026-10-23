@@ -2,6 +2,7 @@ package ethereum
 
 import (
 	"testing"
+	"time"
 
 	"github.com/ethpandaops/ethwallclock"
 	"github.com/sirupsen/logrus"
@@ -84,4 +85,28 @@ func TestBeaconChain_SecondsPerSlot_ReturnsSecondsPerSlot(t *testing.T) {
 	beaconchain, _ := NewBeaconChain(log, config)
 	secondsPerSlot := beaconchain.SecondsPerSlot()
 	assert.Equal(t, uint64(12), secondsPerSlot)
+}
+
+func TestBeaconChain_Wallclock_FollowsHezeSlotDuration(t *testing.T) {
+	config := &Config{
+		Network: NetworkConfig{
+			Name: "TestNet",
+			Spec: SpecConfig{
+				SlotsPerEpoch:      32,
+				SecondsPerSlot:     12,
+				GenesisTime:        1590832934,
+				HezeForkEpoch:      5,
+				SlotDurationMsHeze: 9000,
+			},
+		},
+	}
+	log := logrus.New()
+	beaconchain, err := NewBeaconChain(log, config)
+	require.NoError(t, err)
+
+	forkTime := beaconchain.GenesisTime().Add(160 * 12 * time.Second)
+	slot, epoch, err := beaconchain.Wallclock().FromTime(forkTime.Add(18799 * 9 * time.Second))
+	require.NoError(t, err)
+	assert.Equal(t, uint64(18959), slot.Number())
+	assert.Equal(t, uint64(592), epoch.Number())
 }

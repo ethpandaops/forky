@@ -18,6 +18,9 @@ type SpecConfig struct {
 	SecondsPerSlot uint64 `yaml:"seconds_per_slot"`
 	SlotsPerEpoch  uint64 `yaml:"slots_per_epoch"`
 	GenesisTime    uint64 `yaml:"genesis_time"`
+
+	HezeForkEpoch      uint64 `yaml:"heze_fork_epoch"`
+	SlotDurationMsHeze uint64 `yaml:"slot_duration_ms_heze"`
 }
 
 func (c *Config) Validate() error {

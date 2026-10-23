@@ -487,6 +487,14 @@ func (f *ForkChoice) GetEthereumSpecSlotsPerEpoch(_ context.Context) uint64 {
 	return f.eth.Spec().SlotsPerEpoch
 }
 
+func (f *ForkChoice) GetEthereumSpecHezeSlotDuration(_ context.Context) (forkEpoch, slotDurationMs uint64) {
+	operation := OperationGetEthereumSpec
+
+	f.metrics.ObserveOperation(operation)
+
+	return f.eth.Spec().HezeForkEpoch, f.eth.Spec().SlotDurationMsHeze
+}
+
 func (f *ForkChoice) GetEthereumSpecGenesisTime(_ context.Context) time.Time {
 	operation := OperationGetEthereumSpec
 

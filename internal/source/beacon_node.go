@@ -248,11 +248,24 @@ func (b *BeaconNode) bootstrap(ctx context.Context) error {
 
 	b.slotsPerEpoch = sslotsPerEpoch
 
+	var wallclockOpts []ethwallclock.Option
+
+	hezeForkEpoch, hasHezeForkEpoch := spec["HEZE_FORK_EPOCH"].(uint64)
+	slotDurationMsHeze, hasSlotDurationMsHeze := spec["SLOT_DURATION_MS_HEZE"].(uint64)
+
+	if hasHezeForkEpoch && hasSlotDurationMsHeze {
+		wallclockOpts = append(wallclockOpts, ethwallclock.WithHezeSlotDuration(
+			hezeForkEpoch,
+			time.Duration(slotDurationMsHeze)*time.Millisecond, //nolint:gosec // ignore integer overflow conversion uint64 -> int64
+		))
+	}
+
 	// Create the wallclock.
 	b.wallclock = ethwallclock.NewEthereumBeaconChain(
 		b.genesis.GenesisTime,
 		b.secondsPerSlot,
 		b.slotsPerEpoch,
+		wallclockOpts...,
 	)
 
 	return nil

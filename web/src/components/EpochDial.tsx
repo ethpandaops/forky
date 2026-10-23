@@ -9,8 +9,9 @@ import useWindowSize from '@hooks/useWindowSize';
 const SUB_MARKS = 0;
 
 function SlotDial() {
-  const { slotsPerEpoch, secondsPerSlot } = useEthereum();
+  const { slotsPerEpoch, slotDuration } = useEthereum();
   const { epoch: focusedEpoch, timeIntoEpoch: focusedTimeIntoEpoch } = useFocus();
+  const secondsPerSlot = slotDuration(focusedEpoch * slotsPerEpoch);
   const [width] = useWindowSize();
 
   const epochWidth = slotsPerEpoch * 4 * (SUB_MARKS + 1);

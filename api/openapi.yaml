@@ -582,6 +582,12 @@ components:
         genesis_time:
           type: string
           format: date-time
+        heze_fork_epoch:
+          type: integer
+          format: int64
+        slot_duration_ms_heze:
+          type: integer
+          format: int64
 
     EthereumSpecResult:
       type: object

@@ -12,6 +12,7 @@ import Selection from '@parts/Selection';
 import Stage from '@parts/Stage';
 import Timeline from '@parts/Timeline';
 import ApplicationProvider from '@providers/application';
+import { slotStartTime } from '@utils/slots';
 
 export default function App({
   node,
@@ -36,13 +37,21 @@ export default function App({
 
   const formattedData = useMemo<ValueProps | undefined>(() => {
     if (!data?.spec) return undefined;
-    const { seconds_per_slot, slots_per_epoch, genesis_time } = data.spec;
+    const {
+      seconds_per_slot,
+      slots_per_epoch,
+      genesis_time,
+      heze_fork_epoch,
+      slot_duration_ms_heze,
+    } = data.spec;
     if (!seconds_per_slot || !slots_per_epoch || !genesis_time) return undefined;
     return {
       secondsPerSlot: seconds_per_slot,
       slotsPerEpoch: slots_per_epoch,
       genesisTime: new Date(genesis_time).getTime(),
       networkName: data.network_name ?? 'Unknown',
+      hezeForkEpoch: heze_fork_epoch === undefined ? undefined : Number(heze_fork_epoch),
+      hezeSecondsPerSlot: slot_duration_ms_heze ? Number(slot_duration_ms_heze) / 1000 : undefined,
     };
   }, [data]);
 
@@ -58,13 +67,8 @@ export default function App({
 
     // use the server time if it exists
     if (formattedData && dataNow) {
-      return [
-        formattedData.genesisTime +
-          dataNow.slot * (formattedData.secondsPerSlot * 1000) -
-          // offset minus 2 slots
-          formattedData.secondsPerSlot * 1000 * 2,
-        true,
-      ];
+      // offset minus 2 slots
+      return [slotStartTime(formattedData, dataNow.slot - 2), true];
     }
 
     // worst case when failing to get server now, just use the local time at

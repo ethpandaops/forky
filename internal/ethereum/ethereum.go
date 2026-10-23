@@ -30,7 +30,15 @@ func NewBeaconChain(log logrus.FieldLogger, config *Config) (*BeaconChain, error
 	//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 	genesisTime := time.Unix(int64(config.Network.Spec.GenesisTime), 0)
 
-	wc := ethwallclock.NewEthereumBeaconChain(genesisTime, secondsPerSlot, config.Network.Spec.SlotsPerEpoch)
+	wc := ethwallclock.NewEthereumBeaconChain(
+		genesisTime,
+		secondsPerSlot,
+		config.Network.Spec.SlotsPerEpoch,
+		ethwallclock.WithHezeSlotDuration(
+			config.Network.Spec.HezeForkEpoch,
+			time.Duration(config.Network.Spec.SlotDurationMsHeze)*time.Millisecond, //nolint:gosec // ignore integer overflow conversion uint64 -> int64
+		),
+	)
 
 	return &BeaconChain{
 		log:         log.WithField("component", "ethereum/beaconchain"),

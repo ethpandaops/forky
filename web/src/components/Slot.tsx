@@ -18,13 +18,12 @@ type Props = {
 };
 
 function Slot({ subMarks, slot, shouldFetch = false, segments }: Props) {
-  const { secondsPerSlot, genesisTime } = useEthereum();
+  const { slotDuration, slotStartTime } = useEthereum();
+  const secondsPerSlot = slotDuration(slot);
   const { node } = useFocus();
   const { ids } = useActive();
 
-  const slotStart = useMemo<number>(() => {
-    return genesisTime + slot * (secondsPerSlot * 1000);
-  }, [genesisTime, slot, secondsPerSlot]);
+  const slotStart = useMemo<number>(() => slotStartTime(slot), [slotStartTime, slot]);
 
   const { data, isLoading, error } = useMetadataQuery({ slot }, shouldFetch);
   // prefetch framess

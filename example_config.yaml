@@ -64,3 +64,11 @@ forky:
       #   seconds_per_slot: 12
       #   slots_per_epoch: 32
       #   genesis_time: 1655733600
+
+      # name: "heze-devnet-3"
+      # spec:
+      #   seconds_per_slot: 12
+      #   slots_per_epoch: 32
+      #   genesis_time: 1792577902
+      #   heze_fork_epoch: 5
+      #   slot_duration_ms_heze: 9000

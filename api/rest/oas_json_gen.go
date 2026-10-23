@@ -445,12 +445,26 @@ func (s *EthereumSpec) encodeFields(e *jx.Encoder) {
 		e.FieldStart("genesis_time")
 		json.EncodeDateTime(e, s.GenesisTime)
 	}
+	{
+		if s.HezeForkEpoch.Set {
+			e.FieldStart("heze_fork_epoch")
+			s.HezeForkEpoch.Encode(e)
+		}
+	}
+	{
+		if s.SlotDurationMsHeze.Set {
+			e.FieldStart("slot_duration_ms_heze")
+			s.SlotDurationMsHeze.Encode(e)
+		}
+	}
 }
 
-var jsonFieldsNameOfEthereumSpec = [3]string{
+var jsonFieldsNameOfEthereumSpec = [5]string{
 	0: "seconds_per_slot",
 	1: "slots_per_epoch",
 	2: "genesis_time",
+	3: "heze_fork_epoch",
+	4: "slot_duration_ms_heze",
 }
 
 // Decode decodes EthereumSpec from json.
@@ -497,6 +511,26 @@ func (s *EthereumSpec) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"genesis_time\"")
+			}
+		case "heze_fork_epoch":
+			if err := func() error {
+				s.HezeForkEpoch.Reset()
+				if err := s.HezeForkEpoch.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"heze_fork_epoch\"")
+			}
+		case "slot_duration_ms_heze":
+			if err := func() error {
+				s.SlotDurationMsHeze.Reset()
+				if err := s.SlotDurationMsHeze.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"slot_duration_ms_heze\"")
 			}
 		default:
 			return d.Skip()
@@ -3581,6 +3615,41 @@ func (s OptInt) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
 func (s *OptInt) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode encodes int64 as json.
+func (o OptInt64) Encode(e *jx.Encoder) {
+	if !o.Set {
+		return
+	}
+	e.Int64(int64(o.Value))
+}
+
+// Decode decodes int64 from json.
+func (o *OptInt64) Decode(d *jx.Decoder) error {
+	if o == nil {
+		return errors.New("invalid: unable to decode OptInt64 to nil")
+	}
+	o.Set = true
+	v, err := d.Int64()
+	if err != nil {
+		return err
+	}
+	o.Value = int64(v)
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s OptInt64) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *OptInt64) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
