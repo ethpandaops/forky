@@ -3,7 +3,6 @@ name: Vet
 on:
   pull_request:
   workflow_dispatch:
-    branches: [ '**' ]
 permissions:
   contents: read
   checks: write
