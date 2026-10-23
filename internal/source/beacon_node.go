@@ -43,10 +43,10 @@ type BeaconNode struct {
 	metrics *BasicMetrics
 
 	// Ethereum network parameters.
-	genesis        *v1.Genesis
-	secondsPerSlot time.Duration
-	slotsPerEpoch  uint64
-	wallclock      *ethwallclock.EthereumBeaconChain
+	genesis       *v1.Genesis
+	slotDuration  time.Duration
+	slotsPerEpoch uint64
+	wallclock     *ethwallclock.EthereumBeaconChain
 
 	// forkChoiceV2RetryAt is when to next try the v2 fork choice endpoint, in
 	// unix nanoseconds, after the node reported it as unsupported.
@@ -152,7 +152,7 @@ func (b *BeaconNode) Ready(ctx context.Context) bool {
 		return false
 	}
 
-	if b.secondsPerSlot == 0 {
+	if b.slotDuration == 0 {
 		return false
 	}
 
@@ -223,18 +223,12 @@ func (b *BeaconNode) bootstrap(ctx context.Context) error {
 
 	spec := specRsp.Data
 
-	secondsPerSlotSpec, ok := spec["SECONDS_PER_SLOT"]
+	slotDurationMs, ok := spec["SLOT_DURATION_MS"].(uint64)
 	if !ok {
-		return errors.New("failed to fetch SECONDS_PER_SLOT")
+		return errors.New("failed to fetch SLOT_DURATION_MS")
 	}
 
-	secondsPerSlot, ok := secondsPerSlotSpec.(time.Duration)
-	if !ok {
-		return errors.New("failed to cast SECONDS_PER_SLOT to time.Duration")
-	}
-
-	//nolint:unconvert //incorrect
-	b.secondsPerSlot = time.Duration(secondsPerSlot)
+	b.slotDuration = time.Duration(slotDurationMs) * time.Millisecond //nolint:gosec // ignore integer overflow conversion uint64 -> int64
 
 	slotsPerEpoch, ok := spec["SLOTS_PER_EPOCH"]
 	if !ok {
@@ -263,7 +257,7 @@ func (b *BeaconNode) bootstrap(ctx context.Context) error {
 	// Create the wallclock.
 	b.wallclock = ethwallclock.NewEthereumBeaconChain(
 		b.genesis.GenesisTime,
-		b.secondsPerSlot,
+		b.slotDuration,
 		b.slotsPerEpoch,
 		wallclockOpts...,
 	)

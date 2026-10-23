@@ -434,8 +434,8 @@ func (s *EthereumSpec) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *EthereumSpec) encodeFields(e *jx.Encoder) {
 	{
-		e.FieldStart("seconds_per_slot")
-		e.Int64(s.SecondsPerSlot)
+		e.FieldStart("slot_duration_ms")
+		e.Int64(s.SlotDurationMs)
 	}
 	{
 		e.FieldStart("slots_per_epoch")
@@ -460,7 +460,7 @@ func (s *EthereumSpec) encodeFields(e *jx.Encoder) {
 }
 
 var jsonFieldsNameOfEthereumSpec = [5]string{
-	0: "seconds_per_slot",
+	0: "slot_duration_ms",
 	1: "slots_per_epoch",
 	2: "genesis_time",
 	3: "heze_fork_epoch",
@@ -476,17 +476,17 @@ func (s *EthereumSpec) Decode(d *jx.Decoder) error {
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
-		case "seconds_per_slot":
+		case "slot_duration_ms":
 			requiredBitSet[0] |= 1 << 0
 			if err := func() error {
 				v, err := d.Int64()
-				s.SecondsPerSlot = int64(v)
+				s.SlotDurationMs = int64(v)
 				if err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
-				return errors.Wrap(err, "decode field \"seconds_per_slot\"")
+				return errors.Wrap(err, "decode field \"slot_duration_ms\"")
 			}
 		case "slots_per_epoch":
 			requiredBitSet[0] |= 1 << 1

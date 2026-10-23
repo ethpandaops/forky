@@ -17,8 +17,8 @@ export default function useContext() {
 }
 
 export interface State {
-  secondsPerSlot: number;
-  setSecondsPerSlot: (secondsPerSlot: number) => void;
+  slotDurationMs: number;
+  setSlotDurationMs: (slotDurationMs: number) => void;
   slotsPerEpoch: number;
   setSlotsPerEpoch: (slotsPerEpoch: number) => void;
   genesisTime: number;
@@ -31,51 +31,51 @@ export interface State {
 }
 
 export interface ValueProps {
-  secondsPerSlot: number;
+  slotDurationMs: number;
   slotsPerEpoch: number;
   genesisTime: number;
   networkName: string;
   hezeForkEpoch?: number;
-  hezeSecondsPerSlot?: number;
+  hezeSlotDurationMs?: number;
 }
 
 export function useValue(props: ValueProps): State {
-  const [secondsPerSlot, setSecondsPerSlot] = useState<number>(props.secondsPerSlot);
+  const [slotDurationMs, setSlotDurationMs] = useState<number>(props.slotDurationMs);
   const [slotsPerEpoch, setSlotsPerEpoch] = useState<number>(props.slotsPerEpoch);
   const [genesisTime, setGenesisTime] = useState<number>(props.genesisTime);
   const [networkName, setNetworkName] = useState<string>(props.networkName);
-  const { hezeForkEpoch, hezeSecondsPerSlot } = props;
+  const { hezeForkEpoch, hezeSlotDurationMs } = props;
 
   const slotDuration = useCallback(
     (slot: number) =>
       scheduleSlotDuration(
-        { genesisTime, secondsPerSlot, slotsPerEpoch, hezeForkEpoch, hezeSecondsPerSlot },
+        { genesisTime, slotDurationMs, slotsPerEpoch, hezeForkEpoch, hezeSlotDurationMs },
         slot,
       ),
-    [genesisTime, secondsPerSlot, slotsPerEpoch, hezeForkEpoch, hezeSecondsPerSlot],
+    [genesisTime, slotDurationMs, slotsPerEpoch, hezeForkEpoch, hezeSlotDurationMs],
   );
 
   const slotStartTime = useCallback(
     (slot: number) =>
       scheduleSlotStartTime(
-        { genesisTime, secondsPerSlot, slotsPerEpoch, hezeForkEpoch, hezeSecondsPerSlot },
+        { genesisTime, slotDurationMs, slotsPerEpoch, hezeForkEpoch, hezeSlotDurationMs },
         slot,
       ),
-    [genesisTime, secondsPerSlot, slotsPerEpoch, hezeForkEpoch, hezeSecondsPerSlot],
+    [genesisTime, slotDurationMs, slotsPerEpoch, hezeForkEpoch, hezeSlotDurationMs],
   );
 
   const slotAtTime = useCallback(
     (time: number) =>
       scheduleSlotAtTime(
-        { genesisTime, secondsPerSlot, slotsPerEpoch, hezeForkEpoch, hezeSecondsPerSlot },
+        { genesisTime, slotDurationMs, slotsPerEpoch, hezeForkEpoch, hezeSlotDurationMs },
         time,
       ),
-    [genesisTime, secondsPerSlot, slotsPerEpoch, hezeForkEpoch, hezeSecondsPerSlot],
+    [genesisTime, slotDurationMs, slotsPerEpoch, hezeForkEpoch, hezeSlotDurationMs],
   );
 
   return {
-    secondsPerSlot,
-    setSecondsPerSlot,
+    slotDurationMs,
+    setSlotDurationMs,
     slotsPerEpoch,
     setSlotsPerEpoch,
     genesisTime,

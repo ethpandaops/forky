@@ -471,12 +471,12 @@ func (f *ForkChoice) GetEthereumNow(_ context.Context) (phase0.Slot, phase0.Epoc
 	return phase0.Slot(slot.Number()), phase0.Epoch(epoch.Number()), nil
 }
 
-func (f *ForkChoice) GetEthereumSpecSecondsPerSlot(_ context.Context) uint64 {
+func (f *ForkChoice) GetEthereumSpecSlotDurationMs(_ context.Context) uint64 {
 	operation := OperationGetEthereumSpec
 
 	f.metrics.ObserveOperation(operation)
 
-	return f.eth.Spec().SecondsPerSlot
+	return f.eth.Spec().SlotDurationMs
 }
 
 func (f *ForkChoice) GetEthereumSpecSlotsPerEpoch(_ context.Context) uint64 {

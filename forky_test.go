@@ -39,7 +39,7 @@ forky:
     network:
       name: "mainnet"
       spec:
-        seconds_per_slot: 12
+        slot_duration_ms: 12000
         slots_per_epoch: 32
         genesis_time: 1609459200
   retention_period: 24h

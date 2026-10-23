@@ -15,7 +15,7 @@ type NetworkConfig struct {
 }
 
 type SpecConfig struct {
-	SecondsPerSlot uint64 `yaml:"seconds_per_slot"`
+	SlotDurationMs uint64 `yaml:"slot_duration_ms"`
 	SlotsPerEpoch  uint64 `yaml:"slots_per_epoch"`
 	GenesisTime    uint64 `yaml:"genesis_time"`
 
@@ -44,8 +44,8 @@ func (c *NetworkConfig) Validate() error {
 }
 
 func (c *SpecConfig) Validate() error {
-	if c.SecondsPerSlot == 0 {
-		return errors.New("seconds_per_slot is required")
+	if c.SlotDurationMs == 0 {
+		return errors.New("slot_duration_ms is required")
 	}
 
 	if c.SlotsPerEpoch == 0 {

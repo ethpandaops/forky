@@ -15,14 +15,14 @@ import { BASE_URL } from '@utils/environment';
 export const networkName = 'goerli';
 
 export const spec: EthereumSpec = {
-  seconds_per_slot: 12,
+  slot_duration_ms: 12_000,
   slots_per_epoch: 32,
   genesis_time: '2021-03-23T14:00:00Z',
 };
 
 export function getNow(): EthereumNow {
   const slot = Math.floor(
-    (Date.now() - new Date(spec.genesis_time).getTime()) / 1000 / spec.seconds_per_slot,
+    (Date.now() - new Date(spec.genesis_time).getTime()) / spec.slot_duration_ms,
   );
 
   return {
@@ -57,7 +57,7 @@ export const handlers: Array<RequestHandler> = [
             id: 'bfe734bb-c986-4859-8b3e-44314ceca0b5',
             node: nodes.nodes[Math.floor(Math.random() * nodes.nodes.length)],
             fetched_at: new Date(
-              new Date(spec.genesis_time).getTime() + slot * spec.seconds_per_slot * 1000,
+              new Date(spec.genesis_time).getTime() + slot * spec.slot_duration_ms,
             ).toISOString(),
             wall_clock_slot: slot,
             wall_clock_epoch: epoch,
@@ -82,7 +82,7 @@ export const handlers: Array<RequestHandler> = [
             id,
             node: 'ams3-teku-001',
             fetched_at: new Date(
-              new Date(spec.genesis_time).getTime() + slot * spec.seconds_per_slot * 1000,
+              new Date(spec.genesis_time).getTime() + slot * spec.slot_duration_ms,
             ).toISOString(),
             wall_clock_slot: slot,
             wall_clock_epoch: epoch,

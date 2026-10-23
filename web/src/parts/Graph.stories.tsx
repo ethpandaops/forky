@@ -26,7 +26,7 @@ function blockRoot(key: string): string {
 
 function fetchedAt(slot: number, nodeIndex: number): string {
   return new Date(
-    graphGenesisTime + slot * storySpec.seconds_per_slot * 1000 + (nodeIndex + 1) * 1_000,
+    graphGenesisTime + slot * storySpec.slot_duration_ms + (nodeIndex + 1) * 1_000,
   ).toISOString();
 }
 

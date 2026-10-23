@@ -11,14 +11,14 @@ const SUB_MARKS = 0;
 function SlotDial() {
   const { slotsPerEpoch, slotDuration } = useEthereum();
   const { epoch: focusedEpoch, timeIntoEpoch: focusedTimeIntoEpoch } = useFocus();
-  const secondsPerSlot = slotDuration(focusedEpoch * slotsPerEpoch);
+  const slotDurationMs = slotDuration(focusedEpoch * slotsPerEpoch);
   const [width] = useWindowSize();
 
   const epochWidth = slotsPerEpoch * 4 * (SUB_MARKS + 1);
   const epochPadding = Math.ceil(((width / epochWidth) * 1.25) / 2);
-  const multiplier = (250 / (SUB_MARKS + 1)) * secondsPerSlot;
+  const multiplier = (250 / (SUB_MARKS + 1)) * (slotDurationMs / 1000);
   const middleSlotX =
-    width / 2 - (epochWidth / (slotsPerEpoch * secondsPerSlot * 1000)) * focusedTimeIntoEpoch;
+    width / 2 - (epochWidth / (slotsPerEpoch * slotDurationMs)) * focusedTimeIntoEpoch;
 
   const leftSideRulers = Array.from(
     { length: focusedEpoch < epochPadding ? focusedEpoch : epochPadding },

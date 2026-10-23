@@ -15,7 +15,7 @@ const SlotDial = () => {
   const { slot: focusedSlot, timeIntoSlot } = useFocus();
   const [width] = useWindowSize();
 
-  const slotWidth = (slot: number) => slotDuration(slot) * MARKER_WIDTH * (SUB_MARKS + 1);
+  const slotWidth = (slot: number) => (slotDuration(slot) / 1000) * MARKER_WIDTH * (SUB_MARKS + 1);
   const focusedSlotWidth = slotWidth(focusedSlot);
   const slotPadding = Math.ceil(((width / focusedSlotWidth) * 1.25) / 2);
   const multiplier = 250 / (SUB_MARKS + 1);

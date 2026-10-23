@@ -571,9 +571,9 @@ components:
 
     EthereumSpec:
       type: object
-      required: [seconds_per_slot, slots_per_epoch, genesis_time]
+      required: [slot_duration_ms, slots_per_epoch, genesis_time]
       properties:
-        seconds_per_slot:
+        slot_duration_ms:
           type: integer
           format: int64
         slots_per_epoch:

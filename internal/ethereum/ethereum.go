@@ -1,7 +1,6 @@
 package ethereum
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/ethpandaops/ethwallclock"
@@ -22,17 +21,12 @@ func NewBeaconChain(log logrus.FieldLogger, config *Config) (*BeaconChain, error
 		return nil, err
 	}
 
-	secondsPerSlot, err := time.ParseDuration(fmt.Sprintf("%vs", config.Network.Spec.SecondsPerSlot))
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse seconds per slot: %w", err)
-	}
-
 	//nolint:gosec // ignore integer overflow conversion uint64 -> int64
 	genesisTime := time.Unix(int64(config.Network.Spec.GenesisTime), 0)
 
 	wc := ethwallclock.NewEthereumBeaconChain(
 		genesisTime,
-		secondsPerSlot,
+		time.Duration(config.Network.Spec.SlotDurationMs)*time.Millisecond, //nolint:gosec // ignore integer overflow conversion uint64 -> int64
 		config.Network.Spec.SlotsPerEpoch,
 		ethwallclock.WithHezeSlotDuration(
 			config.Network.Spec.HezeForkEpoch,
@@ -72,8 +66,8 @@ func (b *BeaconChain) SlotsPerEpoch() uint64 {
 	return b.config.Network.Spec.SlotsPerEpoch
 }
 
-func (b *BeaconChain) SecondsPerSlot() uint64 {
-	return b.config.Network.Spec.SecondsPerSlot
+func (b *BeaconChain) SlotDurationMs() uint64 {
+	return b.config.Network.Spec.SlotDurationMs
 }
 
 func (b *BeaconChain) GenesisTime() time.Time {

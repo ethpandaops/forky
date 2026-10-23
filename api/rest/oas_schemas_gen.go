@@ -109,16 +109,16 @@ func (s *EthereumNow) SetEpoch(val Epoch) {
 
 // Ref: #/components/schemas/EthereumSpec
 type EthereumSpec struct {
-	SecondsPerSlot     int64     `json:"seconds_per_slot"`
+	SlotDurationMs     int64     `json:"slot_duration_ms"`
 	SlotsPerEpoch      int64     `json:"slots_per_epoch"`
 	GenesisTime        time.Time `json:"genesis_time"`
 	HezeForkEpoch      OptInt64  `json:"heze_fork_epoch"`
 	SlotDurationMsHeze OptInt64  `json:"slot_duration_ms_heze"`
 }
 
-// GetSecondsPerSlot returns the value of SecondsPerSlot.
-func (s *EthereumSpec) GetSecondsPerSlot() int64 {
-	return s.SecondsPerSlot
+// GetSlotDurationMs returns the value of SlotDurationMs.
+func (s *EthereumSpec) GetSlotDurationMs() int64 {
+	return s.SlotDurationMs
 }
 
 // GetSlotsPerEpoch returns the value of SlotsPerEpoch.
@@ -141,9 +141,9 @@ func (s *EthereumSpec) GetSlotDurationMsHeze() OptInt64 {
 	return s.SlotDurationMsHeze
 }
 
-// SetSecondsPerSlot sets the value of SecondsPerSlot.
-func (s *EthereumSpec) SetSecondsPerSlot(val int64) {
-	s.SecondsPerSlot = val
+// SetSlotDurationMs sets the value of SlotDurationMs.
+func (s *EthereumSpec) SetSlotDurationMs(val int64) {
+	s.SlotDurationMs = val
 }
 
 // SetSlotsPerEpoch sets the value of SlotsPerEpoch.

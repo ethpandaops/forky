@@ -29,7 +29,7 @@ func (h *HTTP) GetEthereumNow(ctx context.Context) (rest.GetEthereumNowRes, erro
 // spec.
 func (h *HTTP) GetEthereumSpec(ctx context.Context) (rest.GetEthereumSpecRes, error) {
 	spec := rest.EthereumSpec{
-		SecondsPerSlot: safeInt64(h.svc.GetEthereumSpecSecondsPerSlot(ctx)),
+		SlotDurationMs: safeInt64(h.svc.GetEthereumSpecSlotDurationMs(ctx)),
 		SlotsPerEpoch:  safeInt64(h.svc.GetEthereumSpecSlotsPerEpoch(ctx)),
 		GenesisTime:    h.svc.GetEthereumSpecGenesisTime(ctx).UTC(),
 	}

@@ -153,7 +153,7 @@ export const zEthereumNow = z.object({
 });
 
 export const zEthereumSpec = z.object({
-  seconds_per_slot: z.coerce
+  slot_duration_ms: z.coerce
     .bigint()
     .check(
       z.minimum(BigInt('-9223372036854775808'), {

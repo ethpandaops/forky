@@ -38,20 +38,20 @@ export default function App({
   const formattedData = useMemo<ValueProps | undefined>(() => {
     if (!data?.spec) return undefined;
     const {
-      seconds_per_slot,
+      slot_duration_ms,
       slots_per_epoch,
       genesis_time,
       heze_fork_epoch,
       slot_duration_ms_heze,
     } = data.spec;
-    if (!seconds_per_slot || !slots_per_epoch || !genesis_time) return undefined;
+    if (!slot_duration_ms || !slots_per_epoch || !genesis_time) return undefined;
     return {
-      secondsPerSlot: seconds_per_slot,
+      slotDurationMs: slot_duration_ms,
       slotsPerEpoch: slots_per_epoch,
       genesisTime: new Date(genesis_time).getTime(),
       networkName: data.network_name ?? 'Unknown',
       hezeForkEpoch: heze_fork_epoch === undefined ? undefined : Number(heze_fork_epoch),
-      hezeSecondsPerSlot: slot_duration_ms_heze ? Number(slot_duration_ms_heze) / 1000 : undefined,
+      hezeSlotDurationMs: slot_duration_ms_heze ? Number(slot_duration_ms_heze) : undefined,
     };
   }, [data]);
 

@@ -1,40 +1,38 @@
 export interface SlotSchedule {
   genesisTime: number;
-  secondsPerSlot: number;
+  slotDurationMs: number;
   slotsPerEpoch: number;
   hezeForkEpoch?: number;
-  hezeSecondsPerSlot?: number;
+  hezeSlotDurationMs?: number;
 }
 
-function hezeForkSlot({ slotsPerEpoch, hezeForkEpoch, hezeSecondsPerSlot }: SlotSchedule) {
-  if (!hezeSecondsPerSlot || hezeForkEpoch === undefined) return Infinity;
+function hezeForkSlot({ slotsPerEpoch, hezeForkEpoch, hezeSlotDurationMs }: SlotSchedule) {
+  if (!hezeSlotDurationMs || hezeForkEpoch === undefined) return Infinity;
   return hezeForkEpoch * slotsPerEpoch;
 }
 
 export function slotDuration(schedule: SlotSchedule, slot: number): number {
-  if (slot >= hezeForkSlot(schedule) && schedule.hezeSecondsPerSlot) {
-    return schedule.hezeSecondsPerSlot;
+  if (slot >= hezeForkSlot(schedule) && schedule.hezeSlotDurationMs) {
+    return schedule.hezeSlotDurationMs;
   }
-  return schedule.secondsPerSlot;
+  return schedule.slotDurationMs;
 }
 
 export function slotStartTime(schedule: SlotSchedule, slot: number): number {
-  const { genesisTime, secondsPerSlot, hezeSecondsPerSlot } = schedule;
+  const { genesisTime, slotDurationMs, hezeSlotDurationMs } = schedule;
   const forkSlot = hezeForkSlot(schedule);
-  if (slot < forkSlot || !hezeSecondsPerSlot) {
-    return genesisTime + slot * secondsPerSlot * 1000;
+  if (slot < forkSlot || !hezeSlotDurationMs) {
+    return genesisTime + slot * slotDurationMs;
   }
-  return (
-    genesisTime + forkSlot * secondsPerSlot * 1000 + (slot - forkSlot) * hezeSecondsPerSlot * 1000
-  );
+  return genesisTime + forkSlot * slotDurationMs + (slot - forkSlot) * hezeSlotDurationMs;
 }
 
 export function slotAtTime(schedule: SlotSchedule, time: number): number {
-  const { genesisTime, secondsPerSlot, hezeSecondsPerSlot } = schedule;
+  const { genesisTime, slotDurationMs, hezeSlotDurationMs } = schedule;
   const forkSlot = hezeForkSlot(schedule);
   const forkTime = slotStartTime(schedule, forkSlot);
-  if (time < forkTime || !hezeSecondsPerSlot) {
-    return Math.floor((time - genesisTime) / 1000 / secondsPerSlot);
+  if (time < forkTime || !hezeSlotDurationMs) {
+    return Math.floor((time - genesisTime) / slotDurationMs);
   }
-  return forkSlot + Math.floor((time - forkTime) / 1000 / hezeSecondsPerSlot);
+  return forkSlot + Math.floor((time - forkTime) / hezeSlotDurationMs);
 }
