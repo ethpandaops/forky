@@ -8,10 +8,14 @@ on:
 jobs:
   goreleaser:
     permissions:
-      contents: write
-    runs-on:
-      - self-hosted-ghr
-      - size-l-x64
+      contents: write      # GitHub release
+      packages: write      # push to ghcr.io/ethpandaops
+      id-token: write      # attest, and authenticate to the image mirror
+      attestations: write
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.attest.outputs.image }}
+      digests: ${{ steps.attest.outputs.digests }}
     steps:
       - name: Checkout
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
@@ -67,11 +71,12 @@ jobs:
         uses: docker/setup-buildx-action@885d1462b80bc1c1c7f0b00334ad271f09369c55 # v2.10.0
         with:
           endpoint: builders
-      - name: Login to DockerHub
+      - name: Login to GHCR
         uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2.2.0
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
       - name: Update GoReleaser config
         run: |
           cp .goreleaser.yaml ../.goreleaser.yaml.new
@@ -92,3 +97,27 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_SUFFIX: ${{ env.RELEASE_SUFFIX }}
+      - name: Attest images
+        id: attest
+        uses: ethpandaops/actions/mirror-image@738aeadbcdc54f1c9af659d35f8ef29dd5c0fae6
+        with:
+          goreleaser-artifacts: dist/artifacts.json
+          mirror: "false"
+
+  # Separate job, so "Re-run failed jobs" retries only the mirror and never
+  # rebuilds the images.
+  mirror:
+    needs: goreleaser
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      id-token: write      # authenticate to the image mirror
+    steps:
+      - name: Mirror to Docker Hub
+        uses: ethpandaops/actions/mirror-image@738aeadbcdc54f1c9af659d35f8ef29dd5c0fae6
+        with:
+          image: ${{ needs.goreleaser.outputs.image }}
+          tags: ${{ needs.goreleaser.outputs.digests }}
+          attest: "false"
+          mirror-url: ${{ secrets.IMAGE_MIRROR_URL }}
